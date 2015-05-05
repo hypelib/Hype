@@ -63,7 +63,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="FsAlg">
-      <HintPath>..\..\packages\FsAlg.0.5.5\lib\FsAlg.dll</HintPath>
+      <HintPath>..\..\packages\FsAlg.0.5.7\lib\FsAlg.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="mscorlib" />

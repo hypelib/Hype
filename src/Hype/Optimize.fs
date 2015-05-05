@@ -62,16 +62,16 @@ type Optimize =
     static member GD (par:OptimizeParams) (q:Vector<D>->D) (w0:Vector<D>) =
         let w = Vector.copy w0
         match par.LearningRate with
-            | ConstantLearningRate l ->
-                w, [|for _ in 0..par.Epochs do
-                        let v, g = grad' q w
-                        Vector.replace2 (fun w g -> w - l * g) w g
-                        yield v|]
-            | ScheduledLearningRate l ->
-                w, [|for i in 0..l.Length - 1 do
-                        let v, g = grad' q w
-                        Vector.replace2 (fun w g -> w - l.[i] * g) w g
-                        yield v|]
+        | ConstantLearningRate l ->
+            w, [|for _ in 0..par.Epochs do
+                    let v, g = grad' q w
+                    Vector.replace2 (fun w g -> w - l * g) w g
+                    yield v|]
+        | ScheduledLearningRate l ->
+            w, [|for i in 0..l.Length - 1 do
+                    let v, g = grad' q w
+                    Vector.replace2 (fun w g -> w - l.[i] * g) w g
+                    yield v|]
 
 type Train =
     // y_i = f(w, x_i)

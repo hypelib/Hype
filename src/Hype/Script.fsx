@@ -1,4 +1,4 @@
-﻿#r "../../packages/FsAlg.0.5.5/lib/FsAlg.dll"
+﻿#r "../../packages/FsAlg.0.5.7/lib/FsAlg.dll"
 #r "../../packages/DiffSharp.0.6.0/lib/DiffSharp.dll"
 #r "bin/Debug/Hype.dll"
 #I "../../packages/RProvider.1.1.8"
@@ -12,7 +12,6 @@ open FsAlg.Generic
 open DiffSharp.AD
 open DiffSharp.AD.Vector
 open Hype
-
 
 
 let f (x:Vector<_>) = sin x.[0] - cos x.[1]
