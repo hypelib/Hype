@@ -28,24 +28,38 @@ namespace Hype.Neural
 
 open FsAlg.Generic
 open DiffSharp.AD
-open DiffSharp.AD.Vector
+open Hype
 
-type Layer =
+[<AbstractClass>]
+type Layer() =
     abstract member Run : Vector<D> -> Vector<D>
-    abstract member Train : D -> unit
+    abstract member Encode : Vector<D>
+    abstract member Decode : Vector<D> -> unit
+    abstract member EncodeLength: int
+    member l.Train (par:Params) (t:(Vector<D>*Vector<D>)[]) =
+        let f w x =
+            l.Decode w
+            l.Run x
+        let wopt, progress = par.TrainFunction par t f (l.Encode)
+        l.Decode wopt
+        progress
 
-type PerceptronLayer =
-    {W:Matrix<D>
-     b:Vector<D>
-     activation:D->D}
-    interface Layer with
-        member l.Run x = l.W * x + l.b |> Vector.map l.activation
-        member l.Train learningrate =
-            l.W |> Matrix.replace (fun (x:D) -> x.P - learningrate * x.A)
-            l.b |> Vector.replace (fun (x:D) -> x.P - learningrate * x.A)
 
-type Network =
-    {layers:Layer[]}
-    member n.Run (x:Vector<D>) =
-        let runLayer (x:Vector<D>) (l:Layer) = l.Run x
-        Array.fold runLayer x n.layers
+[<AutoOpen>]
+module LayerOps =
+    let runLayer x (l:Layer) = l.Run x
+    let encodeLayer (l:Layer) = l.Encode
+    let decodeLayer w (l:Layer) = l.Decode w
+    let encodeLength (l:Layer) = l.EncodeLength
+    let trainLayer par t (l:Layer) = l.Train par t
+
+
+type Network(layers:Layer[]) =
+    inherit Layer()
+    let layers = layers
+    override n.Run (x:Vector<D>) = Array.fold runLayer x layers
+    override n.Encode = layers |> Array.map encodeLayer |> Array.reduce Vector.append
+    override n.Decode w =
+        let ww = Vector.split (layers |> Array.map encodeLength) w |> Array.ofSeq
+        Array.iter2 decodeLayer ww layers
+    override n.EncodeLength = layers |> Array.map encodeLength |> Array.sum

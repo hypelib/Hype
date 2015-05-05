@@ -1,7 +1,7 @@
-﻿#r "../../packages/FsAlg.0.5.7/lib/FsAlg.dll"
-#r "../../packages/DiffSharp.0.6.0/lib/DiffSharp.dll"
-#r "bin/Debug/Hype.dll"
-#I "../../packages/RProvider.1.1.8"
+﻿#r "../packages/FsAlg.0.5.7/lib/FsAlg.dll"
+#r "../packages/DiffSharp.0.6.0/lib/DiffSharp.dll"
+#r "../src/Hype/bin/Debug/Hype.dll"
+#I "../packages/RProvider.1.1.8"
 #load "RProvider.fsx"
 
 open RDotNet

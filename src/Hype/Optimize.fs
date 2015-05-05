@@ -46,20 +46,24 @@ type LearningRate =
     | ConstantLearningRate of D
     | ScheduledLearningRate of Vector<D>
 
-type OptimizeParams =
+type Params =
     {Epochs : int
      MinibatchSize : int
      LearningRate : LearningRate
-     LossFunction : Vector<D>->Vector<D>->D}
+     LossFunction : Vector<D>->Vector<D>->D
+     TrainFunction: Params->(Vector<D>*Vector<D>)[]->(Vector<D>->Vector<D>->Vector<D>)->Vector<D>->(Vector<D>*D[])}
     static member Default =
-        {Epochs = 100
-         MinibatchSize = 2
-         LearningRate = ConstantLearningRate (D 0.9)
-         LossFunction = fun x y -> Vector.normSq (x - y)}
+        {Epochs = 1000
+         MinibatchSize = 3
+         LearningRate = ConstantLearningRate (D 0.5)
+         LossFunction = fun x y -> Vector.normSq (x - y)
+         TrainFunction = Train.GD}
 
-type Optimize =
+
+
+and Optimize =
     // w_t+1 = w_t - learningrate * grad Q(w)
-    static member GD (par:OptimizeParams) (q:Vector<D>->D) (w0:Vector<D>) =
+    static member GD (par:Params) (q:Vector<D>->D) (w0:Vector<D>) =
         let w = Vector.copy w0
         match par.LearningRate with
         | ConstantLearningRate l ->
@@ -73,16 +77,17 @@ type Optimize =
                     Vector.replace2 (fun w g -> w - l.[i] * g) w g
                     yield v|]
 
-type Train =
+
+and Train =
     // y_i = f(w, x_i)
     // Q(w) = sum_i Loss(y_i, f(w, x_i))
-    static member GD (par:OptimizeParams) (t:(Vector<D>*Vector<D>)[]) (f:Vector<D>->Vector<D>->Vector<D>) (w0:Vector<D>) =
+    static member GD (par:Params) (t:(Vector<D>*Vector<D>)[]) (f:Vector<D>->Vector<D>->Vector<D>) (w0:Vector<D>) =
         let q w = t |> Array.sumBy (fun (x, y) -> par.LossFunction y (f w x))
         Optimize.GD par q w0
 
     // y_i = f(w, x_i)
     // Q(w) = Loss(y_i, f(w, x_i)), i random
-    static member SGD (par:OptimizeParams) (t:(Vector<D>*Vector<D>)[]) (f:Vector<D>->Vector<D>->Vector<D>) (w0:Vector<D>) =
+    static member SGD (par:Params) (t:(Vector<D>*Vector<D>)[]) (f:Vector<D>->Vector<D>->Vector<D>) (w0:Vector<D>) =
         let q w =
             [|for _ in 0..par.MinibatchSize - 1 do
                 yield t.[Rnd.Next(t.Length)]|]

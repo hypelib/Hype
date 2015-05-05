@@ -51,9 +51,10 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="Util.fs" />
     <Compile Include="Optimize.fs" />
     <Compile Include="Neural.fs" />
-    <None Include="Script.fsx" />
+    <Compile Include="Neural.MLP.fs" />
     <Content Include="packages.config" />
     <Content Include="app.config" />
   </ItemGroup>

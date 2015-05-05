@@ -5,6 +5,12 @@ VisualStudioVersion = 14.0.22823.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Hype", "src\Hype\Hype.fsproj", "{C0D20855-B1EF-4E06-B6D3-4CDCE806EF35}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{DF6DEBF7-871E-48F2-9462-E8BCC3795B80}"
+	ProjectSection(SolutionItems) = preProject
+		examples\Hyperparameter.fsx = examples\Hyperparameter.fsx
+		examples\MLP.fsx = examples\MLP.fsx
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
