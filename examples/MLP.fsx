@@ -1,5 +1,5 @@
 ﻿#r "../packages/FsAlg.0.5.7/lib/FsAlg.dll"
-#r "../packages/DiffSharp.0.6.0/lib/DiffSharp.dll"
+#r "../packages/DiffSharp.0.6.1/lib/DiffSharp.dll"
 #r "../src/Hype/bin/Debug/Hype.dll"
 #I "../packages/RProvider.1.1.8"
 #load "RProvider.fsx"
@@ -28,7 +28,7 @@ let XOR = [|vector [D 0.; D 0.], vector [D 0.]
 let net = MLP.create([|2; 1|])
 
 let train (x:Vector<_>) =
-    let par = {Params.Default with LearningRate = ConstantLearningRate x.[0]; TrainFunction = Train.SGD; Epochs = 100}
+    let par = {Params.Default with LearningRate = ConstantLearningRate x.[0]; TrainFunction = Train.SGD; Epochs = 4}
     let net2 = MLP.create([|2; 1|])
     let f ww xx =
         net2.Decode ww
@@ -39,4 +39,4 @@ let train (x:Vector<_>) =
 
 let test2 = Optimize.GD {Params.Default with Epochs = 50} train (vector [D 15.56])
 
-R.plot(test2 |> Array.map fst |> Array.map (fun (x:Vector<_>) -> float x.[0]))
+R.plot(test2 |> Array.map fst |> Array.map Vector.toArray |> )

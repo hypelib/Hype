@@ -1,5 +1,5 @@
 ﻿#r "../packages/FsAlg.0.5.7/lib/FsAlg.dll"
-#r "../packages/DiffSharp.0.6.0/lib/DiffSharp.dll"
+#r "../packages/DiffSharp.0.6.1/lib/DiffSharp.dll"
 #r "../src/Hype/bin/Debug/Hype.dll"
 #I "../packages/RProvider.1.1.8"
 #load "RProvider.fsx"
@@ -29,4 +29,4 @@ let f3 (x:Vector<_>) =
 //let test = Optimize.GD DefaultParams f (vector [D 1.; D 1.])
 let test = Optimize.GD {Params.Default with Epochs = 50} f3 (vector [D 1.])
 
-R.plot(test |> Array.map fst |> Array.map (fun (x:Vector<_>) -> float x.[0]))
+R.plot(test |> Array.map (fst >> Vector.get _ 0)

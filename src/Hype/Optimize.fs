@@ -64,18 +64,18 @@ type Params =
 and Optimize =
     // w_t+1 = w_t - learningrate * grad Q(w)
     static member GD (par:Params) (q:Vector<D>->D) (w0:Vector<D>) =
-        let mutable w = Vector.copy w0
+        let w = ref (Vector.copy w0)
         match par.LearningRate with
         | ConstantLearningRate l ->
             [|for i in 0..par.Epochs do
-                let v, g = grad' q w
-                yield w, v
-                w <- w - l * g|]
+                let v, g = grad' q !w
+                yield !w, v
+                w := !w - l * g|]
         | ScheduledLearningRate l ->
             [|for i in 0..l.Length - 1 do
-                let v, g = grad' q w
-                yield w, v
-                w <- w - l.[i] * g|]
+                let v, g = grad' q !w
+                yield !w, v
+                w := !w - l.[i] * g|]
 
 and Train =
     // y_i = f(w, x_i)
@@ -86,9 +86,9 @@ and Train =
 
     // y_i = f(w, x_i)
     // Q(w) = Loss(y_i, f(w, x_i)), i random
+    /// Stochastic gradient descent
     static member SGD (par:Params) (t:(Vector<D>*Vector<D>)[]) (f:Vector<D>->Vector<D>->Vector<D>) (w0:Vector<D>) =
         let q w =
-            [|for _ in 0..par.MinibatchSize - 1 do
-                yield t.[Rnd.Next(t.Length)]|]
-            |> Array.sumBy (fun (x, y) -> par.LossFunction y (f w x))
+            Array.init par.MinibatchSize (fun _ -> t.[Rnd.Next(t.Length)]) // Create a minibatch of random pairs
+            |> Array.sumBy (fun (x, y) -> par.LossFunction y (f w x)) // Sum the error of the minibatch
         Optimize.GD par q w0

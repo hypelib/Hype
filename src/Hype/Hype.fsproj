@@ -10,7 +10,7 @@
     <RootNamespace>Hype</RootNamespace>
     <AssemblyName>Hype</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
-    <TargetFSharpCoreVersion>4.4.0.0</TargetFSharpCoreVersion>
+    <TargetFSharpCoreVersion>4.3.1.0</TargetFSharpCoreVersion>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Name>Hype</Name>
   </PropertyGroup>
@@ -60,11 +60,11 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="DiffSharp">
-      <HintPath>..\..\packages\DiffSharp.0.6.1\lib\DiffSharp.dll</HintPath>
+      <HintPath>..\..\packages\DiffSharp.0.6.2\lib\DiffSharp.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="FsAlg">
-      <HintPath>..\..\packages\FsAlg.0.5.7\lib\FsAlg.dll</HintPath>
+      <HintPath>..\..\packages\FsAlg.0.5.8\lib\FsAlg.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="mscorlib" />

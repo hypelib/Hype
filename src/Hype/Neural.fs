@@ -41,7 +41,7 @@ type Layer() =
             l.Decode w
             l.Run x
         let ww = par.TrainFunction par t f (l.Encode)
-        ww |> Array.last |> fst |> l.Decode
+        ww.[ww.Length - 1] |> fst |> l.Decode
         ww
 
 
