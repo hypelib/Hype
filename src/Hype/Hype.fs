@@ -24,8 +24,12 @@
 //   www.bcl.hamilton.ie
 //
 
-module Hype.Util
+namespace Hype
 
 open DiffSharp.AD
+open FsAlg.Generic
 
-let inline sigmoid (x:D) = D 1. / (D 1. + exp -x)
+[<RequireQualifiedAccess>]
+module Activation =
+    let inline sigmoid (x:D) = D 1. / (D 1. + exp -x)
+

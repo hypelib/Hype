@@ -29,7 +29,6 @@ namespace Hype.Neural
 open FsAlg.Generic
 open DiffSharp.AD
 open Hype
-open Hype.Util
 open Hype.Neural
 
 
@@ -50,4 +49,4 @@ type MLP =
     static member create(l:int[], activation, wmin, wmax) =
         Network(Array.init (l.Length - 1) (fun i ->
             PerceptronLayer(Matrix.init l.[i + 1] l.[i] (fun _ _ -> Rnd.NextD(wmin, wmax)), Vector.init l.[i + 1] (fun _ -> Rnd.NextD(wmin, wmax)), activation) :> Layer))
-    static member create(l:int[]) = MLP.create(l, sigmoid, D -0.5, D 0.5)
+    static member create(l:int[]) = MLP.create(l, Activation.sigmoid, D -0.5, D 0.5)

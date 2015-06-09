@@ -1,8 +1,12 @@
-﻿#r "../packages/FsAlg.0.5.7/lib/FsAlg.dll"
-#r "../packages/DiffSharp.0.6.1/lib/DiffSharp.dll"
-#r "../src/Hype/bin/Debug/Hype.dll"
+﻿#r "../packages/FsAlg.0.5.9/lib/FsAlg.dll"
+#r "../packages/DiffSharp.0.6.2/lib/DiffSharp.dll"
 #I "../packages/RProvider.1.1.8"
 #load "RProvider.fsx"
+
+#load "../src/Hype/Hype.fs"
+#load "../src/Hype/Optimize.fs"
+#load "../src/Hype/Neural.fs"
+#load "../src/Hype/Neural.MLP.fs"
 
 open RDotNet
 open RProvider
@@ -13,30 +17,32 @@ open DiffSharp.AD
 open Hype
 open Hype.Neural
 
+let OR = LabeledSet.create [[|D 0.; D 0.|], [|D 0.|]
+                            [|D 0.; D 1.|], [|D 1.|]
+                            [|D 1.; D 0.|], [|D 1.|]
+                            [|D 1.; D 1.|], [|D 1.|]]
 
-
-let OR = [|vector [D 0.; D 0.], vector [D 0.]
-           vector [D 0.; D 1.], vector [D 1.]
-           vector [D 1.; D 0.], vector [D 1.]
-           vector [D 1.; D 1.], vector [D 1.]|]
-
-let XOR = [|vector [D 0.; D 0.], vector [D 0.]
-            vector [D 0.; D 1.], vector [D 1.]
-            vector [D 1.; D 0.], vector [D 1.]
-            vector [D 1.; D 1.], vector [D 0.]|]
+let XOR = LabeledSet.create [[|D 0.; D 0.|], [|D 0.|]
+                             [|D 0.; D 1.|], [|D 1.|]
+                             [|D 1.; D 0.|], [|D 1.|]
+                             [|D 1.; D 1.|], [|D 0.|]]
 
 let net = MLP.create([|2; 1|])
 
 let train (x:Vector<_>) =
-    let par = {Params.Default with LearningRate = ConstantLearningRate x.[0]; TrainFunction = Train.SGD; Epochs = 4}
-    let net2 = MLP.create([|2; 1|])
-    let f ww xx =
-        net2.Decode ww
-        net2.Run xx
-    let q ww = OR |> Array.sumBy (fun (x, y) -> par.LossFunction y (f ww x))
-    let op = Optimize.GD par q (net2.Encode |> Vector.map primal)
-    op |> Array.last |> snd
+    let report _ w _ =
+        namedParams [   
+            "x", box (w |> Vector.map float |> Vector.toArray);
+            "type", box "o"; 
+            "col", box "blue";
+            "ylim", box [0; 4]]
+        |> R.plot |> ignore
 
-let test2 = Optimize.GD {Params.Default with Epochs = 50} train (vector [D 15.56])
+    let par = {Params.Default with LearningRate = ScheduledLearningRate x; TrainFunction = Train.GD; GDReportFunction = report}
+    let net2 = MLP.create([|2; 1|], tanh, D -0.5, D 0.5)
+    let op = net2.Train par OR
+    op |> snd
 
-R.plot(test2 |> Array.map fst |> Array.map Vector.toArray |> )
+let test2 = 
+    Optimize.GD {Params.Default with Epochs = 100} train (Vector.create 15 (D 0.5))
+

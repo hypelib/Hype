@@ -26,6 +26,7 @@
 
 namespace Hype
 
+open Hype
 open FsAlg.Generic
 open DiffSharp.AD
 open DiffSharp.AD.Vector
@@ -42,6 +43,20 @@ type Rnd() =
         R.NextDouble() * max
     static member NextD(min,max) = min + D (R.NextDouble()) * (max - min)
 
+type LabeledSet = 
+    {x: Matrix<D> 
+     y: Matrix<D>}
+    member t.Minibatch n =
+        let bi = Array.init n (fun _ -> Rnd.Next(t.x.Rows))
+        let bx = Matrix.initRows n (fun i -> t.x.[bi.[i],*] |> Vector.toArray)
+        let by = Matrix.initRows n (fun i -> t.y.[bi.[i],*] |> Vector.toArray)
+        {x = bx; y = by}
+    member t.Length = t.x.Rows
+    static member create (s:seq<D[]*D[]>) =
+        let x, y = s |> Seq.toArray |> Array.unzip
+        {x = Matrix.ofArrayArray x; y = Matrix.ofArrayArray y}
+        
+
 type LearningRate =
     | ConstantLearningRate of D
     | ScheduledLearningRate of Vector<D>
@@ -50,45 +65,51 @@ type Params =
     {Epochs : int
      MinibatchSize : int
      LearningRate : LearningRate
-     LossFunction : Vector<D>->Vector<D>->D
-     TrainFunction: Params->(Vector<D>*Vector<D>)[]->(Vector<D>->Vector<D>->Vector<D>)->Vector<D>->(Vector<D>*D)[]}
+     LossFunction : LabeledSet->(Vector<D>->Vector<D>)->D
+     TrainFunction: Params->LabeledSet->(Vector<D>->Vector<D>->Vector<D>)->Vector<D>->(Vector<D> * D)
+     GDReportFunction : int->Vector<D>->D->unit}
     static member Default =
         {Epochs = 100
          MinibatchSize = 3
-         LearningRate = ConstantLearningRate (D 0.5)
-         LossFunction = fun x y -> Vector.normSq (x - y)
-         TrainFunction = Train.GD}
+         LearningRate = ConstantLearningRate (D 0.2)
+         LossFunction = Loss.Quadratic
+         TrainFunction = Train.GD
+         GDReportFunction = fun _ _ _ -> ()}
 
 
 
 and Optimize =
     // w_t+1 = w_t - learningrate * grad Q(w)
     static member GD (par:Params) (q:Vector<D>->D) (w0:Vector<D>) =
-        let w = ref (Vector.copy w0)
         match par.LearningRate with
         | ConstantLearningRate l ->
-            [|for i in 0..par.Epochs do
-                let v, g = grad' q !w
-                yield !w, v
-                w := !w - l * g|]
+            let rec desc w i = 
+                let v, g = grad' q w
+                par.GDReportFunction i w v
+                if i >= par.Epochs then w, v else desc (w - l * g) (i + 1)
+            desc w0 0
         | ScheduledLearningRate l ->
-            [|for i in 0..l.Length - 1 do
-                let v, g = grad' q !w
-                yield !w, v
-                w := !w - l.[i] * g|]
+            let rec desc w i =
+                let v, g = grad' q w
+                par.GDReportFunction i w v
+                if i >= l.Length then w, v else desc (w - l.[i] * g) (i + 1)
+            desc w0 0
+
+and Loss =
+    static member Quadratic (t:LabeledSet) (f:Vector<D>->Vector<D>) = 
+        Array.init t.Length (fun i -> Vector.normSq (t.y.[i,*] - f t.x.[i,*])) |> Array.sum
 
 and Train =
-    // y_i = f(w, x_i)
-    // Q(w) = sum_i Loss(y_i, f(w, x_i))
-    static member GD (par:Params) (t:(Vector<D>*Vector<D>)[]) (f:Vector<D>->Vector<D>->Vector<D>) (w0:Vector<D>)  =
-        let q w = t |> Array.sumBy (fun (x, y) -> par.LossFunction y (f w x))
+    /// Gradient descent
+    static member GD (par:Params) (t:LabeledSet) (f:Vector<D>->Vector<D>->Vector<D>) (w0:Vector<D>)  =
+        let q w = par.LossFunction t (f w)
         Optimize.GD par q w0
 
-    // y_i = f(w, x_i)
-    // Q(w) = Loss(y_i, f(w, x_i)), i random
-    /// Stochastic gradient descent
-    static member SGD (par:Params) (t:(Vector<D>*Vector<D>)[]) (f:Vector<D>->Vector<D>->Vector<D>) (w0:Vector<D>) =
-        let q w =
-            Array.init par.MinibatchSize (fun _ -> t.[Rnd.Next(t.Length)]) // Create a minibatch of random pairs
-            |> Array.sumBy (fun (x, y) -> par.LossFunction y (f w x)) // Sum the error of the minibatch
+    /// Minibatch stochastic gradient descent
+    static member MSGD (par:Params) (t:LabeledSet) (f:Vector<D>->Vector<D>->Vector<D>) (w0:Vector<D>) =
+        let q w = par.LossFunction (t.Minibatch par.MinibatchSize) (f w)
         Optimize.GD par q w0
+
+    /// Stochastic gradient descent
+    static member SGD (par:Params) (t:LabeledSet) (f:Vector<D>->Vector<D>->Vector<D>) (w0:Vector<D>) =
+        Train.MSGD {par with MinibatchSize = 1} t f w0
