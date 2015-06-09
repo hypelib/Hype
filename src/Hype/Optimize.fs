@@ -58,8 +58,10 @@ type LabeledSet =
         
 
 type LearningRate =
-    | ConstantLearningRate of D
-    | ScheduledLearningRate of Vector<D>
+    | ConstantLearningRate of D // Constant learning rate value
+    | DecreasingLearningRate of D // Initial value of the learning rate, linearly drops to zero in Params.Epochs steps
+    | DecayingLearningRate of D * D // Initial value and exponential decay parameter of the learning rate, drops to zero in Params.Epochs steps
+    | ScheduledLearningRate of Vector<D> // Scheduled learning rate vector, its length overrides Params.Epochs
 
 type Params =
     {Epochs : int
@@ -87,6 +89,19 @@ and Optimize =
                 let v, g = grad' q w
                 par.GDReportFunction i w v
                 if i >= par.Epochs then w, v else desc (w - l * g) (i + 1)
+            desc w0 0
+        | DecreasingLearningRate l ->
+            let epochs = float par.Epochs
+            let rec desc w i = 
+                let v, g = grad' q w
+                par.GDReportFunction i w v
+                if i >= par.Epochs then w, v else desc (w - (l * (1. - (float i + 1.) / epochs)) * g) (i + 1)
+            desc w0 0
+        | DecayingLearningRate (l, r) ->
+            let rec desc w i = 
+                let v, g = grad' q w
+                par.GDReportFunction i w v
+                if i >= par.Epochs then w, v else desc (w - l * (exp (-r * (float i))) * g) (i + 1)
             desc w0 0
         | ScheduledLearningRate l ->
             let rec desc w i =

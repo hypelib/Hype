@@ -30,19 +30,19 @@ let XOR = LabeledSet.create [[|D 0.; D 0.|], [|D 0.|]
 let net = MLP.create([|2; 1|])
 
 let train (x:Vector<_>) =
-    let report _ w _ =
-        namedParams [   
-            "x", box (w |> Vector.map float |> Vector.toArray);
-            "type", box "o"; 
-            "col", box "blue";
-            "ylim", box [0; 4]]
-        |> R.plot |> ignore
-
-    let par = {Params.Default with LearningRate = ScheduledLearningRate x; TrainFunction = Train.GD; GDReportFunction = report}
-    let net2 = MLP.create([|2; 1|], tanh, D -0.5, D 0.5)
-    let op = net2.Train par OR
+    let par = {Params.Default with LearningRate = ScheduledLearningRate x; TrainFunction = Train.MSGD}
+    let net2 = MLP.create([|2; 1|], Activation.sigmoid, D -0.05, D 0.05)
+    let op = net2.Train par XOR
     op |> snd
 
 let test2 = 
-    Optimize.GD {Params.Default with Epochs = 100} train (Vector.create 15 (D 0.5))
+    let report i w _ =
+        if i % 10 = 0 then
+            namedParams [   
+                "x", box (w |> Vector.map float |> Vector.toArray);
+                "type", box "o"; 
+                "col", box "blue";
+                "ylim", box [0; 7]]
+            |> R.plot |> ignore
+    Optimize.GD {Params.Default with Epochs = 10000; LearningRate = DecreasingLearningRate (D 0.5); GDReportFunction = report} train (Vector.create 100 (D 0.1))
 
