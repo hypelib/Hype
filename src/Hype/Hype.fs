@@ -27,7 +27,26 @@
 namespace Hype
 
 open DiffSharp.AD
-open FsAlg.Generic
+
+
+type Rnd() =
+    static let R = new System.Random()
+    static member Next() = R.Next()
+    static member Next(max) = R.Next(max)
+    static member Next(min,max) = R.Next(min, max)
+    static member NextD() = D (R.NextDouble())
+    static member NextD(max) = 
+        if max < D 0. then invalidArg "max" "Max should be nonnegative."
+        R.NextDouble() * max
+    static member NextD(min,max) = min + D (R.NextDouble()) * (max - min)
+    static member Permutation(n:int) =
+        let swap i j (a:_[]) =
+            let tmp = a.[i]
+            a.[i] <- a.[j]
+            a.[j] <- tmp
+        let a = Array.init n (fun i -> i)
+        a |> Array.iteri (fun i _ -> swap i (R.Next(i, n)) a)
+        a
 
 [<RequireQualifiedAccess>]
 module Activation =

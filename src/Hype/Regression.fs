@@ -26,14 +26,13 @@
 
 namespace Hype
 
+open Hype
 open FsAlg.Generic
 open DiffSharp.AD
-open Hype
-open System.Drawing
+open DiffSharp.AD.Vector
 
-type Imaging =
-    static member Load (filename:string) =
-        let bmp = new System.Drawing.Bitmap(filename)
-        let m = Matrix.init bmp.Height bmp.Width (fun i j -> float (bmp.GetPixel(i, j).GetBrightness()))
-        bmp.Dispose()
-        m
+type Regression =
+    static member Linear (par:Params) (t:DataVS) (f:Vector<D>->Vector<D>->D) (w0:Vector<D>) =
+        let q w = Loss.Quadratic(t, f w)
+        Optimize.GD par q w0
+        
