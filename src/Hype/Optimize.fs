@@ -44,14 +44,22 @@ type Rnd() =
     static member NextD(min,max) = min + D (R.NextDouble()) * (max - min)
 
 type LabeledSet = 
-    {x: Matrix<D> 
-     y: Matrix<D>}
-    member t.Minibatch n =
-        let bi = Array.init n (fun _ -> Rnd.Next(t.x.Rows))
-        let bx = Matrix.initRows n (fun i -> t.x.[bi.[i],*] |> Vector.toArray)
-        let by = Matrix.initRows n (fun i -> t.y.[bi.[i],*] |> Vector.toArray)
-        {x = bx; y = by}
+    {mutable x: Matrix<D> 
+     mutable y: Matrix<D>}
+    member t.Item
+        with get i =
+            t.x.[*,i], t.y.[*,i]
     member t.Length = t.x.Rows
+    member t.Append(x, y) =
+        t.x <- Matrix.appendCol x t.x
+        t.y <- Matrix.appendCol y t.y
+    member t.ToSeq() =
+        Seq.init t.Length (fun i -> t.[i])
+    member t.Minibatch n =
+        let bi = Array.init n (fun _ -> Rnd.Next(t.x.Cols))
+        let bx = Seq.init n (fun i -> t.x.[*,bi.[i]]) |> Matrix.ofCols
+        let by = Seq.init n (fun i -> t.y.[*,bi.[i]]) |> Matrix.ofCols
+        {x = bx; y = by}
     static member create (s:seq<D[]*D[]>) =
         let x, y = s |> Seq.toArray |> Array.unzip
         {x = Matrix.ofArrayArray x; y = Matrix.ofArrayArray y}
@@ -73,7 +81,7 @@ type Params =
     static member Default =
         {Epochs = 100
          MinibatchSize = 3
-         LearningRate = ConstantLearningRate (D 0.2)
+         LearningRate = ConstantLearningRate (D 0.001)
          LossFunction = Loss.Quadratic
          TrainFunction = Train.GD
          GDReportFunction = fun _ _ _ -> ()}
@@ -85,34 +93,54 @@ and Optimize =
     static member GD (par:Params) (q:Vector<D>->D) (w0:Vector<D>) =
         match par.LearningRate with
         | ConstantLearningRate l ->
-            let rec desc w i = 
+            let mutable i = 0
+            let mutable w = Vector.copy w0
+            let mutable vv = D 0.
+            while i < par.Epochs do
                 let v, g = grad' q w
                 par.GDReportFunction i w v
-                if i >= par.Epochs then w, v else desc (w - l * g) (i + 1)
-            desc w0 0
+                vv <- v
+                w <- w - l * g
+                i <- i + 1
+            w, vv
         | DecreasingLearningRate l ->
             let epochs = float par.Epochs
-            let rec desc w i = 
+            let mutable i = 0
+            let mutable w = Vector.copy w0
+            let mutable vv = D 0.
+            while i < par.Epochs do
                 let v, g = grad' q w
                 par.GDReportFunction i w v
-                if i >= par.Epochs then w, v else desc (w - (l * (1. - (float i + 1.) / epochs)) * g) (i + 1)
-            desc w0 0
+                vv <- v
+                w <- w - (l * (1. - (float i + 1.) / epochs)) * g
+                i <- i + 1
+            w, vv
         | DecayingLearningRate (l, r) ->
-            let rec desc w i = 
+            let mutable i = 0
+            let mutable w = Vector.copy w0
+            let mutable vv = D 0.
+            while i < par.Epochs do
                 let v, g = grad' q w
                 par.GDReportFunction i w v
-                if i >= par.Epochs then w, v else desc (w - l * (exp (-r * (float i))) * g) (i + 1)
-            desc w0 0
+                vv <- v
+                w <- w - l * (exp (-r * (float i))) * g
+                i <- i + 1
+            w, vv
         | ScheduledLearningRate l ->
-            let rec desc w i =
+            let mutable i = 0
+            let mutable w = Vector.copy w0
+            let mutable vv = D 0.
+            while i < l.Length do
                 let v, g = grad' q w
                 par.GDReportFunction i w v
-                if i >= l.Length then w, v else desc (w - l.[i] * g) (i + 1)
-            desc w0 0
+                vv <- v
+                w <- w - l.[i] * g
+                i <- i + 1
+            w, vv
 
 and Loss =
     static member Quadratic (t:LabeledSet) (f:Vector<D>->Vector<D>) = 
-        Array.init t.Length (fun i -> Vector.normSq (t.y.[i,*] - f t.x.[i,*])) |> Array.sum
+        t.ToSeq() |> Seq.map (fun (x, y) -> Vector.normSq (y - f x)) |> Seq.sum
 
 and Train =
     /// Gradient descent

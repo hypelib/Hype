@@ -26,13 +26,14 @@
 
 namespace Hype
 
-open DiffSharp.AD
 open FsAlg.Generic
+open DiffSharp.AD
+open Hype
+open System.Drawing
 
-[<RequireQualifiedAccess>]
-module Activation =
-    let inline sigmoid (x:D) = D 1. / (D 1. + exp -x)
-    let inline softSign (x:D) = x / (D 1. + abs x)
-    let inline softPlus (x:D) = log (D 1. + exp x)
-    let inline rectifiedLinear (x:D) = max (D 0.) x
-
+type Imaging =
+    static member Load (filename:string) =
+        let bmp = new System.Drawing.Bitmap(filename)
+        let m = Matrix.init bmp.Height bmp.Width (fun i j -> float (bmp.GetPixel(i, j).GetBrightness()))
+        bmp.Dispose()
+        m

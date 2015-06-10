@@ -1,4 +1,4 @@
-﻿#r "../packages/FsAlg.0.5.9/lib/FsAlg.dll"
+﻿#r "../packages/FsAlg.0.5.11/lib/FsAlg.dll"
 #r "../packages/DiffSharp.0.6.2/lib/DiffSharp.dll"
 #I "../packages/RProvider.1.1.8"
 #load "RProvider.fsx"
@@ -27,7 +27,7 @@ let XOR = LabeledSet.create [[|D 0.; D 0.|], [|D 0.|]
                              [|D 1.; D 0.|], [|D 1.|]
                              [|D 1.; D 1.|], [|D 0.|]]
 
-let net = MLP.create([|2; 1|])
+let net = MLP.create([|2; 2; 1|])
 
 let train (x:Vector<_>) =
     let par = {Params.Default with LearningRate = ScheduledLearningRate x; TrainFunction = Train.MSGD}
@@ -44,5 +44,4 @@ let test2 =
                 "col", box "blue";
                 "ylim", box [0; 7]]
             |> R.plot |> ignore
-    Optimize.GD {Params.Default with Epochs = 10000; LearningRate = DecreasingLearningRate (D 0.5); GDReportFunction = report} train (Vector.create 100 (D 0.1))
-
+    Optimize.GD {Params.Default with Epochs = 500; LearningRate = DecreasingLearningRate (D 0.1); GDReportFunction = report} train (Vector.create 200 (D 0.1))
