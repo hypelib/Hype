@@ -31,9 +31,9 @@ let data2 = data.Minibatch 10
 
 let w0 = Rnd.Vector(data2.X.Rows)
 
-let w, v = Regression.Linear {Params.Default with Epochs = 150; LearningRate = DecreasingLearningRate (D 0.0000001)} data2 h w0
+let w, v = Regression.Linear {Params.Default with Epochs = 100} data h w0
 
 let fitted = h w
 
-let p = (h w) (fst data2.[2])
-let r = snd data2.[2]
+let p = (h w) (fst data.[40])
+let r = snd data.[40]

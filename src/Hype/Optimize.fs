@@ -38,6 +38,7 @@ type LearningRate =
     | DecreasingLearningRate of D // Initial value of the learning rate, linearly drops to zero in Params.Epochs steps
     | DecayingLearningRate of D * D // Initial value and exponential decay parameter of the learning rate, drops to zero in Params.Epochs steps
     | ScheduledLearningRate of Vector<D> // Scheduled learning rate vector, its length overrides Params.Epochs
+    | Backtracking of D * D // Backtracking line search
 
 
 type Params =
@@ -50,60 +51,59 @@ type Params =
     static member Default =
         {Epochs = 100
          MinibatchSize = 3
-         LearningRate = ConstantLearningRate (D 0.001)
+         LearningRate = Backtracking (D 0.25, D 0.75)
          LossFunction = Loss.Quadratic
          TrainFunction = Train.GD
          GDReportFunction = fun _ _ _ -> ()}
 
 and Optimize =
-    // w_t+1 = w_t - learningrate * grad Q(w)
-    static member GD (par:Params) (q:Vector<D>->D) (w0:Vector<D>) =
-        match par.LearningRate with
-        | ConstantLearningRate l ->
-            let mutable i = 0
-            let mutable w = Vector.copy w0
-            let mutable vv = q w0
-            while i < par.Epochs do
-                let v, g = grad' q w
-                par.GDReportFunction i w v
-                vv <- v
-                w <- w - l * g
-                i <- i + 1
-            w, vv
-        | DecreasingLearningRate l ->
-            let epochs = float par.Epochs
-            let mutable i = 0
-            let mutable w = Vector.copy w0
-            let mutable vv = q w0
-            while i < par.Epochs do
-                let v, g = grad' q w
-                par.GDReportFunction i w v
-                vv <- v
-                w <- w - (l * (1. - (float i + 1.) / epochs)) * g
-                i <- i + 1
-            w, vv
-        | DecayingLearningRate (l, r) ->
-            let mutable i = 0
-            let mutable w = Vector.copy w0
-            let mutable vv = q w0
-            while i < par.Epochs do
-                let v, g = grad' q w
-                par.GDReportFunction i w v
-                vv <- v
-                w <- w - l * (exp (-r * (float i))) * g
-                i <- i + 1
-            w, vv
-        | ScheduledLearningRate l ->
-            let mutable i = 0
-            let mutable w = Vector.copy w0
-            let mutable vv = q w0
-            while i < l.Length do
-                let v, g = grad' q w
-                par.GDReportFunction i w v
-                vv <- v
-                w <- w - l.[i] * g
-                i <- i + 1
-            w, vv
+    static member GD (par:Params) (f:Vector<D>->D) (w0:Vector<D>) =
+        let epochs = 
+            match par.LearningRate with
+            | ScheduledLearningRate l -> l.Length
+            | _ -> par.Epochs
+        let update =
+            match par.LearningRate with
+            | ConstantLearningRate l -> 
+                fun _ w f -> 
+                    let v, g = grad' f w    
+                    let w' = w - l * g
+                    v, w'
+            | DecreasingLearningRate l -> 
+                fun i w f -> 
+                    let v, g = grad' f w
+                    let w' = w - (l * (1. - (float i + 1.) / float epochs)) * g
+                    v, w'
+            | DecayingLearningRate (l, r) -> 
+                fun i w f -> 
+                    let v, g = grad' f w
+                    let w' = w - l * (exp (-r * (float i))) * g
+                    v, w'
+            | ScheduledLearningRate l -> 
+                fun i w f -> 
+                    let v, g = grad' f w
+                    let w' = w - l.[i] * g
+                    v, w'
+            | Backtracking (a, b) ->
+                fun _ w f -> 
+                    let v, g = grad' f w
+                    let gg = Vector.normSq g
+                    let mutable l = D 1.
+                    while f (w - l * g) > v - a * l * gg do
+                        l <- l * b
+                    let w' = w - l * g
+                    v, w'
+        let mutable i = 0
+        let mutable w = Vector.copy w0
+        let mutable vv = f w0
+        while i < epochs do
+            let v, w' = update i w f
+            par.GDReportFunction i w v
+            vv <- v
+            w <- w'
+            i <- i + 1
+        w, vv
+
 
 and Loss =
     static member Quadratic(t:DataVS, f:Vector<D>->D) =
