@@ -95,14 +95,14 @@ and Optimize =
                     v, w'
         let mutable i = 0
         let mutable w = Vector.copy w0
-        let mutable vv = f w0
+        let mutable v = f w0
         while i < epochs do
-            let v, w' = update i w f
-            par.GDReportFunction i w v
-            vv <- v
+            let v', w' = update i w f
             w <- w'
+            if i = epochs - 1 then v <- f w' else v <- v'
+            par.GDReportFunction i w v
             i <- i + 1
-        w, vv
+        w, v
 
 
 and Loss =

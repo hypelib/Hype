@@ -15,6 +15,7 @@ open RProvider.graphics
 
 open FsAlg.Generic
 open DiffSharp.AD
+open DiffSharp.AD.Vector
 open Hype
 open Hype.Neural
 
@@ -28,10 +29,10 @@ let dataXOR = {X = matrix [[D 0.; D 0.; D 1.; D 1.]
                Y = matrix [[D 0.; D 1.; D 1.; D 0.]]}
 
 
-let net = MLP.create([|2; 2; 1|])
+let net = MLP.create([|2; 1|])
 
 let train (x:Vector<_>) =
-    let par = {Params.Default with LearningRate = ScheduledLearningRate x; TrainFunction = Train.MSGD}
+    let par = {Params.Default with LearningRate = ScheduledLearningRate x; TrainFunction = Train.GD}
     let net2 = MLP.create([|2; 1|], Activation.sigmoid, D -0.05, D 0.05)
     let op = net2.Train par dataOR
     op |> snd
@@ -42,7 +43,6 @@ let test2 =
             namedParams [   
                 "x", box (w |> Vector.map float |> Vector.toArray);
                 "type", box "o"; 
-                "col", box "blue";
-                "ylim", box [0; 1]]
+                "col", box "blue"]
             |> R.plot |> ignore
-    Optimize.GD {Params.Default with Epochs = 500; GDReportFunction = report} train (Vector.create 100 (D 0.1))
+    Optimize.GD {Params.Default with Epochs = 500; GDReportFunction = report} train (Vector.create 100 (D 0.2))
