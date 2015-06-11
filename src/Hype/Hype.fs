@@ -27,7 +27,7 @@
 namespace Hype
 
 open DiffSharp.AD
-
+open FsAlg.Generic
 
 type Rnd() =
     static let R = new System.Random()
@@ -47,6 +47,9 @@ type Rnd() =
         let a = Array.init n (fun i -> i)
         a |> Array.iteri (fun i _ -> swap i (R.Next(i, n)) a)
         a
+    static member Vector(n) = Vector.init n (fun _ -> Rnd.NextD())
+    static member Vector(n,max) = Vector.init n (fun _ -> Rnd.NextD(max))
+    static member Vector(n,min,max) = Vector.init n (fun _ -> Rnd.NextD(min, max))
 
 [<RequireQualifiedAccess>]
 module Activation =

@@ -11,6 +11,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{DF
 		examples\LinearRegression.fsx = examples\LinearRegression.fsx
 		examples\LogisticRegression.fsx = examples\LogisticRegression.fsx
 		examples\MLP.fsx = examples\MLP.fsx
+		examples\Test.fsx = examples\Test.fsx
 	EndProjectSection
 EndProject
 Global

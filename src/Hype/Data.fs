@@ -30,55 +30,63 @@ open FsAlg.Generic
 open DiffSharp.AD
 open Hype
 
+
 type DataVS =
-    {x:Matrix<D>
+    {X:Matrix<D>
      y:Vector<D>}
     member t.Item
         with get i =
-            t.x.[*,i], t.y.[i]
-    member t.Length = t.x.Cols
+            t.X.[*,i], t.y.[i]
+    member t.Length = t.X.Cols
     member t.ToSeq() =
         Seq.init t.Length (fun i -> t.[i])
     member t.Minibatch n =
         let bi = Rnd.Permutation(t.Length)
-        {x = Matrix.init t.x.Rows n (fun i j -> t.x.[i,bi.[j]])
+        {X = Matrix.init t.X.Rows n (fun i j -> t.X.[i,bi.[j]])
          y = Vector.init n (fun i -> t.y.[bi.[i]])}
     member t.Shuffle() = t.Minibatch t.Length
     member t.Split n =
         let m = t.Length - n
         if m <= 0 then invalidArg "n" "Split must occur before the end of the data set."
-        let a = {x = Matrix.init t.x.Rows n (fun i j -> t.x.[i,j])
+        let a = {X = Matrix.init t.X.Rows n (fun i j -> t.X.[i,j])
                  y = Vector.init n (fun i -> t.y.[i])}
-        let b = {x = Matrix.init t.x.Rows m (fun i j -> t.x.[i,n + j])
+        let b = {X = Matrix.init t.X.Rows m (fun i j -> t.X.[i,n + j])
                  y = Vector.init m (fun i -> t.y.[n + i])}
         a, b
 
 type DataVV =
-    {x:Matrix<D>
-     y:Matrix<D>}
+    {X:Matrix<D>
+     Y:Matrix<D>}
     member t.Item
         with get i =
-            t.x.[*,i], t.y.[*,i]
-    member t.Length = t.x.Cols
+            t.X.[*,i], t.Y.[*,i]
+    member t.Length = t.X.Cols
     member t.ToSeq() =
         Seq.init t.Length (fun i -> t.[i])
     member t.Minibatch n =
         let bi = Rnd.Permutation(t.Length)
-        {x = Matrix.init t.x.Rows n (fun i j -> t.x.[i,bi.[j]])
-         y = Matrix.init t.y.Rows n (fun i j -> t.y.[i,bi.[j]])}
+        {X = Matrix.init t.X.Rows n (fun i j -> t.X.[i,bi.[j]])
+         Y = Matrix.init t.Y.Rows n (fun i j -> t.Y.[i,bi.[j]])}
     member t.Shuffle() = t.Minibatch t.Length
     member t.Split n =
         let m = t.Length - n
         if m <= 0 then invalidArg "n" "Split must occur before the end of the data set."
-        let a = {x = Matrix.init t.x.Rows n (fun i j -> t.x.[i,j])
-                 y = Matrix.init t.y.Rows n (fun i j -> t.y.[i,j])}
-        let b = {x = Matrix.init t.x.Rows m (fun i j -> t.x.[i,n + j])
-                 y = Matrix.init t.y.Rows m (fun i j -> t.y.[i,n + j])}
+        let a = {X = Matrix.init t.X.Rows n (fun i j -> t.X.[i,j])
+                 Y = Matrix.init t.Y.Rows n (fun i j -> t.Y.[i,j])}
+        let b = {X = Matrix.init t.X.Rows m (fun i j -> t.X.[i,n + j])
+                 Y = Matrix.init t.Y.Rows m (fun i j -> t.Y.[i,n + j])}
         a, b
 
 type Data =
-    static member LoadImage (filename:string) =
+    static member LoadImage(filename:string) =
         let bmp = new System.Drawing.Bitmap(filename)
         let m = Matrix.init bmp.Height bmp.Width (fun i j -> float (bmp.GetPixel(i, j).GetBrightness()))
         bmp.Dispose()
         m
+    static member LoadDelimited(filename:string, separators:char[]) =
+        System.IO.File.ReadLines(filename)
+        |> Seq.map (fun x -> x.Split(separators) |> Array.map float)
+        |> Seq.map vector
+        |> Matrix.ofRows 
+    static member LoadDelimited(filename:string) =
+        Data.LoadDelimited(filename, [|' '; ','; '\t'|])

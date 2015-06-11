@@ -62,7 +62,7 @@ and Optimize =
         | ConstantLearningRate l ->
             let mutable i = 0
             let mutable w = Vector.copy w0
-            let mutable vv = D 0.
+            let mutable vv = q w0
             while i < par.Epochs do
                 let v, g = grad' q w
                 par.GDReportFunction i w v
@@ -74,7 +74,7 @@ and Optimize =
             let epochs = float par.Epochs
             let mutable i = 0
             let mutable w = Vector.copy w0
-            let mutable vv = D 0.
+            let mutable vv = q w0
             while i < par.Epochs do
                 let v, g = grad' q w
                 par.GDReportFunction i w v
@@ -85,7 +85,7 @@ and Optimize =
         | DecayingLearningRate (l, r) ->
             let mutable i = 0
             let mutable w = Vector.copy w0
-            let mutable vv = D 0.
+            let mutable vv = q w0
             while i < par.Epochs do
                 let v, g = grad' q w
                 par.GDReportFunction i w v
@@ -96,7 +96,7 @@ and Optimize =
         | ScheduledLearningRate l ->
             let mutable i = 0
             let mutable w = Vector.copy w0
-            let mutable vv = D 0.
+            let mutable vv = q w0
             while i < l.Length do
                 let v, g = grad' q w
                 par.GDReportFunction i w v
