@@ -4,10 +4,9 @@
 #load "RProvider.fsx"
 
 #load "../src/Hype/Hype.fs"
+#load "../src/Hype/Data.fs"
 #load "../src/Hype/Optimize.fs"
-#load "../src/Hype/Neural.fs"
-#load "../src/Hype/Neural.MLP.fs"
-#load "../src/Hype/Imaging.fs"
+#load "../src/Hype/Regression.fs"
 
 open RDotNet
 open RProvider
@@ -19,7 +18,7 @@ open DiffSharp.AD
 open DiffSharp.AD.Vector
 open Hype
 
-let m = Imaging.Load @"diffsharp-logo.png"
+let m = Data.LoadImage @"diffsharp-logo.png"
 
 namedParams [   
     "x", box (m |> Matrix.toArray2D);

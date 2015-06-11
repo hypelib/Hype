@@ -40,9 +40,8 @@ type Layer() =
         let f w x =
             l.Decode w
             l.Run x
-        let ww = par.TrainFunction par t f (l.Encode)
-        ww |> fst |> l.Decode
-        ww
+        par.TrainFunction par t f (l.Encode)
+        |> l.Decode
 
 
 [<AutoOpen>]

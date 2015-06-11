@@ -7,7 +7,6 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Hype", "src\Hype\Hype.fspro
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{DF6DEBF7-871E-48F2-9462-E8BCC3795B80}"
 	ProjectSection(SolutionItems) = preProject
-		examples\Hyperparameter.fsx = examples\Hyperparameter.fsx
 		examples\LinearRegression.fsx = examples\LinearRegression.fsx
 		examples\LogisticRegression.fsx = examples\LogisticRegression.fsx
 		examples\MLP.fsx = examples\MLP.fsx

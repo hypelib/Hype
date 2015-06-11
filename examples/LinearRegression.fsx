@@ -27,13 +27,24 @@ let x = housing'.[0..(housing'.Rows - 2), *] |> Matrix.map D
 let y = housing' |> Matrix.row (housing'.Rows - 1) |> Vector.map D
 
 let data = {X = x; y = y}
-let data2 = data.Minibatch 10
+let train, test = data.Split 400
 
-let w0 = Rnd.Vector(data2.X.Rows)
+let model = Regression.Linear {Params.Default with Epochs = 150} data h (Rnd.Vector(data.X.Rows))
 
-let w, v = Regression.Linear {Params.Default with Epochs = 100} data h w0
+let trainloss = Loss.Quadratic(train, model)
+let testloss = Loss.Quadratic(test, model)
 
-let fitted = h w
+let predict = Matrix.toCols test.X |> Seq.map model
 
-let p = (h w) (fst data.[40])
-let r = snd data.[40]
+namedParams [   
+    "x", box (test.y |> Vector.map float |> Vector.toSeq)
+    "pch", box 16
+    "col", box "blue"
+    "ylim", box [-10; 50]]
+|> R.plot |> ignore
+
+namedParams [
+    "x", box (predict |> Seq.map float)
+    "pch", box 16
+    "col", box "red"]
+|> R.points |> ignore

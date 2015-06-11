@@ -46,7 +46,7 @@ type Params =
      MinibatchSize : int
      LearningRate : LearningRate
      LossFunction : (DataVV*(Vector<D>->Vector<D>))->D
-     TrainFunction: Params->DataVV->(Vector<D>->Vector<D>->Vector<D>)->Vector<D>->(Vector<D> * D)
+     TrainFunction: Params->DataVV->(Vector<D>->Vector<D>->Vector<D>)->Vector<D>->Vector<D>
      GDReportFunction : int->Vector<D>->D->unit}
     static member Default =
         {Epochs = 100
@@ -97,12 +97,12 @@ and Optimize =
         let mutable w = Vector.copy w0
         let mutable v = f w0
         while i < epochs do
+            par.GDReportFunction i w v
             let v', w' = update i w f
             w <- w'
-            if i = epochs - 1 then v <- f w' else v <- v'
-            par.GDReportFunction i w v
+            v <- v'
             i <- i + 1
-        w, v
+        w
 
 
 and Loss =

@@ -34,6 +34,7 @@ open DiffSharp.AD.Vector
 type Regression =
     static member Linear (par:Params) (t:DataVS) (f:Vector<D>->Vector<D>->D) (w0:Vector<D>) =
         let q w = Loss.Quadratic(t, f w)
-        Optimize.GD par q w0
+        let wopt = Optimize.GD par q w0
+        f wopt
 
         
