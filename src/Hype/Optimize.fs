@@ -34,24 +34,28 @@ open DiffSharp.AD.Vector
      
 
 type LearningRate =
-    | ConstantLearningRate of D // Constant learning rate value
-    | DecreasingLearningRate of D // Initial value of the learning rate, linearly drops to zero in Params.Epochs steps
-    | DecayingLearningRate of D * D // Initial value and exponential decay parameter of the learning rate, drops to zero in Params.Epochs steps
-    | ScheduledLearningRate of Vector<D> // Scheduled learning rate vector, its length overrides Params.Epochs
+    | Constant of D // Constant learning rate value
+    | Decreasing of D * D // Initial value, decay rate of the learning rate
+    | Scheduled of Vector<D> // Scheduled learning rate vector, its length overrides Params.Epochs
     | Backtracking of D * D // Backtracking line search
 
+type Momentum =
+    | Momentum of D
+    | None
 
 type Params =
     {Epochs : int
      MinibatchSize : int
      LearningRate : LearningRate
+     Momentum : Momentum
      LossFunction : (DataVV*(Vector<D>->Vector<D>))->D
      TrainFunction: Params->DataVV->(Vector<D>->Vector<D>->Vector<D>)->Vector<D>->Vector<D>
      GDReportFunction : int->Vector<D>->D->unit}
     static member Default =
         {Epochs = 100
-         MinibatchSize = 3
+         MinibatchSize = 2
          LearningRate = Backtracking (D 0.25, D 0.75)
+         Momentum = Momentum (D 0.5)
          LossFunction = Loss.Quadratic
          TrainFunction = Train.GD
          GDReportFunction = fun _ _ _ -> ()}
@@ -60,29 +64,28 @@ and Optimize =
     static member GD (par:Params) (f:Vector<D>->D) (w0:Vector<D>) =
         let epochs = 
             match par.LearningRate with
-            | ScheduledLearningRate l -> l.Length
+            | Scheduled l -> l.Length
             | _ -> par.Epochs
+        let momentum =
+            match par.Momentum with
+            | Momentum m -> fun (uprev:Vector<D>) (u:Vector<D>) -> m * uprev + (D 1. - m) * u
+            | None -> fun _ u -> u
         let update =
             match par.LearningRate with
-            | ConstantLearningRate l -> 
+            | Constant l -> 
                 fun _ w f -> 
                     let v, g = grad' f w    
-                    let w' = w - l * g
+                    let w' = -l * g
                     v, w'
-            | DecreasingLearningRate l -> 
+            | Decreasing (l0, t) ->
                 fun i w f -> 
                     let v, g = grad' f w
-                    let w' = w - (l * (1. - (float i + 1.) / float epochs)) * g
+                    let w' = -l0 * t  * g / (t + float i)
                     v, w'
-            | DecayingLearningRate (l, r) -> 
+            | Scheduled l -> 
                 fun i w f -> 
                     let v, g = grad' f w
-                    let w' = w - l * (exp (-r * (float i))) * g
-                    v, w'
-            | ScheduledLearningRate l -> 
-                fun i w f -> 
-                    let v, g = grad' f w
-                    let w' = w - l.[i] * g
+                    let w' = -l.[i] * g
                     v, w'
             | Backtracking (a, b) ->
                 fun _ w f -> 
@@ -91,15 +94,17 @@ and Optimize =
                     let mutable l = D 1.
                     while f (w - l * g) > v - a * l * gg do
                         l <- l * b
-                    let w' = w - l * g
+                    let w' = -l * g
                     v, w'
         let mutable i = 0
         let mutable w = Vector.copy w0
         let mutable v = f w0
+        let mutable u = Vector.create w.Length (D 0.)
         while i < epochs do
             par.GDReportFunction i w v
-            let v', w' = update i w f
-            w <- w'
+            let v', u' = update i w f
+            u <- momentum u u'
+            w <- w + u
             v <- v'
             i <- i + 1
         w
@@ -118,8 +123,17 @@ and Train =
         Optimize.GD par q w0
 
     /// Minibatch stochastic gradient descent
-    static member MSGD (par:Params) (t:DataVV) (f:Vector<D>->Vector<D>->Vector<D>) (w0:Vector<D>) =
-        let q w = par.LossFunction(t.Minibatch par.MinibatchSize, f w)
+    static member MSGD (par:Params) (trainData:DataVV) (f:Vector<D>->Vector<D>->Vector<D>) (w0:Vector<D>) =
+        let i = ref 0
+        let minibatch = ref trainData
+        let q w = // It's better to sequence through a shuffled dataset than creating a random minibatch each time
+            if !i + par.MinibatchSize >= trainData.Length then
+                minibatch := trainData.[!i..]
+                i := 0
+            else
+                minibatch := trainData.Sub(!i, par.MinibatchSize)
+                i := !i + par.MinibatchSize
+            par.LossFunction(!minibatch, f w)
         Optimize.GD par q w0
 
     /// Stochastic gradient descent

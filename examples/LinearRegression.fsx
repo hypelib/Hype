@@ -1,4 +1,4 @@
-﻿#r "../packages/FsAlg.0.5.11/lib/FsAlg.dll"
+﻿#r "../packages/FsAlg.0.5.12/lib/FsAlg.dll"
 #r "../packages/DiffSharp.0.6.2/lib/DiffSharp.dll"
 #I "../packages/RProvider.1.1.8"
 #load "RProvider.fsx"
@@ -26,8 +26,8 @@ let housing' = housing |> Matrix.transpose |> Matrix.prependRow (Vector.create h
 let x = housing'.[0..(housing'.Rows - 2), *] |> Matrix.map D
 let y = housing' |> Matrix.row (housing'.Rows - 1) |> Vector.map D
 
-let data = {X = x; y = y}
-let train, test = data.Split 400
+let data = {X = x; y = y}.Shuffle()
+let train, test = data.[..250], data.[250..]
 
 let model = Regression.Linear {Params.Default with Epochs = 150} data h (Rnd.Vector(data.X.Rows))
 
@@ -36,11 +36,11 @@ let testloss = Loss.Quadratic(test, model)
 
 let predict = Matrix.toCols test.X |> Seq.map model
 
-namedParams [   
+namedParams [
     "x", box (test.y |> Vector.map float |> Vector.toSeq)
     "pch", box 16
     "col", box "blue"
-    "ylim", box [-10; 50]]
+    "ylim", box [-20; 70]]
 |> R.plot |> ignore
 
 namedParams [

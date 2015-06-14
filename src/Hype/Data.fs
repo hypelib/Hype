@@ -34,48 +34,46 @@ open Hype
 type DataVS =
     {X:Matrix<D>
      y:Vector<D>}
-    member t.Item
+    member d.Item
         with get i =
-            t.X.[*,i], t.y.[i]
-    member t.Length = t.X.Cols
-    member t.ToSeq() =
-        Seq.init t.Length (fun i -> t.[i])
-    member t.Minibatch n =
-        let bi = Rnd.Permutation(t.Length)
-        {X = Matrix.init t.X.Rows n (fun i j -> t.X.[i,bi.[j]])
-         y = Vector.init n (fun i -> t.y.[bi.[i]])}
-    member t.Shuffle() = t.Minibatch t.Length
-    member t.Split n =
-        let m = t.Length - n
-        if m <= 0 then invalidArg "n" "Split must occur before the end of the data set."
-        let a = {X = Matrix.init t.X.Rows n (fun i j -> t.X.[i,j])
-                 y = Vector.init n (fun i -> t.y.[i])}
-        let b = {X = Matrix.init t.X.Rows m (fun i j -> t.X.[i,n + j])
-                 y = Vector.init m (fun i -> t.y.[n + i])}
-        a, b
+            d.X.[*,i], d.y.[i]
+    member d.Length = d.X.Cols
+    member d.ToSeq() =
+        Seq.init d.Length (fun i -> d.[i])
+    member d.Minibatch n =
+        let bi = Rnd.Permutation(d.Length)
+        {X = Matrix.init d.X.Rows n (fun i j -> d.X.[i,bi.[j]])
+         y = Vector.init n (fun i -> d.y.[bi.[i]])}
+    member d.Shuffle() = d.Minibatch d.Length
+    member d.Sub(i, n) =
+        {X = d.X.[*,i..(i+n-1)]
+         y = d.y.[i..(i+n-1)]}
+    member d.GetSlice(lower, upper) =
+        let l = defaultArg lower 0
+        let u = defaultArg upper (d.Length - 1)
+        d.Sub(l, u - l + 1)
 
 type DataVV =
     {X:Matrix<D>
      Y:Matrix<D>}
-    member t.Item
+    member d.Item
         with get i =
-            t.X.[*,i], t.Y.[*,i]
-    member t.Length = t.X.Cols
-    member t.ToSeq() =
-        Seq.init t.Length (fun i -> t.[i])
-    member t.Minibatch n =
-        let bi = Rnd.Permutation(t.Length)
-        {X = Matrix.init t.X.Rows n (fun i j -> t.X.[i,bi.[j]])
-         Y = Matrix.init t.Y.Rows n (fun i j -> t.Y.[i,bi.[j]])}
-    member t.Shuffle() = t.Minibatch t.Length
-    member t.Split n =
-        let m = t.Length - n
-        if m <= 0 then invalidArg "n" "Split must occur before the end of the data set."
-        let a = {X = Matrix.init t.X.Rows n (fun i j -> t.X.[i,j])
-                 Y = Matrix.init t.Y.Rows n (fun i j -> t.Y.[i,j])}
-        let b = {X = Matrix.init t.X.Rows m (fun i j -> t.X.[i,n + j])
-                 Y = Matrix.init t.Y.Rows m (fun i j -> t.Y.[i,n + j])}
-        a, b
+            d.X.[*,i], d.Y.[*,i]
+    member d.Length = d.X.Cols
+    member d.ToSeq() =
+        Seq.init d.Length (fun i -> d.[i])
+    member d.Minibatch n =
+        let bi = Rnd.Permutation(d.Length)
+        {X = Matrix.init d.X.Rows n (fun i j -> d.X.[i,bi.[j]])
+         Y = Matrix.init d.Y.Rows n (fun i j -> d.Y.[i,bi.[j]])}
+    member d.Shuffle() = d.Minibatch d.Length
+    member d.Sub(i, n) =
+        {X = d.X.[*,i..(i+n-1)]
+         Y = d.Y.[*,i..(i+n-1)]}
+    member d.GetSlice(lower, upper) =
+        let l = defaultArg lower 0
+        let u = defaultArg upper (d.Length - 1)
+        d.Sub(l, u - l + 1)
 
 type Data =
     static member LoadImage(filename:string) =
