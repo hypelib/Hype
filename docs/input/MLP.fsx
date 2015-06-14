@@ -43,4 +43,4 @@ let hypertrain =
                 "type", box "o"; 
                 "col", box "blue"]
             |> R.plot |> ignore
-    Optimize.GD {Params.Default with Epochs = 500; GDReportFunction = report} train (Vector.create 50 (D 1.0))
+    Optimize.GD {Params.Default with Epochs = 500; GDReportFunction = report} train (Vector.create 100 (D 1.0))

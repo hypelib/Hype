@@ -112,9 +112,15 @@ and Optimize =
 
 and Loss =
     static member Quadratic(t:DataVS, f:Vector<D>->D) =
-        (t.ToSeq() |> Seq.map (fun (x, y) -> y - f x) |> Seq.sumBy (fun x -> x * x)) * D 0.5
+        t.ToSeq() |> Seq.map (fun (x, y) -> y - f x) |> Seq.sumBy (fun x -> x * x)
     static member Quadratic(t:DataVV, f:Vector<D>->Vector<D>) = 
-        (t.ToSeq() |> Seq.map (fun (x, y) -> Vector.normSq (y - f x)) |> Seq.sum) * D 0.5
+        t.ToSeq() |> Seq.sumBy (fun (x, y) -> Vector.normSq (y - f x))
+    static member Manhattan(t:DataVS, f:Vector<D>->D) =
+        t.ToSeq() |> Seq.sumBy (fun (x, y) -> abs (y - f x))
+    static member Manhattan(t:DataVV, f:Vector<D>->Vector<D>) =
+        t.ToSeq() |> Seq.sumBy (fun (x, y) -> Vector.l1norm (y - f x))
+    static member NegLogLikelihood (t:DataVS, f:Vector<D>->D) =
+        -(t.ToSeq() |> Seq.sumBy (fun (x, y) -> let fx = f x in y * log fx + (1. - y) * log (1. - fx)))
 
 and Train =
     /// Gradient descent
