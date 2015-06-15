@@ -62,7 +62,7 @@ table.pre pre {
 } 
 table.pre, pre.fssnip, pre {
   line-height:13pt;
-  border:1px solid #d8d8d8;
+  border:1px solid #191919;
   border-collapse:separate;
   white-space:pre;
   font: 9pt 'Droid Sans Mono',consolas,monospace;
@@ -96,6 +96,8 @@ body {
   font-family: 'Open Sans', serif;
   padding-top: 0px;
   padding-bottom: 40px;
+  color: #ebebeb;
+  background-color: #191919;
 }
 
 pre {

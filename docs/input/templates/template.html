@@ -3,15 +3,14 @@
   <head>
     <meta charset="utf-8">
     <title>{page-title}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="FsAlg: Generic Linear Algebra Library">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Hype">
     <meta name="author" content="Atılım Güneş Baydin; Barak A. Pearlmutter">
 
-    <script src="http://code.jquery.com/jquery-1.8.0.js"></script>
-    <script src="http://code.jquery.com/ui/1.8.23/jquery-ui.js"></script>
-    <script src="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.2.1/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.2.1/css/bootstrap-combined.min.css" rel="stylesheet">
 
     <link type="text/css" rel="stylesheet" href="misc/style.css" />
     <script type="text/javascript" src="misc/tips.js"></script>
@@ -22,41 +21,33 @@
 
   </head>
   <body>
-    <div class="container">
-      <div class="masthead">
-        <ul class="nav nav-pills pull-right">
-          <li><a href="http://fsharp.org">fsharp.org</a></li>
-          <li><a href="{project-github}">github page</a></li>
-        </ul>
-        <h3 class="muted">{project-name}</h3>
-      </div>
-      <hr />
-      <div class="row">
-        <div class="span9" id="main">
-          {document}
-          {tooltips}          
+    <nav class="navbar navbar-inverse">
+      <div class="container">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="#">Hype</a>
         </div>
-        <div class="span3">
-          <a href="index.html">
-            <img src="img/fsalg-logo.png" style="width:140px;height:140px;margin:10px 0px 0px 20px;border-style:none;" />
-          </a>        
-          <ul class="nav nav-list" id="menu">
-            <li class="nav-header">{project-name}</li>
-            <li class="divider"></li>
-            <li><a href="index.html">Home page</a></li>
-            <li><a href="{project-nuget}">Get Hype via NuGet</a></li>
-            <li><a href="{project-github}">GitHub Page</a></li>
-            <li><a href="{project-github}/releases">Release Notes</a></li>
-
-            <li class="nav-header">Getting Started</li>
-            <li class="divider"></li>
-            <li>1</li>
-            <li>2</li>
-
-            <li class="nav-header">Reference</li>
-            <li class="divider"></li>
-            <li><a href="reference/index.html">API Reference</a></li>
-
+        <div>
+          <ul class="nav navbar-nav">
+            <li class="active"><a href="#">Home</a></li>
+            <li><a href="#">GitHub</a></li>
+            <li><a href="#">Download</a></li>
+            <li><a href="#">About</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    <div class="container">
+      <div class="row">
+        <div class="col-sm-9">
+          {document}
+          {tooltips}
+        </div>
+        <div class="col-sm-3">
+          <img src="img/hype.png" style="width:200px"/>
+          <ul class="nav nav-pills nav-stacked">
+            <li class="active"><a href="#">Page 1</a></li>
+            <li><a href="#">Page 2</a></li>
+            <li><a href="#">Page 3</a></li>
           </ul>
         </div>
       </div>
