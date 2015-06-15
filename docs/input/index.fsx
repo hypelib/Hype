@@ -5,9 +5,7 @@
 
 
 (**
-<div style="font-size: 65px">Hype</div>
-
-Machine Learning and Hyperparameter Optimization
+Hype: Machine Learning and Hyperparameter Optimization Library
 ==============================================================
 
 The DiffSharp library provides several non-nested implementations of forward and reverse AD, for situations where it is known beforehand that nesting will not be needed. This can give better performance for some specific non-nested tasks.
@@ -41,4 +39,15 @@ let train (x:Vector<_>) =
     Loss.Quadratic(dataOR, net.Run)
 
 let hypertrain = 
-    Optimize.GD {Params.Default with Epochs = 50} train (Vector.create 10 (D 1.0))
+    Optimize.GD {Params.Default with Epochs = 10} train (Vector.create 10 (D 1.0))
+
+(**
+About
+-----
+
+License
+-------
+
+Hype is released under the MIT license.
+*)
+
