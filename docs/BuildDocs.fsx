@@ -42,8 +42,8 @@ for fileInfo in DirectoryInfo(relative "input/files/img").EnumerateFiles() do
 
 let tags = ["project-name", "Hype"; "project-author", "Atılım Güneş Baydin"; "project-github", "http://github.com/gbaydin/Hype"; "project-nuget", "https://www.nuget.org/packages/hype"; "root", ""]
 
-Literate.ProcessScriptFile(relative "input/index.fsx", relative "input/templates/template.html", relative "output/index.html", replacements = tags, fsiEvaluator = FsiEvaluator())
-
+Literate.ProcessScriptFile(relative "input/index.fsx", relative "input/templates/template.html", relative "output/index.html", replacements = tags)
+Literate.ProcessScriptFile(relative "input/download.fsx", relative "input/templates/template.html", relative "output/download.html", replacements = tags)
 
 //
 // Generate API reference

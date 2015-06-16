@@ -104,6 +104,22 @@ pre {
     word-wrap: inherit;
 }
 
+a:link {
+  color: #3781c3;
+}
+
+a:visited {
+  color: #3275b0;
+}
+
+a:hover {
+  color: #7fb0db;
+}
+
+a:active {
+  color: #35ad67;
+}
+
 /* Format the heading - nicer spacing etc. */
 .masthead {
   overflow: hidden;
@@ -150,8 +166,8 @@ td.title, thead {
 }
 
 /* Change font sizes for headings etc. */
-#main h1 { font-size: 26pt; margin:10px 0px 15px 0px; font-weight:400; }
-#main h2 { font-size: 20pt; margin:20px 0px 0px 0px; font-weight:400; }
+#main h1 { font-size: 28pt; margin:10px 0px 15px 0px; font-weight:400; }
+#main h2 { font-size: 22pt; margin:20px 0px 0px 0px; font-weight:400; }
 #main h3 { font-size: 14pt; margin:15px 0px 0px 0px; font-weight:600; }
 #main p  { font-size: 11pt; margin:5px 0px 15px 0px; }
 #main ul { font-size: 11pt; margin-top:10px; }
@@ -216,7 +232,7 @@ h6 a, h6 a:hover, h6 a:focus { color : inherit; text-decoration : inherit; outli
   -moz-border-radius: 0px;
   -webkit-border-radius: 0px;
   border-radius: 0px;
-  background: #404040;
+  background: #3c3c3c;
   border-style:none;
   color: #e0e0e0;
   margin-top:15px;

@@ -5,45 +5,45 @@
 
 
 (**
-Hype: Machine Learning and Hyperparameter Optimization Library
-==============================================================
+Hype: Compositional Machine Learning and Hyperparameter Optimization
+====================================================================
 
-The DiffSharp library provides several non-nested implementations of forward and reverse AD, for situations where it is known beforehand that nesting will not be needed. This can give better performance for some specific non-nested tasks.
+Hype is a [compositional](http://mathworld.wolfram.com/Composition.html) machine learning library ...
 
-The non-nested AD modules are provided under the DiffSharp.AD.Specialized namespace.
+This is enabled by nested automatic differentiation ... DiffSharp ...
 
-For a complete list of the available differentiation operations, please refer to API Overview and API Reference.
+You don't need to worry about ... the gradient of your models ... computed exactly by automatic differentiation.
 
 $$$
    f(x) = x + 3
 *)
 
-open DiffSharp.AD
-open FsAlg.Generic
 open Hype
 open Hype.Neural
 
-let dataOR = {X = matrix [[D 0.; D 0.; D 1.; D 1.]
-                          [D 0.; D 1.; D 0.; D 1.]]
-              Y = matrix [[D 0.; D 1.; D 1.; D 1.]]}
+// Train a network with stochastic gradient descent and a learning rate schedule
+let train (x:Vector<_>) = 
+    let par = {Params.Default with LearningRate = Scheduled x; TrainFunction = Train.MSGD}
+    let net = MLP.create([|28; 15; 1|], tanh, D -1.41, D 1.41)
+    net.Train par data
+    Loss.Quadratic(data, net.Run)
 
-let dataXOR = {X = matrix [[D 0.; D 0.; D 1.; D 1.]
-                           [D 0.; D 1.; D 0.; D 1.]]
-               Y = matrix [[D 0.; D 1.; D 1.; D 0.]]}
-
-
-let train (x:Vector<_>) =
-    let par = {Params.Default with LearningRate = Scheduled x; TrainFunction = Train.GD}
-    let net = MLP.create([|2; 1|], Activation.sigmoid, D -0.5, D 0.5)
-    net.Train par dataOR
-    Loss.Quadratic(dataOR, net.Run)
-
+// Train the training, i.e., optimize the learning schedule by using its hypergradient
 let hypertrain = 
-    Optimize.GD {Params.Default with Epochs = 10} train (Vector.create 10 (D 1.0))
+    Optimize.GD {Params.Default with Epochs = 50} train (Vector.create 200 (D 1.0))
 
 (**
+Roadmap
+-------
+
+Current relase
+
+Future release
+
 About
 -----
+
+Hype is developed by [Atılım Güneş Baydin](http://www.cs.nuim.ie/~gunes/) and [Barak A. Pearlmutter](http://bcl.hamilton.ie/~barak/) at the [Brain and Computation Lab](http://www.bcl.hamilton.ie/), Hamilton Institute, National University of Ireland Maynooth.
 
 License
 -------
