@@ -36,9 +36,24 @@ let hypertrain =
 Roadmap
 -------
 
-Current relase
+<div class="row">
+<div class="col-sm-5">
+<div class="alert alert-info">
+  <strong>Supported in the current relase</strong> 
 
-Future release
+* Linear regression
+* Logistic regression
+* Feedforward neural networks 
+</div>
+
+<div class="alert alert-info">
+  <strong>Working on for future releases</strong> 
+
+* GPU support through CUDA
+* Recurrent neural networks
+</div>
+</div>
+</div>
 
 About
 -----

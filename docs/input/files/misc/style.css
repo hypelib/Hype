@@ -104,6 +104,23 @@ pre {
     word-wrap: inherit;
 }
 
+.nav-pills > li > a {
+  background-color: #191919;
+  font-size: 11pt;
+}
+
+.nav-pills > li > a:hover {
+  color : #000000;
+  background-color: #3781c3;
+  font-size: 11pt;
+}
+
+.alert-info {
+  color: #ebebeb;
+  background-color: #1f1f1f;
+  border-color: #191919;
+}
+
 a:link {
   color: #3781c3;
 }
