@@ -8,7 +8,7 @@ open System.Runtime.InteropServices
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [<assembly: AssemblyTitle("Hype")>]
-[<assembly: AssemblyDescription("Hype: Machine Learning and Hyperparameter Optimization Library")>]
+[<assembly: AssemblyDescription("Hype: Compositional Machine Learning and Hyperparameter Optimization")>]
 [<assembly: AssemblyConfiguration("")>]
 [<assembly: AssemblyCompany("National University of Ireland Maynooth (Atilim Gunes Baydin, Barak A. Pearlmutter)")>]
 [<assembly: AssemblyProduct("Hype")>]

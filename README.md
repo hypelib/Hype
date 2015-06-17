@@ -1,5 +1,5 @@
-Hype: Machine Learning and Hyperparameter Optimization Library
-==============================================================
+Hype: Compositional Machine Learning and Hyperparameter Optimization
+====================================================================
 
 Copyright (c) 2015, National University of Ireland Maynooth (Atilim Gunes Baydin, Barak A. Pearlmutter)
 
