@@ -1,4 +1,30 @@
-﻿#I "../packages/FSharp.Compiler.Service.0.0.87/lib/net40"
+﻿//
+// This file is part of
+// Hype: Machine Learning and Hyperparameter Optimization Library
+//
+// Copyright (c) 2015, National University of Ireland Maynooth (Atilim Gunes Baydin, Barak A. Pearlmutter)
+//
+// Hype is released under the MIT license.
+// (See accompanying LICENSE file.)
+//
+// Written by:
+//
+//   Atilim Gunes Baydin
+//   atilimgunes.baydin@nuim.ie
+//
+//   Barak A. Pearlmutter
+//   barak@cs.nuim.ie
+//
+//   Brain and Computation Lab
+//   Hamilton Institute & Department of Computer Science
+//   National University of Ireland Maynooth
+//   Maynooth, Co. Kildare
+//   Ireland
+//
+//   www.bcl.hamilton.ie
+//
+
+#I "../packages/FSharp.Compiler.Service.0.0.87/lib/net40"
 #r "FSharp.Compiler.Service.dll"
 #I "../packages/FSharpVSPowerTools.Core.1.8.0/lib/net45"
 #r "FSharpVSPowerTools.Core.dll"
@@ -44,6 +70,9 @@ let tags = ["project-name", "Hype"; "project-author", "Atılım Güneş Baydin";
 
 Literate.ProcessScriptFile(relative "input/index.fsx", relative "input/templates/template.html", relative "output/index.html", replacements = tags)
 Literate.ProcessScriptFile(relative "input/download.fsx", relative "input/templates/template.html", relative "output/download.html", replacements = tags)
+Literate.ProcessScriptFile(relative "input/Optimization.fsx", relative "input/templates/template.html", relative "output/optimization.html", replacements = tags)
+Literate.ProcessScriptFile(relative "input/LinearRegression.fsx", relative "input/templates/template.html", relative "output/linearregression.html", replacements = tags)
+Literate.ProcessScriptFile(relative "input/LogisticRegression.fsx", relative "input/templates/template.html", relative "output/logisticregression.html", replacements = tags)
 
 //
 // Generate API reference

@@ -13,6 +13,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{DF6DEBF7-8
 		docs\input\LinearRegression.fsx = docs\input\LinearRegression.fsx
 		docs\input\LogisticRegression.fsx = docs\input\LogisticRegression.fsx
 		docs\input\MLP.fsx = docs\input\MLP.fsx
+		docs\input\Optimization.fsx = docs\input\Optimization.fsx
 	EndProjectSection
 EndProject
 Global

@@ -34,19 +34,4 @@
 #load "../src/Hype/Optimize.fs"
 #load "../src/Hype/Regression.fs"
 
-open RDotNet
-open RProvider
-open RProvider.graphics
-open RProvider.grDevices
 
-open FsAlg.Generic
-open DiffSharp.AD
-open DiffSharp.AD.Vector
-open Hype
-
-let m = Data.LoadImage @"diffsharp-logo.png"
-
-namedParams [   
-    "x", box (m |> Matrix.toArray2D);
-    "col", box (R.grey_colors(10))]
-|> R.image
