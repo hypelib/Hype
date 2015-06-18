@@ -1,30 +1,4 @@
-﻿//
-// This file is part of
-// Hype: Compositional Machine Learning and Hyperparameter Optimization
-//
-// Copyright (c) 2015, National University of Ireland Maynooth (Atilim Gunes Baydin, Barak A. Pearlmutter)
-//
-// Hype is released under the MIT license.
-// (See accompanying LICENSE file.)
-//
-// Written by:
-//
-//   Atilim Gunes Baydin
-//   atilimgunes.baydin@nuim.ie
-//
-//   Barak A. Pearlmutter
-//   barak@cs.nuim.ie
-//
-//   Brain and Computation Lab
-//   Hamilton Institute & Department of Computer Science
-//   National University of Ireland Maynooth
-//   Maynooth, Co. Kildare
-//   Ireland
-//
-//   www.bcl.hamilton.ie
-//
-
-(*** hide ***)
+﻿(*** hide ***)
 #r "../../src/Hype/bin/Debug/DiffSharp.dll"
 #r "../../src/Hype/bin/Debug/FsAlg.dll"
 #r "../../src/Hype/bin/Debug/Hype.dll"
@@ -34,16 +8,18 @@
 Hype: Compositional Machine Learning and Hyperparameter Optimization
 ====================================================================
 
-Hype is a [compositional](http://mathworld.wolfram.com/Composition.html) machine learning library, where you can perform optimization on systems of many components, even when such components may themselves internally perform optimization.
+Hype is a [compositional](http://mathworld.wolfram.com/Composition.html) machine learning library, where you can perform optimization on systems of many components, even when such components themselves internally perform optimization. 
 
-This is enabled by the nested automatic differentiation (AD) capability provided by a special numeric type __D__, which is used as the standard floating point type in the system. Giving you access to the exact derivative of any value in your model with respect to any other, operations can be nested to any level, meaning that you can do things like optimizing
+This is enabled by the nested automatic differentiation (AD) capability provided by a special numeric type __D__, which is used as the standard floating point type in the system and gives you access to the exact derivative of any value in your model with respect to any other. 
 
-You do not need to worry about supplying the gradient (or Hessian) of your models, which are computed exactly and efficiently by nested AD. The underlying AD functionality is provided by [DiffSharp](http://diffsharp.github.io/DiffSharp/index.html). AD is a generalized form of "backpropagation" and is distinct from numerical or symbolic differentiation.
+### Automatic derivatives
 
- ... hypergradients, if you will, ... 
+You do not need to worry about supplying gradients (or Hessians) of your models, which are computed exactly and efficiently by AD. The underlying AD functionality is provided by [DiffSharp](http://diffsharp.github.io/DiffSharp/index.html). AD is a generalized form of "backpropagation" and is distinct from numerical or symbolic differentiation.
 
-$$$
-   f(x) = x + 3
+### Hypergradients
+
+You can take gradients of the training or validation loss with respect to hyperparameters. These __hypergradients__ allow you to do gradient-based optimization of gradient-based optimization, meaning that you can do things like optimizing learning rate and momentum schedules, step size and mass matrices in Hamiltonian Monte Carlo models, and weight initialization distributions.
+
 *)
 
 open Hype
@@ -60,6 +36,26 @@ let hypertrain =
     Optimize.GD {Params.Default with Epochs = 50} train (Vector.create 200 (D 1.0))
 
 (**
+
+You can also take derivatives with respect to your training data, to analyze training sensitivities.
+
+### Compositionality
+
+Nested AD handles higher-order derivatives up to any level, including in complex cases such as 
+
+$$$
+    \mathbf{min} \left(x \; \mapsto \; f(x) + \mathbf{min} \left( y \; \mapsto \; g(x,\,y) \right) \right)\, ,
+
+where $\mathbf{min}$ uses gradient-based optimization (note that the inner function has a reference to the argument of the outer function). This allows you to create complex systems where many components may internally perform optimization.
+
+For example, you can optimize the rules of a multi-player game where the players themselves optimize their own strategy using a simple model of the opponent which they optimize according to their opponent's observed behaviour. 
+
+Or you can perform optimization of procedures that are internally using differentiation for other purposes, such as adaptive control.
+
+### Complex objective functions
+
+You can use derivatives in defining objective functions. For example, your objective function can take input transformations into account, for training neural networks that are invariant to a set of chosen input transformations.
+
 Roadmap
 -------
 
@@ -79,7 +75,7 @@ Roadmap
   <strong>Working on for future releases</strong> 
 
 * GPU support through CUDA
-* Improved memory constraints for large-scale problems
+* Improved memory efficiency for large-scale problems
 * Recurrent neural networks
 </div>
 </div>
