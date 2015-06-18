@@ -107,6 +107,8 @@ pre {
 .nav-pills > li > a {
   background-color: #191919;
   font-size: 11pt;
+  height: 34px;
+  padding: 7px 15px;
 }
 
 .nav-pills > li > a:hover {

@@ -10,15 +10,17 @@ Hype: Compositional Machine Learning and Hyperparameter Optimization
 
 Hype is a [compositional](http://mathworld.wolfram.com/Composition.html) machine learning library, where you can perform optimization on systems of many components, even when such components themselves internally perform optimization. 
 
-This is enabled by the nested automatic differentiation (AD) capability provided by a special numeric type __D__, which is used as the standard floating point type in the system and gives you access to the exact derivative of any value in your model with respect to any other. 
+This is enabled by the nested automatic differentiation (AD) capability provided by a special numeric type __D__, which is used as the standard floating-point type in Hype,  giving you access to the exact derivative of any value in your model with respect to any other. 
 
 ### Automatic derivatives
 
-You do not need to worry about supplying gradients (or Hessians) of your models, which are computed exactly and efficiently by AD. The underlying AD functionality is provided by [DiffSharp](http://diffsharp.github.io/DiffSharp/index.html). AD is a generalized form of "backpropagation" and is distinct from numerical or symbolic differentiation.
+You do not need to worry about supplying gradients (or Hessians) of your models, which are computed exactly and efficiently by AD. The underlying AD functionality is provided by [DiffSharp](http://diffsharp.github.io/DiffSharp/index.html). 
+
+AD is a generalized form of "backpropagation" and is distinct from numerical or symbolic differentiation.
 
 ### Hypergradients
 
-You can take gradients of the training or validation loss with respect to hyperparameters. These __hypergradients__ allow you to do gradient-based optimization of gradient-based optimization, meaning that you can do things like optimizing learning rate and momentum schedules, step size and mass matrices in Hamiltonian Monte Carlo models, and weight initialization distributions.
+You can take gradients of the training or validation loss with respect to hyperparameters. These __hypergradients__ allow you to do gradient-based optimization of gradient-based optimization, meaning that you can do things like optimizing learning rate and momentum schedules, weight initialization parameters, or step sizes and mass matrices in Hamiltonian Monte Carlo models.
 
 *)
 
@@ -50,7 +52,7 @@ where $\mathbf{min}$ uses gradient-based optimization (note that the inner funct
 
 For example, you can optimize the rules of a multi-player game where the players themselves optimize their own strategy using a simple model of the opponent which they optimize according to their opponent's observed behaviour. 
 
-Or you can perform optimization of procedures that are internally using differentiation for other purposes, such as adaptive control.
+Or you can perform optimization of procedures that are internally using differentiation for purposes other than optimization, such as adaptive control.
 
 ### Complex objective functions
 
