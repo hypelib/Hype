@@ -36,11 +36,11 @@ type Layer() =
     abstract member Encode : Vector<D>
     abstract member Decode : Vector<D> -> unit
     abstract member EncodeLength: int
-    member l.Train (par:Params) (t:DataVV) =
+    member l.Train (par:Params) (d:Data) =
         let f w x =
             l.Decode w
             l.Run x
-        par.TrainFunction par t f (l.Encode)
+        par.TrainFunction par d f (l.Encode)
         |> l.Decode
 
 

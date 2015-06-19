@@ -54,7 +54,6 @@
     <Compile Include="Hype.fs" />
     <Compile Include="Data.fs" />
     <Compile Include="Optimize.fs" />
-    <Compile Include="Regression.fs" />
     <Compile Include="Neural.fs" />
     <Compile Include="Neural.MLP.fs" />
     <Content Include="packages.config" />

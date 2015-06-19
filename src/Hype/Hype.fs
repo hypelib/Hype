@@ -51,10 +51,12 @@ type Rnd() =
     static member Vector(n,max) = Vector.init n (fun _ -> Rnd.NextD(max))
     static member Vector(n,min,max) = Vector.init n (fun _ -> Rnd.NextD(min, max))
 
-[<RequireQualifiedAccess>]
+[<AutoOpen>]
 module Activation =
     let inline sigmoid (x:D) = D 1. / (D 1. + exp -x)
     let inline softSign (x:D) = x / (D 1. + abs x)
     let inline softPlus (x:D) = log (D 1. + exp x)
     let inline rectifiedLinear (x:D) = max (D 0.) x
 
+module Util =
+    let inline printLog (s:string) = printfn "[%A] %s" System.DateTime.Now s

@@ -31,29 +31,7 @@ open DiffSharp.AD
 open Hype
 
 
-type DataVS =
-    {X:Matrix<D>
-     y:Vector<D>}
-    member d.Item
-        with get i =
-            d.X.[*,i], d.y.[i]
-    member d.Length = d.X.Cols
-    member d.ToSeq() =
-        Seq.init d.Length (fun i -> d.[i])
-    member d.Minibatch n =
-        let bi = Rnd.Permutation(d.Length)
-        {X = Matrix.init d.X.Rows n (fun i j -> d.X.[i,bi.[j]])
-         y = Vector.init n (fun i -> d.y.[bi.[i]])}
-    member d.Shuffle() = d.Minibatch d.Length
-    member d.Sub(i, n) =
-        {X = d.X.[*,i..(i+n-1)]
-         y = d.y.[i..(i+n-1)]}
-    member d.GetSlice(lower, upper) =
-        let l = defaultArg lower 0
-        let u = defaultArg upper (d.Length - 1)
-        d.Sub(l, u - l + 1)
-
-type DataVV =
+type Data =
     {X:Matrix<D>
      Y:Matrix<D>}
     member d.Item
@@ -74,8 +52,6 @@ type DataVV =
         let l = defaultArg lower 0
         let u = defaultArg upper (d.Length - 1)
         d.Sub(l, u - l + 1)
-
-type Data =
     static member LoadImage(filename:string) =
         let bmp = new System.Drawing.Bitmap(filename)
         let m = Matrix.init bmp.Height bmp.Width (fun i j -> float (bmp.GetPixel(i, j).GetBrightness()))
