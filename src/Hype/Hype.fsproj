@@ -52,7 +52,6 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Hype.fs" />
-    <Compile Include="Data.fs" />
     <Compile Include="Optimize.fs" />
     <Compile Include="Neural.fs" />
     <Compile Include="Neural.MLP.fs" />

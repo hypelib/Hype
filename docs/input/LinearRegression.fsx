@@ -4,7 +4,6 @@
 #load "RProvider.fsx"
 
 #load "../../src/Hype/Hype.fs"
-#load "../../src/Hype/Data.fs"
 #load "../../src/Hype/Optimize.fs"
 fsi.ShowDeclarationValues <- false
 
@@ -17,7 +16,7 @@ open DiffSharp.AD
 open DiffSharp.AD.Vector
 open Hype
 
-let housing = Data.LoadDelimited(__SOURCE_DIRECTORY__ + "/housing.data")
+let housing = Util.LoadDelimited(__SOURCE_DIRECTORY__ + "/housing.data")
 let housing' = housing |> Matrix.transpose |> Matrix.prependRow (Vector.create housing.Rows 1.)
 
 let data = {X = housing'.[0..(housing'.Rows - 2), *] |> Matrix.map D
@@ -31,7 +30,7 @@ let h (w:Vector<D>) (x:Vector<D>) = vector [w * x]
 
 let mutable w = Rnd.Vector(data.X.Rows)
 
-w <- Train {Params.Default with Epochs = 150; TrainMethod = Batch} train h w
+w <- Train {DefaultParams with Epochs = 150; Batch = Full} train h w
 
 let model = h w
 

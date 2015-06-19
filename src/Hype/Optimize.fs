@@ -42,8 +42,8 @@ type Momentum =
     | Momentum of D
     | None
 
-type TrainMethod =
-    | Batch
+type Batch =
+    | Full
     | Minibatch of int
     | Stochastic // Minibatch with size 1
 
@@ -53,20 +53,11 @@ type Params =
      Momentum : Momentum
      LossFunction : Data->(Vector<D>->Vector<D>)->D
      OptimizeFunction: Params->(Vector<D>->D)->Vector<D>->Vector<D>
-     TrainMethod : TrainMethod
-     OptimizeReportFunction : int->Vector<D>->D->unit
-     OptimizeReportInterval : int}
-    static member Default =
-        {Epochs = 100
-         LearningRate = Backtracking (D 0.25, D 0.75)
-         Momentum = Momentum (D 0.5)
-         LossFunction = Loss.Quadratic
-         OptimizeFunction = Optimize.GD
-         TrainMethod = Minibatch 3
-         OptimizeReportFunction = fun _ _ _ -> ()
-         OptimizeReportInterval = 10}
+     Batch : Batch
+     ReportFunction : int->Vector<D>->D->unit
+     ReportInterval : int}
 
-and Optimize =
+type Optimize =
     static member GD (par:Params) (f:Vector<D>->D) (w0:Vector<D>) =
         Util.printLog "Method: Gradient descent"
         let epochs = 
@@ -116,15 +107,15 @@ and Optimize =
         let mutable w = Vector.copy w0
         let mutable v = f w0
         let mutable u = Vector.create w.Length (D 0.)
-        par.OptimizeReportFunction i w v
+        par.ReportFunction i w v
         while i < epochs do
             let v', u' = update i w f
             u <- momentum u u'
             w <- w + u
             v <- v'
             i <- i + 1
-            if i % par.OptimizeReportInterval = 0 then 
-                par.OptimizeReportFunction i w v
+            if i % par.ReportInterval = 0 then 
+                par.ReportFunction i w v
         w
 
     static member Newton (par:Params) (f:Vector<D>->D) (w0:Vector<D>) =
@@ -137,25 +128,28 @@ and Optimize =
             w <- w + p
             v <- v'
             i <- i + 1
-            if i % par.OptimizeReportInterval = 0 then
-                par.OptimizeReportFunction i w v
+            if i % par.ReportInterval = 0 then
+                par.ReportFunction i w v
         w
 
-and Loss =
-    static member Quadratic (d:Data) (f:Vector<D>->Vector<D>) = 
-        (d.ToSeq() |> Seq.sumBy (fun (x, y) -> Vector.normSq (y - f x))) / d.Length
-    static member Manhattan (d:Data) (f:Vector<D>->Vector<D>) =
-        (d.ToSeq() |> Seq.sumBy (fun (x, y) -> Vector.l1norm (y - f x))) / d.Length
-
 [<AutoOpen>]
-module Train =
+module Ops =
+    let DefaultParams = {Epochs = 100
+                         LearningRate = Backtracking (D 0.25, D 0.75)
+                         Momentum = Momentum (D 0.5)
+                         LossFunction = Loss.Quadratic
+                         OptimizeFunction = Optimize.GD
+                         Batch = Minibatch 3
+                         ReportFunction = fun _ _ _ -> ()
+                         ReportInterval = 10}
+
     let Train (par:Params) (d:Data) (f:Vector<D>->Vector<D>->Vector<D>) (w0:Vector<D>) =
         Util.printLog "Training started."
         let start = System.DateTime.Now
         let l0 = par.LossFunction d (f w0)
         let q =
-            match par.TrainMethod with
-            | Batch ->
+            match par.Batch with
+            | Full ->
                 Util.printLog "Batch: Full"
                 fun w -> par.LossFunction d (f w)
             | Minibatch n ->
@@ -167,8 +161,8 @@ module Train =
         let report i w v =
             let loss = par.LossFunction d (f w)
             Util.printLog (sprintf "Epoch %A loss: %A" i loss)
-            par.OptimizeReportFunction i w v
-        let wopt = par.OptimizeFunction {par with OptimizeReportFunction = report} q w0
+            par.ReportFunction i w v
+        let wopt = par.OptimizeFunction {par with ReportFunction = report} q w0
         let duration = System.DateTime.Now.Subtract(start)
         let lf = par.LossFunction d (f wopt)
         let dec = -(lf - l0)

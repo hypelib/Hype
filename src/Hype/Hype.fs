@@ -51,6 +51,46 @@ type Rnd() =
     static member Vector(n,max) = Vector.init n (fun _ -> Rnd.NextD(max))
     static member Vector(n,min,max) = Vector.init n (fun _ -> Rnd.NextD(min, max))
 
+
+type Util =
+    static member printLog (s:string) = printfn "[%A] %s" System.DateTime.Now s
+    static member LoadImage(filename:string) =
+        let bmp = new System.Drawing.Bitmap(filename)
+        let m = Matrix.init bmp.Height bmp.Width (fun i j -> float (bmp.GetPixel(i, j).GetBrightness()))
+        bmp.Dispose()
+        m
+    static member LoadDelimited(filename:string, separators:char[]) =
+        System.IO.File.ReadLines(filename)
+        |> Seq.map (fun x -> x.Split(separators) |> Array.map float)
+        |> Seq.map vector
+        |> Matrix.ofRows 
+    static member LoadDelimited(filename:string) =
+        Util.LoadDelimited(filename, [|' '; ','; '\t'|])
+
+
+type Data =
+    {X:Matrix<D>
+     Y:Matrix<D>}
+    member d.Item
+        with get i =
+            d.X.[*,i], d.Y.[*,i]
+    member d.Length = d.X.Cols
+    member d.ToSeq() =
+        Seq.init d.Length (fun i -> d.[i])
+    member d.Minibatch n =
+        let bi = Rnd.Permutation(d.Length)
+        {X = Matrix.init d.X.Rows n (fun i j -> d.X.[i,bi.[j]])
+         Y = Matrix.init d.Y.Rows n (fun i j -> d.Y.[i,bi.[j]])}
+    member d.Shuffle() = d.Minibatch d.Length
+    member d.Sub(i, n) =
+        {X = d.X.[*,i..(i+n-1)]
+         Y = d.Y.[*,i..(i+n-1)]}
+    member d.GetSlice(lower, upper) =
+        let l = defaultArg lower 0
+        let u = defaultArg upper (d.Length - 1)
+        d.Sub(l, u - l + 1)
+
+
 [<AutoOpen>]
 module Activation =
     let inline sigmoid (x:D) = D 1. / (D 1. + exp -x)
@@ -58,5 +98,10 @@ module Activation =
     let inline softPlus (x:D) = log (D 1. + exp x)
     let inline rectifiedLinear (x:D) = max (D 0.) x
 
-module Util =
-    let inline printLog (s:string) = printfn "[%A] %s" System.DateTime.Now s
+
+[<RequireQualifiedAccess>]
+module Loss =
+    let inline Quadratic (d:Data) (f:Vector<D>->Vector<D>) = 
+        (d.ToSeq() |> Seq.sumBy (fun (x, y) -> Vector.normSq (y - f x))) / d.Length
+    let inline Manhattan (d:Data) (f:Vector<D>->Vector<D>) =
+        (d.ToSeq() |> Seq.sumBy (fun (x, y) -> Vector.l1norm (y - f x))) / d.Length
