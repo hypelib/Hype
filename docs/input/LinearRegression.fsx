@@ -32,7 +32,7 @@ let mutable w = Rnd.Vector(data.X.Rows)
 
 w <- Train {DefaultParams with Epochs = 150; Batch = Minibatch 3} train h w
 
-w <- Train {DefaultParams with Epochs = 10; Batch = Full; OptimizeMethod = GD; Momentum = None; ReportInterval = 1} train h w
+w <- Train {DefaultParams with Epochs = 150; Batch = Full; OptimizeMethod = GD; Momentum = None} train h w
 
 
 w <- Train {DefaultParams with Epochs = 130; Batch = Full; OptimizeMethod = Newton; Momentum = None} train h w

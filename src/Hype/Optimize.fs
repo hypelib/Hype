@@ -33,10 +33,11 @@ open DiffSharp.AD.Vector
 
      
 type LearningRate =
-    | Constant of D // Constant learning rate value
-    | Decreasing of D * D // Initial value, decay rate of the learning rate
+    | Constant of D // Constant
+    | Decreasing of D * D // Initial value, decay rate
     | Scheduled of Vector<D> // Scheduled learning rate vector, its length overrides Params.Epochs
-    | Backtracking of D * D // Backtracking line search
+    | Backtracking of D * D * D // Backtracking line search, initial value, c, rho
+    | StrongWolfe of D * D * D // Strong Wolfe line search, lmax, c1, c2 
 
 type Momentum =
     | Momentum of D
@@ -61,6 +62,7 @@ and Params =
      OptimizeMethod: OptimizeMethod
      Batch : Batch
      Verbose : bool
+     IterationLimit : int
      ReportFunction : int->Vector<D>->D->unit
      ReportInterval : int}
 
@@ -68,12 +70,13 @@ and Params =
 [<AutoOpen>]
 module Ops =
     let DefaultParams = {Epochs = 100
-                         LearningRate = Backtracking (D 0.25, D 0.75)
+                         LearningRate = StrongWolfe (D 1., D 0.0001, D 0.5)
                          Momentum = Momentum (D 0.5)
                          LossFunction = Loss.Quadratic
                          OptimizeMethod = GD
                          Batch = Minibatch 3
                          Verbose = true
+                         IterationLimit = 1000
                          ReportFunction = fun _ _ _ -> ()
                          ReportInterval = 10}
 
@@ -91,41 +94,110 @@ module Ops =
                         v', g', -g'
                 | NonlinearCGD -> // Fletcher and Reeves 1964
                     Util.printLog "Method: Nonlinear conjugate gradient"
-                    fun i w f _ g p ->
+                    fun _ w f _ g p ->
                         let v', g' = grad' f w
                         let b = (Vector.normSq g') / (Vector.normSq g)
                         let p' = -g' + b * p
                         v', g', p'
                 | Newton ->
                     Util.printLog "Method: Exact Newton"
-                    fun _ w f _ g _ ->
+                    fun _ w f _ _ _ ->
                         let v', g', h' = gradhessian' f w
                         v', g', - Matrix.solve h' g'
             Util.printLog (sprintf "Dimensions: %A" w0.Length)
             let epochs = 
                 match par.LearningRate with
-                | Scheduled l -> l.Length
+                | Scheduled a -> a.Length
                 | _ -> par.Epochs
             Util.printLog (sprintf "Epochs: %A" epochs)
             let lr =
                 match par.LearningRate with
-                | Constant l ->
-                    Util.printLog (sprintf "Learning rate: Constant %A" l)
-                    fun _ _ _ _ _ -> l
-                | Decreasing (l0, t) ->
-                    Util.printLog (sprintf "Learning rate: Decreasing %A %A" l0 t)
-                    fun i _ _ _ _ -> l0 * t / (t + float i)
-                | Scheduled l ->
-                    Util.printLog (sprintf "Learning rate: Scheduled of length %A" l.Length)
-                    fun i _ _ _ _ -> l.[i]
-                | Backtracking (a, b) ->
-                    Util.printLog (sprintf "Learning rate: Backtracking %A %A" a b)
-                    fun i w f v g ->
-                        let gg = Vector.normSq g
-                        let mutable l = D 1.
-                        while f (w - l * g) > v - a * l * gg do
-                            l <- l * b
-                        l
+                | Constant a ->
+                    Util.printLog (sprintf "Learning rate: Constant %A" a)
+                    fun _ _ _ _ _ _ -> a
+                | Decreasing (a0, t) ->
+                    Util.printLog (sprintf "Learning rate: Decreasing %A %A" a0 t)
+                    fun i _ _ _ _ _ -> a0 * t / (t + float i)
+                | Scheduled a ->
+                    Util.printLog (sprintf "Learning rate: Scheduled of length %A" a.Length)
+                    fun i _ _ _ _ _ -> a.[i]
+                | Backtracking (a0, c, r) ->
+                    Util.printLog (sprintf "Learning rate: Backtracking %A %A %A" a0 c r)
+                    fun _ w f v g p ->
+                        let mutable a = a0
+                        let mutable i = 0
+                        let mutable found = false
+                        while not found do
+                            a <- r * a
+                            if f (w + a * p) > v + c * a * (p * g) then 
+                                found <- true
+                            i <- i + 1
+                            if i > par.IterationLimit then
+                                found <- true
+                                Util.printLog "WARNING: Backtracking failed to converge."
+                        a
+                | StrongWolfe (amax, c1, c2) ->
+                    Util.printLog (sprintf "Learning rate: Strong Wolfe %A %A %A" amax c1 c2)
+                    fun _ w f v g p ->
+                        let v0 = v
+                        let gp0 = g * p
+                        let inline zoom a1 a2 =
+                            let mutable al = a1
+                            let mutable ah = a2
+                            let mutable a' = a1
+                            let mutable v'al = f (w + al * p)
+                            let mutable i = 0
+                            let mutable found = false
+                            while not found do
+                                a' <- (al + ah) / D 2.
+                                let v', gg = grad' f (w + a' * p)
+                                if (v' > v0 + c1 * a' * gp0) || (v' >= v'al) then
+                                    ah <- a'
+                                else
+                                    let gp' = gg * p
+                                    if abs gp' <= -c2 * gp0 then
+                                        found <- true
+                                    elif gp' * (ah - al) >= D 0. then
+                                        ah <- al
+                                        al <- a'
+                                        v'al <- v'
+                                i <- i + 1
+                                if i > par.IterationLimit then
+                                    found <- true
+                                    Util.printLog "WARNING: Strong Wolfe (zoom) failed to converge."
+                            a'
+                            
+                        let mutable v = v0
+                        let mutable v' = v0
+                        let mutable gp' = gp0
+                        let mutable a = D 0.
+                        let mutable a' = Rnd.NextD(amax)
+                        let mutable a'' = a'
+                        let mutable i = 1
+                        let mutable found = false
+                        while not found do
+                            let vv, gg = grad' f (w + a' * p)
+                            v' <- vv
+                            gp' <- gg * p
+                            if (v' > v0 + c1 * a' * gp0) || ((i > 1) && (v' >= v)) then
+                                a'' <- zoom a a'
+                                found <- true
+                            elif (abs gp') <= (-c2 * gp0) then
+                                a'' <- a'
+                                found <- true
+                            elif gp' >= D 0. then
+                                a'' <- zoom a' a
+                                found <- true
+                            else
+                                a <- a'
+                                v <- v'
+                                a' <- Rnd.NextD(a', amax)
+                                i <- i + 1
+                            if i > par.IterationLimit then
+                                found <- true
+                                Util.printLog "WARNING: Strong Wolfe failed to converge."
+                        a''
+
             let momentum =
                 match par.Momentum with
                 | Momentum m ->
@@ -148,7 +220,7 @@ module Ops =
                 v <- v'
                 g <- g'
                 p <- momentum p p'
-                w <- w + (lr i w f v g) * p
+                w <- w + (lr i w f v g p) * p
                 i <- i + 1
                 if i % par.ReportInterval = 0 then
                     if par.Verbose then
