@@ -50,7 +50,11 @@ type Batch =
 
 type OptimizeMethod =
     | GD
-    | NonlinearCGD
+    | CG
+    | CD
+    | NonlinearCG
+    | DaiYuanCG
+    | NewtonCG
     | Newton
     | Custom of (Params->(Vector<D>->D)->Vector<D>->Vector<D>)
 
@@ -62,7 +66,7 @@ and Params =
      OptimizeMethod: OptimizeMethod
      Batch : Batch
      Verbose : bool
-     IterationLimit : int
+     LoopLimit : int
      ReportFunction : int->Vector<D>->D->unit
      ReportInterval : int}
 
@@ -70,13 +74,13 @@ and Params =
 [<AutoOpen>]
 module Ops =
     let DefaultParams = {Epochs = 100
-                         LearningRate = StrongWolfe (D 1., D 0.0001, D 0.5)
-                         Momentum = Momentum (D 0.5)
+                         LearningRate = Backtracking (D 1., D 0.0001, D 0.5)
+                         Momentum = None
                          LossFunction = Loss.Quadratic
                          OptimizeMethod = GD
                          Batch = Minibatch 3
                          Verbose = true
-                         IterationLimit = 1000
+                         LoopLimit = 1000
                          ReportFunction = fun _ _ _ -> ()
                          ReportInterval = 10}
 
@@ -92,11 +96,42 @@ module Ops =
                     fun _ w f _ _ _ ->
                         let v', g' = grad' f w
                         v', g', -g'
-                | NonlinearCGD -> // Fletcher and Reeves 1964
+                | CG -> // Hestenes and Stiefel 1952
+                    Util.printLog "Method: Conjugate gradient"
+                    fun _ w f _ g p ->
+                        let v', g' = grad' f w
+                        let y = g' - g
+                        let b = (g' * y) / p * y
+                        let p' = -g' + b * p
+                        v', g', p'
+                | CD -> // Fletcher 1987
+                    Util.printLog "Method: Conjugate descent"
+                    fun _ w f _ g p ->
+                        let v', g' = grad' f w
+                        let b = (Vector.normSq g') / (-p * g)
+                        let p' = -g' + b * p
+                        v', g', p'
+                | DaiYuanCG -> // Dai and Yuan 1999
+                    Util.printLog "Method: Dai & Yuan conjugate gradient"
+                    fun _ w f _ g p ->
+                        let v', g' = grad' f w
+                        let y = g' - g
+                        let b = (Vector.normSq g') / p * y
+                        let p' = -g' + b * p
+                        v', g', p'
+                | NonlinearCG -> // Fletcher and Reeves 1964
                     Util.printLog "Method: Nonlinear conjugate gradient"
                     fun _ w f _ g p ->
                         let v', g' = grad' f w
                         let b = (Vector.normSq g') / (Vector.normSq g)
+                        let p' = -g' + b * p
+                        v', g', p'
+                | NewtonCG ->
+                    Util.printLog "Method: Newton conjugate gradient"
+                    fun _ w f _ _ p ->
+                        let v', g' = grad' f w
+                        let hv = hessianv f w p
+                        let b = (g' * hv) / (p * hv)
                         let p' = -g' + b * p
                         v', g', p'
                 | Newton ->
@@ -128,13 +163,14 @@ module Ops =
                         let mutable i = 0
                         let mutable found = false
                         while not found do
-                            a <- r * a
-                            if f (w + a * p) > v + c * a * (p * g) then 
+                            if f (w + a * p) < v + c * a * (p * g) then 
                                 found <- true
+                            else
+                                a <- r * a
                             i <- i + 1
-                            if i > par.IterationLimit then
+                            if i > par.LoopLimit then
                                 found <- true
-                                Util.printLog "WARNING: Backtracking failed to converge."
+                                Util.printLog "WARNING: Backtracking did not converge."
                         a
                 | StrongWolfe (amax, c1, c2) ->
                     Util.printLog (sprintf "Learning rate: Strong Wolfe %A %A %A" amax c1 c2)
@@ -162,9 +198,9 @@ module Ops =
                                         al <- a'
                                         v'al <- v'
                                 i <- i + 1
-                                if i > par.IterationLimit then
+                                if i > par.LoopLimit then
                                     found <- true
-                                    Util.printLog "WARNING: Strong Wolfe (zoom) failed to converge."
+                                    Util.printLog "WARNING: Strong Wolfe (zoom) did not converge."
                             a'
                             
                         let mutable v = v0
@@ -193,9 +229,9 @@ module Ops =
                                 v <- v'
                                 a' <- Rnd.NextD(a', amax)
                                 i <- i + 1
-                            if i > par.IterationLimit then
+                            if i > par.LoopLimit then
                                 found <- true
-                                Util.printLog "WARNING: Strong Wolfe failed to converge."
+                                Util.printLog "WARNING: Strong Wolfe did not converge."
                         a''
 
             let momentum =
