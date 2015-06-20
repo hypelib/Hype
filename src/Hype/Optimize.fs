@@ -54,12 +54,14 @@ type Params =
      LossFunction : Data->(Vector<D>->Vector<D>)->D
      OptimizeFunction: Params->(Vector<D>->D)->Vector<D>->Vector<D>
      Batch : Batch
+     Verbose : bool
      ReportFunction : int->Vector<D>->D->unit
      ReportInterval : int}
 
 type Optimize =
     static member GD (par:Params) (f:Vector<D>->D) (w0:Vector<D>) =
         Util.printLog "Method: Gradient descent"
+        Util.printLog (sprintf "Dimensions: %A" w0.Length)
         let epochs = 
             match par.LearningRate with
             | Scheduled l -> l.Length
@@ -107,6 +109,8 @@ type Optimize =
         let mutable w = Vector.copy w0
         let mutable v = f w0
         let mutable u = Vector.create w.Length (D 0.)
+        if par.Verbose then 
+            Util.printLog (sprintf "Epoch %A function value: %A" i (primal v))
         par.ReportFunction i w v
         while i < epochs do
             let v', u' = update i w f
@@ -115,22 +119,33 @@ type Optimize =
             v <- v'
             i <- i + 1
             if i % par.ReportInterval = 0 then 
+                if par.Verbose then 
+                    Util.printLog (sprintf "Epoch %A function value: %A" i (primal v))
                 par.ReportFunction i w v
         w
 
     static member Newton (par:Params) (f:Vector<D>->D) (w0:Vector<D>) =
+        Util.printLog "Method: Exact Newton"
+        Util.printLog (sprintf "Dimensions: %A" w0.Length)
+        Util.printLog (sprintf "Epochs: %A" par.Epochs)
         let mutable i = 0
         let mutable w = Vector.copy w0
         let mutable v = f w0
+        par.ReportFunction i w v
+        if par.Verbose then 
+            Util.printLog (sprintf "Epoch %A function value: %A" i (primal v))
         while i < par.Epochs do
             let v', g, h = gradhessian' f w
             let p = - Matrix.solve h g
             w <- w + p
-            v <- v'
+            v <- primal v'
             i <- i + 1
             if i % par.ReportInterval = 0 then
+                if par.Verbose then 
+                    Util.printLog (sprintf "Epoch %A function value: %A" i (primal v))
                 par.ReportFunction i w v
         w
+
 
 [<AutoOpen>]
 module Ops =
@@ -140,6 +155,7 @@ module Ops =
                          LossFunction = Loss.Quadratic
                          OptimizeFunction = Optimize.GD
                          Batch = Minibatch 3
+                         Verbose = true
                          ReportFunction = fun _ _ _ -> ()
                          ReportInterval = 10}
 
@@ -159,17 +175,18 @@ module Ops =
                 Util.printLog "Batch: Stochastic"
                 fun w -> par.LossFunction (d.Minibatch 1) (f w)
         let report i w v =
-            let loss = par.LossFunction d (f w)
-            Util.printLog (sprintf "Epoch %A loss: %A" i loss)
+            if par.Verbose then
+                let loss = par.LossFunction d (f (w |> Vector.map primal))
+                Util.printLog (sprintf "Epoch %A training loss: %A" i (primal loss))
             par.ReportFunction i w v
-        let wopt = par.OptimizeFunction {par with ReportFunction = report} q w0
+        let wopt = par.OptimizeFunction {par with ReportFunction = report; Verbose = false} q w0
         let duration = System.DateTime.Now.Subtract(start)
         let lf = par.LossFunction d (f wopt)
         let dec = -(lf - l0)
         let perf = dec / duration.TotalSeconds
         Util.printLog "Training finished."
         Util.printLog (sprintf "Duration: %A" duration)
-        Util.printLog (sprintf "Loss decrease: %A (%.2f %%)" dec (float (100 * (dec) / l0)))
-        Util.printLog (sprintf "Performance (loss decrease / sec): %A" perf)
+        Util.printLog (sprintf "Loss decrease: %A (%.2f %%)" (primal dec) (float (100 * (dec) / l0)))
+        Util.printLog (sprintf "Performance (loss decrease / sec): %A\n" (primal perf))
         wopt
         

@@ -40,7 +40,7 @@ type Layer() =
         let f w x =
             l.Decode w
             l.Run x
-        par.TrainFunction par d f (l.Encode)
+        Train par d f (l.Encode)
         |> l.Decode
 
 

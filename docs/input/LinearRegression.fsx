@@ -30,7 +30,9 @@ let h (w:Vector<D>) (x:Vector<D>) = vector [w * x]
 
 let mutable w = Rnd.Vector(data.X.Rows)
 
-w <- Train {DefaultParams with Epochs = 150; Batch = Full} train h w
+w <- Train {DefaultParams with Epochs = 150; Batch = Minibatch 3} train h w
+
+w <- Train {DefaultParams with Epochs = 10; Batch = Full; OptimizeFunction = Optimize.Newton} train h w
 
 let model = h w
 

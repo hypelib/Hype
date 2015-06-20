@@ -4,7 +4,6 @@
 #load "RProvider.fsx"
 
 #load "../../src/Hype/Hype.fs"
-#load "../../src/Hype/Data.fs"
 #load "../../src/Hype/Optimize.fs"
 #load "../../src/Hype/Neural.fs"
 #load "../../src/Hype/Neural.MLP.fs"
@@ -30,17 +29,17 @@ let dataXOR = {X = matrix [[D 0.; D 0.; D 1.; D 1.]
 
 
 let train (x:Vector<_>) =
-    let par = {Params.Default with LearningRate = Scheduled x; TrainFunction = Train.GD}
-    let net = MLP.create([|2; 1|], Activation.sigmoid, D -0.5, D 0.5)
+    let par = {DefaultParams with LearningRate = Scheduled x; Batch = Full; Verbose = false}
+    let net = MLP.create([|2; 1|], Activation.sigmoid, D -1.41, D 1.41)
     net.Train par dataOR
     Loss.Quadratic dataOR net.Run
 
 let hypertrain = 
-    let report i w _ =
-        if i % 2 = 0 then
-            namedParams [   
-                "x", box (w |> Vector.map float |> Vector.toArray);
-                "type", box "o"; 
-                "col", box "blue"]
-            |> R.plot |> ignore
-    Optimize.GD {Params.Default with Epochs = 500; OptimizeReportFunction = report} train (Vector.create 100 (D 1.0))
+    let report i (w:Vector<_>) _ =
+        namedParams [   
+            "x", box (w |> Vector.map float |> Vector.toArray);
+            "type", box "o"; 
+            //"ylim", box [0.5; 2.];
+            "col", box "blue"]
+        |> R.plot |> ignore
+    Optimize.GD {DefaultParams with Epochs = 250; ReportFunction = report; ReportInterval = 10} train (Vector.create 50 (D 1.))
