@@ -1,4 +1,9 @@
-﻿#r "../../packages/FsAlg.0.5.13/lib/FsAlg.dll"
+﻿(**
+Logistic regression dates from the 1950s and has great architectural similarity with the later field of articifial neural networks
+**)
+
+
+#r "../../packages/FsAlg.0.5.13/lib/FsAlg.dll"
 #r "../../packages/DiffSharp.0.6.2/lib/DiffSharp.dll"
 #I "../../packages/RProvider.1.1.8"
 #load "RProvider.fsx"
