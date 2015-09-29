@@ -24,11 +24,11 @@
 //   www.bcl.hamilton.ie
 //
 
-#I "../packages/FSharp.Compiler.Service.0.0.87/lib/net40"
+#I "../packages/FSharp.Compiler.Service.0.0.90/lib/net40"
 #r "FSharp.Compiler.Service.dll"
-#I "../packages/FSharpVSPowerTools.Core.1.8.0/lib/net45"
+#I "../packages/FSharpVSPowerTools.Core.1.9.0/lib/net45"
 #r "FSharpVSPowerTools.Core.dll"
-#I "../packages/FSharp.Formatting.2.9.8/lib/net40"
+#I "../packages/FSharp.Formatting.2.11.0/lib/net40"
 #r "CSharpFormat.dll"
 #r "FSharp.CodeFormat.dll"
 #r "FSharp.Literate.dll"

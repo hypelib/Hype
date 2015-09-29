@@ -27,19 +27,12 @@
 namespace Hype
 
 open System.IO
-open DiffSharp.AD
-open FsAlg.Generic
+open DiffSharp.AD.Float32
+open DiffSharp.Util
+
 
 type Rnd() =
     static let R = new System.Random()
-    static member Next() = R.Next()
-    static member Next(max) = R.Next(max)
-    static member Next(min,max) = R.Next(min, max)
-    static member NextD() = D (R.NextDouble())
-    static member NextD(max) = 
-        if max < D 0. then invalidArg "max" "Max should be nonnegative."
-        R.NextDouble() * max
-    static member NextD(min,max) = min + D (R.NextDouble()) * (max - min)
     static member Permutation(n:int) =
         let swap i j (a:_[]) =
             let tmp = a.[i]
@@ -48,31 +41,66 @@ type Rnd() =
         let a = Array.init n (fun i -> i)
         a |> Array.iteri (fun i _ -> swap i (R.Next(i, n)) a)
         a
-    static member Vector(n) = Vector.init n (fun _ -> Rnd.NextD())
-    static member Vector(n,max) = Vector.init n (fun _ -> Rnd.NextD(max))
-    static member Vector(n,min,max) = Vector.init n (fun _ -> Rnd.NextD(min, max))
+    static member UniformInt() = R.Next()
+    static member UniformInt(max) = R.Next(max)
+    static member UniformInt(min, max) = R.Next(min, max)
+    static member Uniform() = float32 (R.NextDouble())
+    static member UniformD() = D (float32 (R.NextDouble()))
+    static member Uniform(max) = max * (float32 (R.NextDouble()))
+    static member UniformD(max) = max * D (float32 (R.NextDouble()))
+    static member Uniform(min, max) = min + (float32 (R.NextDouble())) * (max - min)
+    static member UniformD(min, max) = min + D (float32 (R.NextDouble())) * (max - min)
+    static member Normal() =
+        let rec n() = 
+            let x, y = (float32 (R.NextDouble())) * 2.0f - 1.0f, (float32 (R.NextDouble())) * 2.0f - 1.0f
+            let s = x * x + y * y
+            if s > 1.0f then n() else x * sqrt (-2.0f * (log s) / s)
+        n()
+    static member NormalD() = D (Rnd.Normal())
+    static member Normal(mu, sigma) = Rnd.Normal() * sigma + mu
+    static member NormalD(mu, sigma) = Rnd.NormalD() * sigma + mu
+    
+    static member UniformDV(n) = DV (Array.Parallel.init n (fun _ -> Rnd.Uniform()))
+    static member UniformDV(n, max) = DV.init n (fun _ -> Rnd.UniformD(max))
+    static member UniformDV(n, min, max) = DV.init n (fun _ -> Rnd.UniformD(min, max))
+    static member NormalDV(n) = DV (Array.Parallel.init n (fun _ -> Rnd.Normal()))
+    static member NormalDV(n, mu, sigma) = DV.init n (fun _ -> Rnd.NormalD(mu, sigma))
+
+    static member UniformDM(m, n) = DM (Array2D.Parallel.init m n (fun _ _ -> Rnd.Uniform()))
+    static member UniformDM(m, n, max) = DM.init m n (fun _ _ -> Rnd.UniformD(max))
+    static member UniformDM(m, n, min, max) = DM.init m n (fun _ _ -> Rnd.UniformD(min, max))
+    static member NormalDM(m, n) = DM (Array2D.Parallel.init m n (fun _ _ -> Rnd.Normal()))
+    static member NormalDM(m, n, mu, sigma) = DM.init m n (fun _ _ -> Rnd.NormalD(mu, sigma))
 
 
 type Data =
-    {X:Matrix<D>
-     Y:Matrix<D>}
-    static member ofSeq (s:seq<Vector<D>*Vector<D>>) =
+    {X:DM
+     Y:DM}
+    static member ofSeq (s:seq<DV*DV>) =
         let x, y = s |> Seq.toArray |> Array.unzip
-        {X = x |> Matrix.ofCols
-         Y = y |> Matrix.ofCols}
+        {X = x |> DM.ofCols
+         Y = y |> DM.ofCols}
     member d.Item
-        with get i =
-            d.X.[*,i] |> Matrix.toVector, d.Y.[*,i] |> Matrix.toVector
+        with get i = d.X.[*,i], d.Y.[*,i]
     member d.Length = d.X.Cols
     member d.ToSeq() =
         Seq.init d.Length (fun i -> d.[i])
-    member d.Minibatch n =
+    member d.Random(n) =
         let bi = Rnd.Permutation(d.Length)
-        let x = Seq.init n (fun i -> d.X |> Matrix.col bi.[i] |> Matrix.toVector)
-        let y = Seq.init n (fun i -> d.Y |> Matrix.col bi.[i] |> Matrix.toVector)
-        {X = Matrix.ofCols x
-         Y = Matrix.ofCols y}
-    member d.Shuffle() = d.Minibatch d.Length
+        let x = Seq.init n (fun i -> d.X.[*, bi.[i]])
+        let y = Seq.init n (fun i -> d.Y.[*, bi.[i]])
+        {X = DM.ofCols x
+         Y = DM.ofCols y}
+    member d.Normalize() =
+        {X = DM.normalize d.X
+         Y = DM.normalize d.Y}
+    member d.NormalizeX() =
+        {X = DM.normalize d.X
+         Y = d.Y}
+    member d.NormalizeY() =
+        {X = d.X
+         Y = DM.normalize d.Y}
+    member d.Shuffle() = d.Random d.Length
     member d.Sub(i, n) =
         {X = d.X.[*,i..(i+n-1)]
          Y = d.Y.[*,i..(i+n-1)]}
@@ -80,26 +108,40 @@ type Data =
         let l = defaultArg lower 0
         let u = defaultArg upper (d.Length - 1)
         d.Sub(l, u - l + 1)
-    member d.Filter (predicate:(Vector<D>*Vector<D>)->bool) =
+    member d.Filter (predicate:(DV*DV)->bool) =
         d.ToSeq() |> Seq.filter predicate |> Data.ofSeq
-
+    member d.AppendRowX(v:DV) =
+        {X = d.X |> DM.appendRow v
+         Y = d.Y}
+    member d.AppendRowY(v:DV) =
+        {X = d.X
+         Y = d.Y |> DM.appendRow v}
+    member d.AppendBiasRowX() = d.AppendRowX(DV.create d.Length 1.f)
+    member d.Print() =
+        "Data\n"
+            + sprintf "   X: %i x %i" d.X.Rows d.X.Cols
+            + sprintf "   Y: %i x %i" d.Y.Rows d.Y.Cols
+    member d.PrintFull() =
+        "Data\n"
+            + sprintf "   X:\n%s\n" (d.X.ToString())
+            + sprintf "   Y:\n%s\n" (d.Y.ToString())
 
 type Util =
     static member printLog (s:string) = printfn "[%A] %s" System.DateTime.Now s
-    static member printModel (f:Vector<D>->Vector<D>) (d:Data) =
+    static member printModel (f:DV->DV) (d:Data) =
         d.ToSeq()
         |> Seq.map (fun (x, y) -> f x, y)
         |> Seq.iter (fun (x, y) -> printfn "f x: %A, y: %A" x y)
     static member LoadImage(filename:string) =
         let bmp = new System.Drawing.Bitmap(filename)
-        let m = Matrix.init bmp.Height bmp.Width (fun i j -> float (bmp.GetPixel(i, j).GetBrightness()))
+        let m = DM.init bmp.Height bmp.Width (fun i j -> D(float32 (bmp.GetPixel(i, j).GetBrightness())))
         bmp.Dispose()
         m
     static member LoadDelimited(filename:string, separators:char[]) =
         System.IO.File.ReadLines(filename)
-        |> Seq.map (fun x -> x.Split(separators) |> Array.map float)
-        |> Seq.map vector
-        |> Matrix.ofRows 
+        |> Seq.map (fun x -> x.Split(separators) |> Array.map (float32>>D))
+        |> Seq.map toDV
+        |> DM.ofRows 
     static member LoadDelimited(filename:string) =
         Util.LoadDelimited(filename, [|' '; ','; '\t'|])
     static member LoadMNIST(filename, items) =
@@ -109,32 +151,16 @@ type Util =
         | 2049 -> // Labels
             let maxitems = d.ReadInt32() |> System.Net.IPAddress.NetworkToHostOrder
             d.ReadBytes(min items maxitems)
-            |> Array.map float
-            |> Matrix.ofArray 1
+            |> Array.map (float32>>D)
+            |> DM.ofArray 1
         | 2051 -> // Images
             let maxitems = d.ReadInt32() |> System.Net.IPAddress.NetworkToHostOrder
             let rows = d.ReadInt32() |> System.Net.IPAddress.NetworkToHostOrder
             let cols = d.ReadInt32() |> System.Net.IPAddress.NetworkToHostOrder
             let n = min items maxitems
             d.ReadBytes(n * rows * cols)
-            |> Array.map float
-            |> Matrix.ofArray n
-            |> Matrix.transpose
+            |> Array.map (float32>>D)
+            |> DM.ofArray n
+            |> DM.transpose
         | _ -> failwith "Given file is not in the MNIST format."
     static member LoadMNIST(filename) = Util.LoadMNIST(filename, System.Int32.MaxValue)
-
-
-[<AutoOpen>]
-module Activation =
-    let inline sigmoid (x:D) = D 1. / (D 1. + exp -x)
-    let inline softSign (x:D) = x / (D 1. + abs x)
-    let inline softPlus (x:D) = log (D 1. + exp x)
-    let inline rectifiedLinear (x:D) = max (D 0.) x
-
-
-[<RequireQualifiedAccess>]
-module Loss =
-    let inline Quadratic (d:Data) (f:Vector<D>->Vector<D>) = 
-        (d.ToSeq() |> Seq.sumBy (fun (x, y) -> Vector.normSq (y - f x))) / d.Length
-    let inline Manhattan (d:Data) (f:Vector<D>->Vector<D>) =
-        (d.ToSeq() |> Seq.sumBy (fun (x, y) -> Vector.l1norm (y - f x))) / d.Length
