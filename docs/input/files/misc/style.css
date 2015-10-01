@@ -93,7 +93,7 @@ table.pre td.lines {
 /*--------------------------------------------------------------------------*/
 
 body {
-  font-family: 'Open Sans', serif;
+  font-family: 'Open Sans', 'Segoe UI', serif;
   padding-top: 0px;
   padding-bottom: 40px;
   color: #dbdbdb;
@@ -121,6 +121,18 @@ pre {
   color: #ebebeb;
   background-color: #1f1f1f;
   border-color: #191919;
+}
+
+.hype {
+  color: #fff;
+}
+
+.nav-label {
+  font-size: 11pt;
+  height: 34px;
+  padding: 7px 15px;
+  margin: 20px 0px 0px 0px;
+  color: #dbdbdb;
 }
 
 a:link {

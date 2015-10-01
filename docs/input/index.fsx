@@ -20,7 +20,7 @@ AD is a generalized form of "backpropagation" and is distinct from numerical or 
 
 ### Hypergradients
 
-You can take gradients of the training or validation loss with respect to hyperparameters. These __hypergradients__ allow you to do gradient-based optimization of gradient-based optimization, meaning that you can do things like optimizing learning rate and momentum schedules, weight initialization parameters, or step sizes and mass matrices in Hamiltonian Monte Carlo models.
+You can get exact gradients of the training or validation loss with respect to hyperparameters. These __hypergradients__ allow you to do gradient-based optimization of gradient-based optimization, meaning that you can do things like optimizing learning rate and momentum schedules, weight initialization parameters, or step sizes and mass matrices in Hamiltonian Monte Carlo models.
 
 *)
 
@@ -56,7 +56,7 @@ Or you can perform optimization of procedures that are internally using differen
 
 ### Complex objective functions
 
-You can use derivatives in defining objective functions. For example, your objective function can take input transformations into account, for training neural networks that are invariant to a set of chosen input transformations.
+You can use derivatives in defining objective functions for training your models. For example, your objective function can take input sensitivities into account, for training neural networks that are invariant to a set of chosen input transformations.
 
 Roadmap
 -------
@@ -74,7 +74,7 @@ Roadmap
 
 <div class="col-sm-6">
 <div class="alert alert-info">
-  <strong>Working on for future releases</strong> 
+  <strong>Upcoming features</strong> 
 
 * GPU support through CUDA
 * Improved memory efficiency for large-scale problems

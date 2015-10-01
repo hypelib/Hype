@@ -8,6 +8,7 @@
     <meta name="author" content="Atılım Güneş Baydin; Barak A. Pearlmutter">
 
     <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
@@ -23,14 +24,13 @@
     <nav class="navbar navbar-inverse">
       <div class="container">
         <div class="navbar-header">
-          <a class="navbar-brand" href="index.html">Hype</a>
+          <a class="navbar-brand" href="index.html"><span class="hype">Hype</span></a>
         </div>
         <div>
           <ul class="nav navbar-nav">
-            <li class="active"><a href="index.html">Home</a></li>
             <li><a href="https://github.com/gbaydin/Hype">GitHub</a></li>
-            <li><a href="https://github.com/gbaydin/Hype/releases">Release Notes</a></li>
-            <li><a href="reference/index.html">API Reference</a></li>
+            <li><a href="https://github.com/gbaydin/Hype/releases">Release notes</a></li>
+            <li><a href="reference/index.html">API reference</a></li>
             <li><a href="download.html">Download</a></li>
           </ul>
         </div>
@@ -43,9 +43,14 @@
           {tooltips}
         </div>
         <div class="col-sm-3">
-          <img src="img/hype.png" style="width:200px"/>
+          <a href="index.html"><img src="img/hype.png" style="width:200px"/></a><br>
+          <div class="nav-label">Basics</div>
           <ul class="nav nav-pills nav-stacked">
             <li><a href="optimization.html">Optimization</a></li>
+            <li><a href="#">Training</a></li>
+          </ul>
+          <div class="nav-label">Examples</div>
+          <ul class="nav nav-pills nav-stacked">
             <li><a href="linearregression.html">Linear Regression</a></li>
             <li><a href="logisticregression.html">Logistic Regression</a></li>
             <li><a href="#">Neural Networks</a></li>
