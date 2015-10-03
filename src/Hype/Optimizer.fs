@@ -40,17 +40,17 @@ type LearningRate =
     | StrongWolfe of D * D * D // Strong Wolfe line search. lmax, c1, c2
     | AdaGrad of D // Adagrad. Initial value
     | RMSProp of D * D // RMSProp. Initial value, decay rate
-    member l.Print() =
+    member l.Print =
         match l with
-        | Constant a -> sprintf "Constant a = %A" a
-        | Decay (a0, k) -> sprintf "1/t decay a0 = %A, k = %A" a0 k
-        | ExponentialDecay (a0, k) -> sprintf "Exponential decay a = %A, k = %A" a0 k
-        | Scheduled a -> sprintf "Scheduled of length %A" a.Length
-        | Backtracking (a0, c, r) -> sprintf "Backtracking a0 = %A, c = %A, r = %A" a0 c r
+        | Constant a                 -> sprintf "Constant a = %A" a
+        | Decay (a0, k)              -> sprintf "1/t decay a0 = %A, k = %A" a0 k
+        | ExponentialDecay (a0, k)   -> sprintf "Exponential decay a = %A, k = %A" a0 k
+        | Scheduled a                -> sprintf "Scheduled of length %A" a.Length
+        | Backtracking (a0, c, r)    -> sprintf "Backtracking a0 = %A, c = %A, r = %A" a0 c r
         | StrongWolfe (amax, c1, c2) -> sprintf "Strong Wolfe amax = %A, c1 = %A, c2 = %A" amax c1 c2
-        | AdaGrad (a0) -> sprintf "AdaGrad a0 = %A" a0
-        | RMSProp (a0, k) -> sprintf "RMSProp a0 = %A, k = %A" a0 k
-    member l.Func() =
+        | AdaGrad (a0)               -> sprintf "AdaGrad a0 = %A" a0
+        | RMSProp (a0, k)            -> sprintf "RMSProp a0 = %A, k = %A" a0 k
+    member l.Func =
         let loopLimit = 500
         match l with
         | Constant a -> fun _ _ _ _ _ _ _ -> box a
@@ -58,7 +58,7 @@ type LearningRate =
         | ExponentialDecay (a0, k) -> fun i _ _ _ _ _ _ -> box (a0 * exp (-k * i))
         | Scheduled a -> fun i _ _ _ _ _ _ -> box a.[i]
         | Backtracking (a0, c, r) -> // Typical: Backtracking (D 1.f, D 0.0001f, D 0.5f)
-            fun i w f v g _ p ->
+            fun _ w f v g _ p ->
                 let mutable a = a0
                 let mutable i = 0
                 let mutable found = false
@@ -73,7 +73,7 @@ type LearningRate =
                         Util.printLog "WARNING: Backtracking did not converge."
                 box a
         | StrongWolfe (amax, c1, c2) -> // Typical: StrongWolfe (D 1.f, D 0.0001f, D 0.5f)
-            fun i w f v g _ p ->
+            fun _ w f v g _ p ->
                 let v0 = v
                 let gp0 = g * p
                 let inline zoom a1 a2 =
@@ -145,18 +145,16 @@ type Batch =
     | Full
     | Minibatch of int
     | Stochastic // Minibatch with size 1
-    member b.Print() =
+    member b.Print =
         match b with
-        | Full -> "Full"
+        | Full        -> "Full"
         | Minibatch n -> sprintf "Minibatches of %A" n
-        | Stochastic -> "Stochastic (minibatch of 1)"
-    member b.Func() =
+        | Stochastic  -> "Stochastic (minibatch of 1)"
+    member b.Func =
         match b with
-        | Full -> fun (d:Data) _ -> d
-        | Minibatch n -> 
-            fun d i ->
-                d.[(n * i)..((n * i) + n - 1)]
-        | Stochastic -> fun d i -> d.[i..i]
+        | Full -> fun (d:Dataset) _ -> d
+        | Minibatch n ->    fun d i -> d.[(n * i)..((n * i) + n - 1)]
+        | Stochastic ->     fun d i -> d.[i..i]
 
 type Method =
     | GD
@@ -166,58 +164,57 @@ type Method =
     | DaiYuanCG
     | NewtonCG
     | Newton
-    member o.Print() =
+    member o.Print =
         match o with
-        | GD -> "Gradient descent"
-        | CG -> "Conjugate gradient"
-        | CD -> "Conjugate descent"
-        | DaiYuanCG -> "Dai & Yuan conjugate gradient"
+        | GD          -> "Gradient descent"
+        | CG          -> "Conjugate gradient"
+        | CD          -> "Conjugate descent"
+        | DaiYuanCG   -> "Dai & Yuan conjugate gradient"
         | NonlinearCG -> "Nonlinear conjugate gradient"
-        | NewtonCG -> "Newton conjugate gradient"
-        | Newton -> "Exact Newton"
-
-    member o.Func() =
+        | NewtonCG    -> "Newton conjugate gradient"
+        | Newton      -> "Exact Newton"
+    member o.Func =
         match o with
         | GD ->
-            fun _ w f _ _ _ ->
+            fun w f _ _ ->
                 let v', g' = grad' f w
                 let p' = -g'
                 v', g', p'
         | CG -> // Hestenes and Stiefel 1952
-            fun _ w f _ g p ->
+            fun w f g p ->
                 let v', g' = grad' f w
                 let y = g' - g
                 let b = (g' * y) / (p * y)
                 let p' = -g' + b * p
                 v', g', p'
         | CD -> // Fletcher 1987
-            fun _ w f _ g p ->
+            fun w f g p ->
                 let v', g' = grad' f w
                 let b = (DV.normSq g') / (-p * g)
                 let p' = -g' + b * p
                 v', g', p'
         | DaiYuanCG -> // Dai and Yuan 1999
-            fun _ w f _ g p ->
+            fun w f g p ->
                 let v', g' = grad' f w
                 let y = g' - g
                 let b = (DV.normSq g') / (p * y)
                 let p' = -g' + b * p
                 v', g', p'
         | NonlinearCG -> // Fletcher and Reeves 1964
-            fun _ w f _ g p ->
+            fun w f g p ->
                 let v', g' = grad' f w
                 let b = (DV.normSq g') / (DV.normSq g)
                 let p' = -g' + b * p
                 v', g', p'
         | NewtonCG ->
-            fun _ w f _ _ p ->
+            fun w f _ p ->
                 let v', g' = grad' f w
                 let hv = hessianv f w p
                 let b = (g' * hv) / (p * hv)
                 let p' = -g' + b * p
                 v', g', p'
         | Newton ->
-            fun _ w f _ _ _ ->
+            fun w f _ _ ->
                 let v', g', h' = gradhessian' f w
                 let p' = -DM.solveSymmetric h' g'
                 v', g', p'
@@ -226,12 +223,12 @@ type Momentum =
     | Momentum of D
     | Nesterov of D
     | NoMomentum
-    member m.Print() =
+    member m.Print =
         match m with
         | Momentum m -> sprintf "Constant %A" m
         | Nesterov m -> sprintf "Constant Nesterov %A" m
         | NoMomentum -> "None"
-    member m.Func() =
+    member m.Func =
         match m with
         | Momentum m -> fun (u:DV) (u':DV) -> (m * u) + u'
         | Nesterov m -> fun u u' -> (m * m * u) + (m + D 1.f) * u'
@@ -242,40 +239,29 @@ type Loss =
     | L2Loss
     | CrossEntropyOnLinear
     | CrossEntropyOnSoftmax
-    member l.Print() =
+    member l.Print =
         match l with
         | L1Loss -> "L1"
         | L2Loss -> "L2"
         | CrossEntropyOnLinear -> "Cross entropy after linear layer"
         | CrossEntropyOnSoftmax -> "Cross entropy after softmax layer"
-    member l.FuncDM() =
+    member l.Func =
         match l with
-        | L1Loss -> fun (d:Data) (f:DM->DM) -> ((d.Y - (f d.X)) |> DM.toCols |> Seq.sumBy DV.l1norm) / d.Length
+        | L1Loss -> fun (d:Dataset) (f:DM->DM) -> ((d.Y - (f d.X)) |> DM.toCols |> Seq.sumBy DV.l1norm) / d.Length
         | L2Loss -> fun d f -> ((d.Y - (f d.X)) |> DM.toCols |> Seq.sumBy DV.l2norm) / d.Length
         | CrossEntropyOnLinear -> fun d f -> ((f d.X) |> DM.toCols |> Seq.mapi (fun i v -> (logsumexp v) - v.[int (float32 d.Y.[0, i])]) |> Seq.sum) / d.Length
         | CrossEntropyOnSoftmax -> fun d f -> -((f d.X) |> DM.toCols |> Seq.mapi (fun i v -> (DV.standardBasis v.Length (int (float32 d.Y.[0, i]))) * log v) |> Seq.sum) / d.Length
-
-    member l.FuncDV() =
-        match l with
-        | L1Loss -> fun (d:Data) (f:DV->DV) -> (d.ToSeq() |> Seq.sumBy (fun (x, y) -> DV.l1norm (y - f x))) / d.Length
-        | L2Loss -> fun d f -> (d.ToSeq() |> Seq.sumBy (fun (x, y) -> DV.l2norm (y - f x))) / d.Length
-        | CrossEntropyOnLinear -> fun d f -> (d.ToSeq() |> Seq.sumBy (fun (x, y) ->
-                                                                        let fx = f x
-                                                                        (logsumexp fx) - fx.[int (float32 y.[0])])) / d.Length
-        | CrossEntropyOnSoftmax -> fun d f -> -(d.ToSeq() |> Seq.sumBy (fun (x, y) ->
-                                                                        let fx = f x
-                                                                        (DV.standardBasis fx.Length (int (float32 y.[0]))) * log fx)) / d.Length
 
 type Regularization =
     | L1Reg of D
     | L2Reg of D
     | NoReg
-    member r.Print() =
+    member r.Print =
         match r with
         | L1Reg l -> sprintf "L1 lambda = %A" l
         | L2Reg l -> sprintf "L2 lambda = %A" l
         | NoReg -> "None"
-    member r.Func() =
+    member r.Func =
         match r with
         | L1Reg l -> fun (w:DV) -> l * (DV.l1norm w)
         | L2Reg l -> fun w -> l * (DV.l2normSq w)
@@ -283,7 +269,7 @@ type Regularization =
 type EarlyStopping =
     | Early of int * int // Stagnation patience, overfitting patience
     | NoEarly
-    member e.Print() =
+    member e.Print =
         match e with
         | Early(s, o) -> sprintf "Stagnation thresh. = %A, overfit. thresh. = %A" s o
         | NoEarly -> "None"
@@ -298,7 +284,8 @@ type Params =
      Batch : Batch
      EarlyStopping : EarlyStopping
      Verbose : bool
-     ValidationInterval : int}
+     ValidationInterval : int
+     ReportFunction : int->DV->D->unit}
      static member Default = {Epochs = 100
                               LearningRate = Backtracking (D 1.f, D 0.0001f, D 0.5f)
                               Momentum = NoMomentum
@@ -308,26 +295,111 @@ type Params =
                               Batch = Minibatch 10
                               EarlyStopping = NoEarly
                               Verbose = true
-                              ValidationInterval = 10}
-    member p.GetEpochs() =
+                              ValidationInterval = 10
+                              ReportFunction = fun _ _ _ -> ()}
+    member p.GetEpochs =
         match p.LearningRate with
         | Scheduled a -> a.Length
         | _ -> p.Epochs
         
 
-type Optimize =
-    static member Train (par:Params, f:DV->DM->DM, w0:DV, d:Data, ?v:Data) =
+type Optimizer =
+    static member Minimize (f:DV->D, w0:DV) = Optimizer.Minimize(f, w0, Params.Default)
+    static member Minimize (f:DV->D, w0:DV, par:Params) =
+        Util.printLog "--- Minimization started"
+        let start = System.DateTime.Now
+
+        let dir = par.Method.Func
+        let lr = par.LearningRate.Func
+        let mom = par.Momentum.Func
+        let iters = par.GetEpochs
+
+        Util.printLog (sprintf "Parameters    : %A" w0.Length)
+        Util.printLog (sprintf "Iterations    : %A" iters)
+        Util.printLog (sprintf "Method        : %s" par.Method.Print)
+        Util.printLog (sprintf "Learning rate : %s" par.LearningRate.Print)
+        Util.printLog (sprintf "Momentum      : %s" par.Momentum.Print)
+
+        let mutable i = 0
+        let mutable w = w0
+        let l, g = grad' f w0
+        let mutable l = l
+        let mutable g = g
+        let mutable p = -g
+        let mutable u = DV.ZeroN g.Length
+        let gcache = ref DV.Zero
+
+        let l0 = l
+        let mutable wbest = w0
+        let mutable lbest = l0
+        let mutable rllast = l0
+        let mutable rlbest = l0
+        let mutable rlbestchar = " "
+
+        let ldiffchar l = if l < D 0.f then "↓" elif l > D 0.f then "↑" else "-"
+
+        let ichars = iters.ToString().Length
+
+        while (i < iters) do
+            let l', g', p' = dir w f g p
+
+            if l' < lbest then
+                wbest <- w
+                lbest <- l'
+
+            if i % par.ValidationInterval = 0 then
+                let rldiff = l' - rllast
+                if l' < rlbest then rlbest <- l'; rlbestchar <- "▼" else rlbestchar <- " "
+                rllast <- l'
+
+                if par.Verbose then Util.printLog (sprintf "Iter %*i | Val %O [%s%s]" ichars i l' (ldiffchar rldiff) rlbestchar)
+                par.ReportFunction i w l'
+
+            let mutable u' = DV.Zero
+            match lr i w f l' g' gcache p' with
+            | :? D as a -> u' <- a * p // A scalar learning rate
+            | :? DV as a -> u' <- a .* p // Vector of independent learning rates
+
+            u' <- mom u u'
+
+            w <- w + u'
+            l <- l'
+            g <- g'
+            u <- u'
+            i <- i + 1
+        let duration = System.DateTime.Now.Subtract(start)
+        let ldec = -(lbest - l0)
+        let ldecs = ldec / (float32 duration.TotalSeconds)
+        let es = (float32 i) / (float32 duration.TotalSeconds)
+        let em = (float32 i) / (float32 duration.TotalMinutes)
+        Util.printLog (sprintf "Duration         : %A" duration)
+        Util.printLog (sprintf "Value initial    : %A" (primal l0))
+        Util.printLog (sprintf "Value final      : %A" (primal lbest))
+        Util.printLog (sprintf "Value decrease   : %A (%.2f %%)" (primal ldec) (float32 (100 * ldec /l0)))
+        Util.printLog (sprintf "Value decr. / s  : %A" (primal ldecs))
+        Util.printLog (sprintf "Iterations / s   : %A" es)
+        Util.printLog (sprintf "Iterations / min : %A" em)
+        Util.printLog "--- Minimization finished"
+        wbest, lbest
+
+    static member Train (f:DV->DV->DV, w0:DV, d:Dataset) = Optimizer.Train(f, w0, d, Dataset.empty, Params.Default)
+    static member Train (f:DV->DV->DV, w0:DV, d:Dataset, par:Params) = Optimizer.Train(f, w0, d, Dataset.empty, par)
+    static member Train (f:DV->DV->DV, w0:DV, d:Dataset, v:Dataset) = Optimizer.Train(f, w0, d, v, Params.Default)
+    static member Train (f:DV->DV->DV, w0:DV, d:Dataset, v:Dataset, par:Params) = Optimizer.Train (f >> DM.mapCols, w0, d, v, par)
+    static member Train (f:DV->DM->DM, w0:DV, d:Dataset) = Optimizer.Train(f, w0, d, Dataset.empty, Params.Default)
+    static member Train (f:DV->DM->DM, w0:DV, d:Dataset, par:Params) = Optimizer.Train(f, w0, d, Dataset.empty, par)
+    static member Train (f:DV->DM->DM, w0:DV, d:Dataset, v:Dataset) = Optimizer.Train(f, w0, d, v, Params.Default)
+    static member internal Train (f:DV->DM->DM, w0:DV, d:Dataset, v:Dataset, par:Params) =
         Util.printLog "--- Training started"
         let start = System.DateTime.Now
 
-        let b = par.Batch.Func()
-        let dir = par.Method.Func()
-        let lr = par.LearningRate.Func()
-        let mom = par.Momentum.Func()
-        let loss = par.Loss.FuncDM()
-        let reg = par.Regularization.Func()
-        let epochs = par.GetEpochs()
-
+        let b = par.Batch.Func
+        let dir = par.Method.Func
+        let lr = par.LearningRate.Func
+        let mom = par.Momentum.Func
+        let reg = par.Regularization.Func
+        let epochs = par.GetEpochs
+        let loss = par.Loss.Func
         let batches =
             match par.Batch with
             | Full -> 1
@@ -336,26 +408,27 @@ type Optimize =
 
         Util.printLog (sprintf "Parameters     : %A" w0.Length)
         Util.printLog (sprintf "Training data  : %i" d.Length)
-        match v with
-        | Some(v) ->
+        if Dataset.isEmpty v then
+            Util.printLog (sprintf "Validation data: None")
+        else
             Util.printLog (sprintf "Validation data: %i" v.Length)
             Util.printLog (sprintf "Valid. interval: %i" par.ValidationInterval)
-        | None    -> Util.printLog (sprintf "Validation data: None")
         Util.printLog (sprintf "Epochs         : %A" epochs)
-        Util.printLog (sprintf "Batches        : %s (%A per epoch)" (par.Batch.Print()) batches)
-        Util.printLog (sprintf "Method         : %s" (par.Method.Print()))
-        Util.printLog (sprintf "Learning rate  : %s" (par.LearningRate.Print()))
-        Util.printLog (sprintf "Momentum       : %s" (par.Momentum.Print()))
-        Util.printLog (sprintf "Loss           : %s" (par.Loss.Print()))
-        Util.printLog (sprintf "Regularizer    : %s" (par.Regularization.Print()))
-        Util.printLog (sprintf "Early stopping : %s" (par.EarlyStopping.Print()))
-
+        Util.printLog (sprintf "Batches        : %s (%A per epoch)" par.Batch.Print batches)
+        Util.printLog (sprintf "Method         : %s" par.Method.Print)
+        Util.printLog (sprintf "Learning rate  : %s" par.LearningRate.Print)
+        Util.printLog (sprintf "Momentum       : %s" par.Momentum.Print)
+        Util.printLog (sprintf "Loss           : %s" par.Loss.Print)
+        Util.printLog (sprintf "Regularizer    : %s" par.Regularization.Print)
+        Util.printLog (sprintf "Early stopping : %s" par.EarlyStopping.Print)
 
         let q i w = (loss (b d i) (f w)) + reg w
-        let qvalid w =
-            match v with
-            | Some(v) -> (loss v (f w)) + reg w
-            | None -> D 0.f
+
+        let qvalid =
+            if Dataset.isEmpty v then
+                fun _ -> D 0.f
+            else
+                fun w -> (loss v (f w)) + reg w
 
         // i  : epoch
         // w  : previous weights
@@ -383,14 +456,11 @@ type Optimize =
         let mutable wbest = w0
         let mutable lbest = l0
         let mutable rllast= l0
-
-        let mutable rvllast =
-            match v with
-            | Some(v) -> qvalid w0
-            | None -> D 0.f
         let mutable rlbest = l0
-        let mutable rvlbest = rvllast
         let mutable rlbestchar = " "
+
+        let mutable rvllast = if Dataset.isEmpty v then D 0.f else qvalid w0
+        let mutable rvlbest = rvllast
         let mutable rvlbestchar = " "
 
         let ldiffchar l = if l < D 0.f then "↓" elif l > D 0.f then "↑" else "-"
@@ -400,7 +470,6 @@ type Optimize =
         let mutable vlimproved = false
         let mutable earlystop = false
 
-
         let echars = epochs.ToString().Length
         let bchars = batches.ToString().Length
         let ichars = (epochs * d.Length).ToString().Length
@@ -409,7 +478,7 @@ type Optimize =
             batch <- 0
             while (batch < batches) && (not earlystop) do
 
-                let l', g', p' = dir batch w (q batch) l g p
+                let l', g', p' = dir w (q batch) g p
 
                 if l' < lbest then
                     wbest <- w
@@ -421,8 +490,9 @@ type Optimize =
                     if l' < rlbest then rlbest <- l'; rlbestchar <- "▼" else rlbestchar <- " "
                     rllast <- l'
 
-                    match v with
-                    | Some(_) -> 
+                    if Dataset.isEmpty v then
+                        if par.Verbose then Util.printLog (sprintf "Ep %*i Batch %*i | Train %O [%s%s]" echars epoch bchars batch l' (ldiffchar rldiff) rlbestchar)
+                    else
                         let vl' = qvalid w
                         let rvldiff = vl' - rvllast
                         if vl' < rvlbest then
@@ -431,7 +501,7 @@ type Optimize =
                             stagnation <- 0
                             overfitting <- 0
                             vlimproved <- true
-                        else 
+                        else
                             rvlbestchar <- " "
                             stagnation <- stagnation + par.ValidationInterval
                             vlimproved <- false
@@ -452,12 +522,10 @@ type Optimize =
                             | _ ->
                                 Util.printLog (sprintf "Ep %*i Batch %*i | Train %O [%s%s] | Valid %O [%s%s]" echars epoch bchars batch l' (ldiffchar rldiff) rlbestchar vl' (ldiffchar rvldiff) rvlbestchar)
                         rvllast <- vl'
-
-                    | None    -> 
-                        if par.Verbose then Util.printLog (sprintf "Ep %*i Batch %*i | Train %O [%s%s]" echars epoch bchars batch l' (ldiffchar rldiff) rlbestchar)
+                    par.ReportFunction epoch w l'
 
                 let mutable u' = DV.Zero
-                match lr batch w (q batch) l' g' gcache p' with
+                match lr epoch w (q batch) l' g' gcache p' with
                 | :? D as a -> u' <- a * p'  // A scalar learning rate
                 | :? DV as a -> u' <- a .* p' // Vector of independent learning rates
 
@@ -484,5 +552,5 @@ type Optimize =
         Util.printLog (sprintf "Epochs / s     : %A" es)
         Util.printLog (sprintf "Epochs / min   : %A" em)
         Util.printLog "--- Training finished"
-        wbest
+        wbest, lbest
         

@@ -32,7 +32,7 @@ n.Add(LinearNoBiasLayer(300, 10, Initializer.InitTanh))
 //n.Add(ActivationLayer(fun m -> m |> DM.mapCols softmax))
 
 printfn "%s" (n.Print())
-printfn "%s" (n.PrintFull())
+//printfn "%s" (n.PrintFull())
 printfn "%s" (n.Visualize())
 
 //let tt = MNIST'.Filter (fun (_, y) -> (y.[0] = D 0.f) || (y.[0] = D 1.f))
@@ -44,11 +44,11 @@ let p1 = {Params.Default with
             EarlyStopping = Early (400, 100)
             ValidationInterval = 10
             Method = GD
-            Batch = Minibatch 200
+            Batch = Minibatch 100
             Loss = CrossEntropyOnLinear
             Momentum = Nesterov (D 0.9f)
             LearningRate = RMSProp (D 0.001f, D 0.9f)}
-n.Train(p1, MNISTtrain, MNISTvalid)
+Layer.Train(n, MNISTtrain, MNISTvalid, p1)
 
 let p2 = {Params.Default with 
             Epochs = 100
@@ -58,7 +58,7 @@ let p2 = {Params.Default with
             Batch = Full
             Loss = CrossEntropyOnLinear
             LearningRate = AdaGrad (D 0.001f)}
-n.Train(p2, MNISTtrain, MNISTvalid)
+Layer.Train(n, MNISTtrain, MNISTvalid, p2)
 
 
 type Classifier(n:Layer) =

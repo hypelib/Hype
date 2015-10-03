@@ -15,27 +15,29 @@ type Layer() =
     abstract member Print : unit -> string
     abstract member PrintFull : unit -> string
     abstract member Visualize : unit -> string
-    member l.Train (par:Params, d:Data, ?v:Data) =
-        let f w x =
-            l.Decode w
-            l.Run x
+    static member Train (l:Layer, d:Dataset) = Layer.Train(l, d, Dataset.empty, Params.Default)
+    static member Train (l:Layer, d:Dataset, par:Params) = Layer.Train(l, d, Dataset.empty, par)
+    static member Train (l:Layer, d:Dataset, v:Dataset) = Layer.Train(l, d, v, Params.Default)
+    static member Train (l:Layer, d:Dataset, v:Dataset, par:Params) =
+        let f =
+            fun w x ->
+                l.Decode w
+                l.Run x
         let w0 = l.Encode()
-
 //        try
 //            grad (fun w -> Loss.L1Loss.FuncDM(d) (f w)) w0 |> ignore
 //        with
-//            | _ -> failwith "Mismatch between data and input/output dimensions of the network."
-
-        Optimize.Train(par, f, w0, d, ?v = v)
+//            | _ -> failwith "Input/output dimensions mismatch between dataset and the layer."
+        Optimizer.Train(f, w0, d, v, par) |> fst
         |> l.Decode
 
 [<AutoOpen>]
 module LayerOps =
-    let initLayer (l:Layer) = l.Init()
-    let runLayer x (l:Layer) = l.Run x
-    let encodeLayer (l:Layer) = l.Encode()
-    let encodeLength (l:Layer) = l.EncodeLength
-    let decodeLayer (l:Layer) w = l.Decode w
+    let inline initLayer (l:Layer) = l.Init()
+    let inline runLayer x (l:Layer) = l.Run x
+    let inline encodeLayer (l:Layer) = l.Encode()
+    let inline encodeLength (l:Layer) = l.EncodeLength
+    let inline decodeLayer (l:Layer) w = l.Decode w
 
 type FeedForwardLayers() =
     inherit Layer()
@@ -83,7 +85,7 @@ type Initializer =
     | InitSigmoid
     | InitTanh
     | InitCustom of (int->int->D)
-    member i.Name() =
+    member i.Name =
         match i with
         | InitUniform(min, max) -> sprintf "Uniform min=%A max=%A" min max
         | InitNormal(mu, sigma) -> sprintf "Normal mu=%A sigma=%A" mu sigma
@@ -139,7 +141,7 @@ type LinearLayer(inputs:int, outputs:int, ?initializer:Initializer) =
         b <- ww.[1]
     override l.Print() =
         "LinearLayer\n   " 
-            + W.Cols.ToString() + " -> " + W.Rows.ToString() + "\n   Init: " + initializer.Name()
+            + W.Cols.ToString() + " -> " + W.Rows.ToString() + "\n   Init: " + initializer.Name
     override l.PrintFull() =
         l.Print() + "\n"
             + sprintf "   W:\n%s\n" (W.ToString())
@@ -161,7 +163,7 @@ type LinearNoBiasLayer(inputs:int, outputs:int, ?initializer:Initializer) =
     override l.Decode w = W <- w |> DM.ofDV W.Rows
     override l.Print() =
         "LinearNoBiasLayer\n   " 
-            + W.Cols.ToString() + " -> " + W.Rows.ToString() + "\n   Init: " + initializer.Name()
+            + W.Cols.ToString() + " -> " + W.Rows.ToString() + "\n   Init: " + initializer.Name
     override l.PrintFull() =
         l.Print() + "\n"
             + sprintf "   W:\n%s\n" (W.ToString())

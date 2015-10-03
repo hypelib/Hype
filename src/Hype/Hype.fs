@@ -73,13 +73,15 @@ type Rnd() =
     static member NormalDM(m, n, mu, sigma) = DM.init m n (fun _ _ -> Rnd.NormalD(mu, sigma))
 
 
-type Data =
+type Dataset =
     {X:DM
      Y:DM}
     static member ofSeq (s:seq<DV*DV>) =
         let x, y = s |> Seq.toArray |> Array.unzip
         {X = x |> DM.ofCols
          Y = y |> DM.ofCols}
+    static member empty = {X = DM.empty; Y = DM.empty}
+    static member isEmpty ({X = X; Y = Y}) = X.Rows = 0 && X.Cols = 0 && Y.Rows = 0 && Y.Cols = 0
     member d.Item
         with get i = d.X.[*,i], d.Y.[*,i]
     member d.Length = d.X.Cols
@@ -109,7 +111,7 @@ type Data =
         let u = defaultArg upper (d.Length - 1)
         d.Sub(l, u - l + 1)
     member d.Filter (predicate:(DV*DV)->bool) =
-        d.ToSeq() |> Seq.filter predicate |> Data.ofSeq
+        d.ToSeq() |> Seq.filter predicate |> Dataset.ofSeq
     member d.AppendRowX(v:DV) =
         {X = d.X |> DM.appendRow v
          Y = d.Y}
@@ -128,18 +130,18 @@ type Data =
 
 type Util =
     static member printLog (s:string) = printfn "[%A] %s" System.DateTime.Now s
-    static member printModel (f:DV->DV) (d:Data) =
+    static member printModel (f:DV->DV) (d:Dataset) =
         d.ToSeq()
         |> Seq.map (fun (x, y) -> f x, y)
         |> Seq.iter (fun (x, y) -> printfn "f x: %A, y: %A" x y)
     static member LoadImage(filename:string) =
         let bmp = new System.Drawing.Bitmap(filename)
-        let m = DM.init bmp.Height bmp.Width (fun i j -> D(float32 (bmp.GetPixel(i, j).GetBrightness())))
+        let m = DM.init bmp.Height bmp.Width (fun i j -> float32 (bmp.GetPixel(i, j).GetBrightness()))
         bmp.Dispose()
         m
     static member LoadDelimited(filename:string, separators:char[]) =
         System.IO.File.ReadLines(filename)
-        |> Seq.map (fun x -> x.Split(separators) |> Array.map (float32>>D))
+        |> Seq.map (fun x -> x.Split(separators) |> Array.map float32)
         |> Seq.map toDV
         |> DM.ofRows 
     static member LoadDelimited(filename:string) =
@@ -151,16 +153,18 @@ type Util =
         | 2049 -> // Labels
             let maxitems = d.ReadInt32() |> System.Net.IPAddress.NetworkToHostOrder
             d.ReadBytes(min items maxitems)
-            |> Array.map (float32>>D)
-            |> DM.ofArray 1
+            |> Array.map float32
+            |> DV
+            |> DM.ofDV 1
         | 2051 -> // Images
             let maxitems = d.ReadInt32() |> System.Net.IPAddress.NetworkToHostOrder
             let rows = d.ReadInt32() |> System.Net.IPAddress.NetworkToHostOrder
             let cols = d.ReadInt32() |> System.Net.IPAddress.NetworkToHostOrder
             let n = min items maxitems
             d.ReadBytes(n * rows * cols)
-            |> Array.map (float32>>D)
-            |> DM.ofArray n
+            |> Array.map float32
+            |> DV
+            |> DM.ofDV n
             |> DM.transpose
         | _ -> failwith "Given file is not in the MNIST format."
     static member LoadMNIST(filename) = Util.LoadMNIST(filename, System.Int32.MaxValue)

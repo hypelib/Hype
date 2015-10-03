@@ -1,45 +1,44 @@
-﻿#r "../../packages/FsAlg.0.5.13/lib/FsAlg.dll"
-#r "../../packages/DiffSharp.0.6.2/lib/DiffSharp.dll"
-#I "../../packages/RProvider.1.1.8"
+﻿
+#r "../../src/Hype/bin/Debug/DiffSharp.dll"
+#r "../../src/Hype/bin/Debug/Hype.dll"
+#I "../../packages/RProvider.1.1.14"
 #load "RProvider.fsx"
 
-#load "../../src/Hype/Hype.fs"
-#load "../../src/Hype/Optimize.fs"
-#load "../../src/Hype/Neural.fs"
-#load "../../src/Hype/Neural.MLP.fs"
+open Hype
+open Hype.Neural
+open DiffSharp.AD.Float32
+open DiffSharp.Util
 
 open RDotNet
 open RProvider
 open RProvider.graphics
 
-open FsAlg.Generic
-open DiffSharp.AD
-open DiffSharp.AD.Vector
-open Hype
-open Hype.Neural
 
 
-let dataOR = {X = matrix [[D 0.; D 0.; D 1.; D 1.]
-                          [D 0.; D 1.; D 0.; D 1.]]
-              Y = matrix [[D 0.; D 1.; D 1.; D 1.]]}
-
-let dataXOR = {X = matrix [[D 0.; D 0.; D 1.; D 1.]
-                           [D 0.; D 1.; D 0.; D 1.]]
-               Y = matrix [[D 0.; D 1.; D 1.; D 0.]]}
+let dataOR = {X = toDM [[0.; 0.; 1.; 1.]
+                        [0.; 1.; 0.; 1.]]
+              Y = toDM [[0.; 1.; 1.; 0.]]}
 
 
-let train (x:Vector<_>) =
-    let par = {DefaultParams with LearningRate = Scheduled x; Batch = Full}
-    let net = MLP.create([|2; 1|], Activation.sigmoid, D -1.41, D 1.41)
-    net.Train par dataOR
-    Loss.Quadratic dataOR net.Run
+let train (x:DV) =
+    let par = {Params.Default with LearningRate = Scheduled x; Batch = Full; Verbose = false}
+    let net = FeedForwardLayers()
+    net.Add(LinearLayer(2, 1, Initializer.InitSigmoid))
+    net.Add(ActivationLayer(sigmoid))
+    
+    Layer.Train(net, dataOR, par)
+    Loss.L2Loss.Func dataOR net.Run
+
+let test = grad train (DV.create 10 0.1f)
 
 let hypertrain = 
-    let report i (w:Vector<_>) _ =
-        namedParams [   
-            "x", box (w |> Vector.map float |> Vector.toArray);
-            "type", box "o"; 
-            //"ylim", box [0.5; 2.];
-            "col", box "blue"]
-        |> R.plot |> ignore
-    Optimize {DefaultParams with Epochs = 250; ReportFunction = report; ReportInterval = 10} train (Vector.create 50 (D 1.))
+    let report i w _ =
+        if i % 2 = 0 then
+            namedParams [   
+                "x", box (w |> convert |> Array.map float);
+                "type", box "o"; 
+                "col", box "blue"]
+            |> R.plot |> ignore
+    let par = {Params.Default with Epochs = 20; ReportFunction = report}
+    Optimizer.Minimize(train, (DV.create 10 0.1f), par)
+
