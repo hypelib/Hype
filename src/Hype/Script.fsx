@@ -11,6 +11,7 @@ open DiffSharp.AD.Float32
 open DiffSharp.Util
 
 #time
+fsi.ShowDeclarationValues <- false
 
 let MNIST = {X = Util.LoadMNIST("C:/datasets/MNIST/train-images.idx3-ubyte", 60000)
              Y = Util.LoadMNIST("C:/datasets/MNIST/train-labels.idx1-ubyte", 60000)}
@@ -19,16 +20,15 @@ let MNIST = {X = Util.LoadMNIST("C:/datasets/MNIST/train-images.idx3-ubyte", 600
 let MNISTt = {X = Util.LoadMNIST("C:/datasets/MNIST/t10k-images.idx3-ubyte", 10000)
               Y = Util.LoadMNIST("C:/datasets/MNIST/t10k-labels.idx1-ubyte", 10000)}
 
-let MNIST' = MNIST.NormalizeX().AppendBiasRowX()
+let MNIST' = MNIST.NormalizeX()
 let MNISTtrain = MNIST'.[..58999]
 let MNISTvalid = MNIST'.[59000..]
-let MNISTtest = MNISTt.NormalizeX().AppendBiasRowX()
+let MNISTtest = MNISTt.NormalizeX()
 
 
 let n = FeedForwardLayers()
-n.Add(LinearNoBiasLayer(785, 300, Initializer.InitTanh))
-n.Add(ActivationLayer(tanh))
-n.Add(LinearNoBiasLayer(300, 10, Initializer.InitTanh))
+n.Add(LinearLayer(784, 10, Initializer.InitTanh))
+
 //n.Add(ActivationLayer(fun m -> m |> DM.mapCols softmax))
 
 printfn "%s" (n.Print())
@@ -53,9 +53,9 @@ Layer.Train(n, MNISTtrain, MNISTvalid, p1)
 let p2 = {Params.Default with 
             Epochs = 100
             EarlyStopping = Early (400, 100)
-            ValidationInterval = 20
+            ValidationInterval = 1
             Method = GD
-            Batch = Full
+            Batch = Minibatch 200
             Loss = CrossEntropyOnLinear
             LearningRate = AdaGrad (D 0.001f)}
 Layer.Train(n, MNISTtrain, MNISTvalid, p2)
@@ -80,12 +80,12 @@ type Classifier(n:Layer) =
 let cc = Classifier(n)
 //[|"0"; "1"; "2"; "3"; "4"; "5"; "6"; "7"; "8"; "9"|]
 
-cc.Classify(MNISTtest.X.[*,30..40]);;
+cc.Classify(MNISTtest.X.[*,30..40])
 MNISTtest.Y.[*, 30..40]
 
 let targetclasses = MNISTtest.Y.[0,*] |> DV.toArray |> Array.map (float32>>int)
 
-cc.ClassificationError MNISTtest.X targetclasses;;
+cc.ClassificationError MNISTtest.X targetclasses
 
 let a = MNISTtrain.X.[*,9]
 let b = a |> DM.ofDV 28 |> DM.visualize

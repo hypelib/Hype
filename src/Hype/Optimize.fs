@@ -34,9 +34,9 @@ open DiffSharp.Util
 type LearningRate =
     | Constant of D // Constant
     | Decay of D * D // 1 / t decay, a = a0 / (1 + kt). Initial value, decay rate
-    | ExponentialDecay of D * D // Exponential decay, a = a0 * Exp(-kt). Initial value, decay rate
-    | Scheduled of DV // Scheduled learning rate vector, its length overrides Params.Epochs
-    | Backtracking of D * D * D // Backtracking line search. Initial value, c, rho
+    | ExpDecay of D * D // Exponential decay, a = a0 * Exp(-kt). Initial value, decay rate
+    | Schedule of DV // Scheduled learning rate vector, its length overrides Params.Epochs
+    | Backtrack of D * D * D // Backtracking line search. Initial value, c, rho
     | StrongWolfe of D * D * D // Strong Wolfe line search. lmax, c1, c2
     | AdaGrad of D // Adagrad. Initial value
     | RMSProp of D * D // RMSProp. Initial value, decay rate
@@ -44,9 +44,9 @@ type LearningRate =
         match l with
         | Constant a                 -> sprintf "Constant a = %A" a
         | Decay (a0, k)              -> sprintf "1/t decay a0 = %A, k = %A" a0 k
-        | ExponentialDecay (a0, k)   -> sprintf "Exponential decay a = %A, k = %A" a0 k
-        | Scheduled a                -> sprintf "Scheduled of length %A" a.Length
-        | Backtracking (a0, c, r)    -> sprintf "Backtracking a0 = %A, c = %A, r = %A" a0 c r
+        | ExpDecay (a0, k)   -> sprintf "Exponential decay a = %A, k = %A" a0 k
+        | Schedule a                -> sprintf "Scheduled of length %A" a.Length
+        | Backtrack (a0, c, r)    -> sprintf "Backtracking a0 = %A, c = %A, r = %A" a0 c r
         | StrongWolfe (amax, c1, c2) -> sprintf "Strong Wolfe amax = %A, c1 = %A, c2 = %A" amax c1 c2
         | AdaGrad (a0)               -> sprintf "AdaGrad a0 = %A" a0
         | RMSProp (a0, k)            -> sprintf "RMSProp a0 = %A, k = %A" a0 k
@@ -55,9 +55,9 @@ type LearningRate =
         match l with
         | Constant a -> fun _ _ _ _ _ _ _ -> box a
         | Decay (a0, k) -> fun i _ _ _ _ _ _ -> box (a0 / (1.f + k * i))
-        | ExponentialDecay (a0, k) -> fun i _ _ _ _ _ _ -> box (a0 * exp (-k * i))
-        | Scheduled a -> fun i _ _ _ _ _ _ -> box a.[i]
-        | Backtracking (a0, c, r) -> // Typical: Backtracking (D 1.f, D 0.0001f, D 0.5f)
+        | ExpDecay (a0, k) -> fun i _ _ _ _ _ _ -> box (a0 * exp (-k * i))
+        | Schedule a -> fun i _ _ _ _ _ _ -> box a.[i]
+        | Backtrack (a0, c, r) -> // Typical: Backtracking (D 1.f, D 0.0001f, D 0.5f)
             fun _ w f v g _ p ->
                 let mutable a = a0
                 let mutable i = 0
@@ -283,30 +283,32 @@ type Params =
      Regularization : Regularization
      Batch : Batch
      EarlyStopping : EarlyStopping
+     ImprovementThreshold : D
      Silent : bool
      ReturnBest : bool
      ValidationInterval : int
      ReportFunction : int->DV->D->unit}
      static member Default = {Epochs = 100
-                              LearningRate = Backtracking (D 1.f, D 0.0001f, D 0.5f)
+                              LearningRate = Backtrack (D 1.f, D 0.0001f, D 0.5f)
                               Momentum = NoMomentum
                               Loss = L2Loss
                               Regularization = L2Reg (D 0.0001f)
                               Method = GD
                               Batch = Minibatch 10
                               EarlyStopping = NoEarly
+                              ImprovementThreshold = D 0.995f
                               Silent = false
-                              ReturnBest = false
+                              ReturnBest = true
                               ValidationInterval = 10
                               ReportFunction = fun _ _ _ -> ()}
     member p.GetEpochs =
         match p.LearningRate with
-        | Scheduled a -> a.Length
+        | Schedule a -> a.Length
         | _ -> p.Epochs
         
 
-type Optimizer =
-    static member Minimize (f:DV->D, w0:DV) = Optimizer.Minimize(f, w0, Params.Default)
+type Optimize =
+    static member Minimize (f:DV->D, w0:DV) = Optimize.Minimize(f, w0, Params.Default)
     static member Minimize (f:DV->D, w0:DV, par:Params) =
         let start = System.DateTime.Now
 
@@ -322,6 +324,9 @@ type Optimizer =
             Util.printLog (sprintf "Method        : %s" par.Method.Print)
             Util.printLog (sprintf "Learning rate : %s" par.LearningRate.Print)
             Util.printLog (sprintf "Momentum      : %s" par.Momentum.Print)
+            Util.printLog (sprintf "Early stopping: %s" par.EarlyStopping.Print)
+            Util.printLog (sprintf "Improv. thres.: %A" par.ImprovementThreshold)
+            Util.printLog (sprintf "Return best   : %A" par.ReturnBest)
 
         let mutable i = 0
         let mutable w = w0
@@ -336,46 +341,71 @@ type Optimizer =
         let l0 = l
         let mutable wbest = w0
         let mutable lbest = l0
-        let mutable rllast = l0
-        let mutable rlbest = l0
-        let mutable rlbestchar = " "
+        let mutable validllast = l0
+        let mutable validlbest = l0
+        let mutable validlbestchar = " "
 
         let ldiffchar l = if l < D 0.f then "↓" elif l > D 0.f then "↑" else "-"
 
         let ichars = iters.ToString().Length
+        
+        let mutable stagnation = -par.ValidationInterval
+        let mutable earlystop = false
 
-        while i < iters + 1 do
+        while (i < iters) && (not earlystop) do
             let l'', g', p' = dir w f g p
             l' <- l''
-
-            if l' < lbest then
+            if l' < par.ImprovementThreshold * lbest then
                 wbest <- w
                 lbest <- l'
 
-            if i < iters then
-                let mutable u' = DV.Zero
-                match lr i w f l' g' gcache p' with
-                | :? D as a -> u' <- a * p; // A scalar learning rate
-                | :? DV as a -> u' <- a .* p; // Vector of independent learning rates
+            let mutable u' = DV.Zero
+            match lr i w f l' g' gcache p' with
+            | :? D as a -> u' <- a * p'; // A scalar learning rate
+            | :? DV as a -> u' <- a .* p'; // Vector of independent learning rates
 
 
-                if i % par.ValidationInterval = 0 then
-                    let rldiff = l' - rllast
-                    if l' < rlbest then rlbest <- l'; rlbestchar <- "▼" else rlbestchar <- " "
-                    rllast <- l'
+            if i % par.ValidationInterval = 0 then
+                let validldiff = l' - validllast
+                if l' < par.ImprovementThreshold * validlbest then
+                    validlbest <- l'
+                    validlbestchar <- "▼" 
+                    stagnation <- 0
+                else 
+                    validlbestchar <- " "
+                    stagnation <- stagnation + par.ValidationInterval
+                    match par.EarlyStopping with
+                    | Early(s, _) ->
+                        if stagnation >= s then
+                            if not par.Silent then Util.printLog "*** EARLY STOPPING TRIGGERED: Stagnation  ***"
+                            earlystop <- true
+                    | _ -> ()
 
-                    if not par.Silent then Util.printLog (sprintf "Iter %*i | Val %O [%s%s]" ichars i l' (ldiffchar rldiff) rlbestchar)
-                    par.ReportFunction i w l'
+                if not par.Silent then 
+                    match par.EarlyStopping with
+                    | Early(s, _) ->
+                        Util.printLog (sprintf "%*i/%i | %O [%s%s] | S:%*i" ichars i iters l' (ldiffchar validldiff) validlbestchar (s.ToString().Length) stagnation)
+                    | _ ->
+                        Util.printLog (sprintf "%*i/%i | %O [%s%s]" ichars i iters l' (ldiffchar validldiff) validlbestchar)
+
+                validllast <- l'
+                par.ReportFunction i w l'
 
 
-                u' <- mom u u'
+            u' <- mom u u'
 
-                w <- w + u'
-                l <- l'
-                g <- g'
-                p <- p' // Or, p <- u'
-                u <- u'
+            w <- w + u'
+            l <- l'
+            g <- g'
+            p <- p' // Or, p <- u'
+            u <- u'
             i <- i + 1
+
+        let l'', _, _ = dir w f g p
+        l' <- l''
+        if l' < par.ImprovementThreshold * lbest then
+            wbest <- w
+            lbest <- l'
 
         let wfinal = if par.ReturnBest then wbest else w
         let lfinal = if par.ReturnBest then lbest else l'
@@ -388,23 +418,23 @@ type Optimizer =
 
         if not par.Silent then
             Util.printLog (sprintf "Duration         : %A" duration)
-            Util.printLog (sprintf "Value initial    : %A" (primal l0))
-            Util.printLog (sprintf "Value final      : %A" (primal lfinal))
-            Util.printLog (sprintf "Value change     : %A (%.2f %%)" (primal lchg) (float32 (100 * lchg /l0)))
-            Util.printLog (sprintf "Value chg. / s   : %A" (primal lchgs))
+            Util.printLog (sprintf "Value initial    : %O" (primal l0))
+            Util.printLog (sprintf "Value final      : %O" (primal lfinal))
+            Util.printLog (sprintf "Value change     : %O (%.2f %%)" (primal lchg) (float32 (100 * lchg /l0)))
+            Util.printLog (sprintf "Value chg. / s   : %O" (primal lchgs))
             Util.printLog (sprintf "Iterations / s   : %A" es)
             Util.printLog (sprintf "Iterations / min : %A" em)
             Util.printLog "--- Minimization finished"
 
         wfinal, lfinal
 
-    static member Train (f:DV->DV->DV, w0:DV, d:Dataset) = Optimizer.Train(f, w0, d, Dataset.empty, Params.Default)
-    static member Train (f:DV->DV->DV, w0:DV, d:Dataset, par:Params) = Optimizer.Train(f, w0, d, Dataset.empty, par)
-    static member Train (f:DV->DV->DV, w0:DV, d:Dataset, v:Dataset) = Optimizer.Train(f, w0, d, v, Params.Default)
-    static member Train (f:DV->DV->DV, w0:DV, d:Dataset, v:Dataset, par:Params) = Optimizer.Train (f >> DM.mapCols, w0, d, v, par)
-    static member Train (f:DV->DM->DM, w0:DV, d:Dataset) = Optimizer.Train(f, w0, d, Dataset.empty, Params.Default)
-    static member Train (f:DV->DM->DM, w0:DV, d:Dataset, par:Params) = Optimizer.Train(f, w0, d, Dataset.empty, par)
-    static member Train (f:DV->DM->DM, w0:DV, d:Dataset, v:Dataset) = Optimizer.Train(f, w0, d, v, Params.Default)
+    static member Train (f:DV->DV->DV, w0:DV, d:Dataset) = Optimize.Train(f, w0, d, Dataset.empty, Params.Default)
+    static member Train (f:DV->DV->DV, w0:DV, d:Dataset, par:Params) = Optimize.Train(f, w0, d, Dataset.empty, par)
+    static member Train (f:DV->DV->DV, w0:DV, d:Dataset, v:Dataset) = Optimize.Train(f, w0, d, v, Params.Default)
+    static member Train (f:DV->DV->DV, w0:DV, d:Dataset, v:Dataset, par:Params) = Optimize.Train (f >> DM.mapCols, w0, d, v, par)
+    static member Train (f:DV->DM->DM, w0:DV, d:Dataset) = Optimize.Train(f, w0, d, Dataset.empty, Params.Default)
+    static member Train (f:DV->DM->DM, w0:DV, d:Dataset, par:Params) = Optimize.Train(f, w0, d, Dataset.empty, par)
+    static member Train (f:DV->DM->DM, w0:DV, d:Dataset, v:Dataset) = Optimize.Train(f, w0, d, v, Params.Default)
     static member internal Train (f:DV->DM->DM, w0:DV, d:Dataset, v:Dataset, par:Params) =
 
         let start = System.DateTime.Now
@@ -495,68 +525,67 @@ type Optimizer =
 
         while (epoch < epochs) && (not earlystop) do
             batch <- 0
-            while (batch < batches + 1) && (not earlystop) do
+            while (batch < batches) && (not earlystop) do
 
                 let l'', g', p' = dir w (q batch) g p
                 l' <- l''
 
-                if l' < lbest then
+                if l' < par.ImprovementThreshold * lbest then
                     wbest <- w
                     lbest <- l'
                     if not vlimproved then overfitting <- overfitting + 1
 
-                if batch < batches then
-                    if batch % par.ValidationInterval = 0 then
-                        let rldiff = l' - rllast
-                        if l' < rlbest then rlbest <- l'; rlbestchar <- "▼" else rlbestchar <- " "
-                        rllast <- l'
+                if batch % par.ValidationInterval = 0 then
+                    let rldiff = l' - rllast
+                    if l' < par.ImprovementThreshold * rlbest then rlbest <- l'; rlbestchar <- "▼" else rlbestchar <- " "
+                    rllast <- l'
 
-                        if Dataset.isEmpty v then
-                            if not par.Silent then Util.printLog (sprintf "Ep %*i Batch %*i | Train %O [%s%s]" echars epoch bchars batch l' (ldiffchar rldiff) rlbestchar)
+                    if Dataset.isEmpty v then
+                        if not par.Silent then Util.printLog (sprintf "Ep %*i Batch %*i | Train %O [%s%s]" echars epoch bchars batch l' (ldiffchar rldiff) rlbestchar)
+                    else
+                        let vl' = qvalid w
+                        let rvldiff = vl' - rvllast
+                        if vl' < par.ImprovementThreshold * rvlbest then
+                            rvlbest <- vl'
+                            rvlbestchar <- "▼"
+                            stagnation <- 0
+                            overfitting <- 0
+                            vlimproved <- true
                         else
-                            let vl' = qvalid w
-                            let rvldiff = vl' - rvllast
-                            if vl' < rvlbest then
-                                rvlbest <- vl'
-                                rvlbestchar <- "▼"
-                                stagnation <- 0
-                                overfitting <- 0
-                                vlimproved <- true
-                            else
-                                rvlbestchar <- " "
-                                stagnation <- stagnation + par.ValidationInterval
-                                vlimproved <- false
-                                match par.EarlyStopping with
-                                    | Early(s, o) -> 
-                                        if stagnation >= s then 
-                                            if not par.Silent then Util.printLog "*** EARLY STOPPING TRIGGERED: Stagnation  ***"
-                                            earlystop <- true
-                                        if overfitting >= o then
-                                            if not par.Silent then Util.printLog "*** EARLY STOPPING TRIGGERED: Overfitting ***"
-                                            earlystop <- true
-                                    | _ -> ()
-
-                            if not par.Silent then
-                                match par.EarlyStopping with
+                            rvlbestchar <- " "
+                            stagnation <- stagnation + par.ValidationInterval
+                            vlimproved <- false
+                            match par.EarlyStopping with
                                 | Early(s, o) -> 
-                                    Util.printLog (sprintf "Ep %*i Batch %*i | Train %O [%s%s] | Valid %O [%s%s] | S:%*i O:%*i" echars epoch bchars batch l' (ldiffchar rldiff) rlbestchar vl' (ldiffchar rvldiff) rvlbestchar (s.ToString().Length) stagnation (o.ToString().Length) overfitting)
-                                | _ ->
-                                    Util.printLog (sprintf "Ep %*i Batch %*i | Train %O [%s%s] | Valid %O [%s%s]" echars epoch bchars batch l' (ldiffchar rldiff) rlbestchar vl' (ldiffchar rvldiff) rvlbestchar)
-                            rvllast <- vl'
+                                    if stagnation >= s then 
+                                        if not par.Silent then Util.printLog "*** EARLY STOPPING TRIGGERED: Stagnation  ***"
+                                        earlystop <- true
+                                    if overfitting >= o then
+                                        if not par.Silent then Util.printLog "*** EARLY STOPPING TRIGGERED: Overfitting ***"
+                                        earlystop <- true
+                                | _ -> ()
+
+                        if not par.Silent then
+                            match par.EarlyStopping with
+                            | Early(s, o) -> 
+                                Util.printLog (sprintf "Ep %*i Batch %*i | Train %O [%s%s] | Valid %O [%s%s] | S:%*i O:%*i" echars epoch bchars batch l' (ldiffchar rldiff) rlbestchar vl' (ldiffchar rvldiff) rvlbestchar (s.ToString().Length) stagnation (o.ToString().Length) overfitting)
+                            | _ ->
+                                Util.printLog (sprintf "Ep %*i Batch %*i | Train %O [%s%s] | Valid %O [%s%s]" echars epoch bchars batch l' (ldiffchar rldiff) rlbestchar vl' (ldiffchar rvldiff) rvlbestchar)
+                        rvllast <- vl'
                         par.ReportFunction epoch w l'
 
-                    let mutable u' = DV.Zero
-                    match lr epoch w (q batch) l' g' gcache p' with
-                    | :? D as a -> u' <- a * p'  // A scalar learning rate
-                    | :? DV as a -> u' <- a .* p' // Vector of independent learning rates
+                let mutable u' = DV.Zero
+                match lr epoch w (q batch) l' g' gcache p' with
+                | :? D as a -> u' <- a * p'  // A scalar learning rate
+                | :? DV as a -> u' <- a .* p' // Vector of independent learning rates
 
-                    u' <- mom u u'
+                u' <- mom u u'
 
-                    w <- w + u'
-                    l <- l'
-                    g <- g'
-                    p <- p' // Or, p <- u'
-                    u <- u'
+                w <- w + u'
+                l <- l'
+                g <- g'
+                p <- p' // Or, p <- u'
+                u <- u'
                 batch <- batch + 1
             epoch <- epoch + 1
           

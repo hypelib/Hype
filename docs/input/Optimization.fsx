@@ -1,4 +1,4 @@
-﻿#r "../../packages/DiffSharp.0.7.0/lib/net46/DiffSharp.dll"
+﻿#r "../../packages/DiffSharp.0.7.2/lib/net46/DiffSharp.dll"
 #r "../../packages/Google.DataTable.Net.Wrapper.3.1.2.0/lib/Google.DataTable.Net.Wrapper.dll"
 #r "../../packages/Newtonsoft.Json.7.0.1/lib/net45/Newtonsoft.Json.dll"
 #r "../../packages/XPlot.GoogleCharts.1.2.1/lib/net45/XPlot.GoogleCharts.dll"
