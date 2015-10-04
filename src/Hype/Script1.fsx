@@ -92,9 +92,9 @@ let learn (draw:bool) (l:DV) =
 
 
 let metalearn epochs metaepochs =
-    //let plot _ w _ =
-        //learn true w |> ignore
-    let par = {Params.Default with Method = GD; Epochs = metaepochs; ValidationInterval = 1; LearningRate = AdaGrad (D 0.00001f)}
+    let plot _ w _ =
+        learn true w |> ignore
+    let par = {Params.Default with Method = GD; Epochs = metaepochs; ValidationInterval = 1; LearningRate = AdaGrad (D 0.00001f); ReportFunction = plot}
     Optimizer.Minimize((learn false), (DV.create epochs 0.001f), par)
 
 

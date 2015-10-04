@@ -17,14 +17,16 @@ open RProvider.graphics
 
 let dataOR = {X = toDM [[0.; 0.; 1.; 1.]
                         [0.; 1.; 0.; 1.]]
-              Y = toDM [[0.; 1.; 1.; 1.]]}
+              Y = toDM [[0.; 1.; 1.; 0.]]}
 
 
 
 let train (x:DV) =
-    let par = {Params.Default with LearningRate = Schedule x; Batch = Full; Silent = true; ReturnBest = false}
+    let par = {Params.Default with LearningRate = AdaGrad (D 0.001f); Batch = Full; Silent = false; ReturnBest = true; Epochs = 10000 }
     let net = FeedForwardLayers()
-    net.Add(LinearLayer(2, 1, Initializer.InitUniform(D -1.41f, D 1.41f)))
+    net.Add(LinearLayer(2, 10, Initializer.InitSigmoid))
+    net.Add(ActivationLayer(sigmoid))
+    net.Add(LinearLayer(10, 1, Initializer.InitSigmoid))
     net.Add(ActivationLayer(sigmoid))
         
     Layer.Train(net, dataOR, par)
@@ -42,4 +44,5 @@ let hypertrain =
     Optimize.Minimize(train, DV.create 50 (1.f), {Params.Default with Epochs = 1500; ReportFunction = report; ValidationInterval = 1; LearningRate = AdaGrad (D 0.001f); EarlyStopping = Early(400, 100)})
 
 
-let test = grad' train (DV.create 40 (1.f))
+let test = train (DV.create 4000 0.1f)
+let test2 = grad' train (DV.create 40 (1.f))

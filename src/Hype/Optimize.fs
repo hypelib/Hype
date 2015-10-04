@@ -310,8 +310,6 @@ type Params =
 type Optimize =
     static member Minimize (f:DV->D, w0:DV) = Optimize.Minimize(f, w0, Params.Default)
     static member Minimize (f:DV->D, w0:DV, par:Params) =
-        let start = System.DateTime.Now
-
         let dir = par.Method.Func
         let lr = par.LearningRate.Func
         let mom = par.Momentum.Func
@@ -319,14 +317,15 @@ type Optimize =
 
         if not par.Silent then
             Util.printLog "--- Minimization started"
-            Util.printLog (sprintf "Parameters    : %A" w0.Length)
-            Util.printLog (sprintf "Iterations    : %A" iters)
-            Util.printLog (sprintf "Method        : %s" par.Method.Print)
-            Util.printLog (sprintf "Learning rate : %s" par.LearningRate.Print)
-            Util.printLog (sprintf "Momentum      : %s" par.Momentum.Print)
-            Util.printLog (sprintf "Early stopping: %s" par.EarlyStopping.Print)
-            Util.printLog (sprintf "Improv. thres.: %A" par.ImprovementThreshold)
-            Util.printLog (sprintf "Return best   : %A" par.ReturnBest)
+            Util.printLog (sprintf "Parameters     : %A" w0.Length)
+            Util.printLog (sprintf "Iterations     : %A" iters)
+            Util.printLog (sprintf "Valid. interval: %i" par.ValidationInterval)
+            Util.printLog (sprintf "Method         : %s" par.Method.Print)
+            Util.printLog (sprintf "Learning rate  : %s" par.LearningRate.Print)
+            Util.printLog (sprintf "Momentum       : %s" par.Momentum.Print)
+            Util.printLog (sprintf "Early stopping : %s" par.EarlyStopping.Print)
+            Util.printLog (sprintf "Improv. thresh.: %A" par.ImprovementThreshold)
+            Util.printLog (sprintf "Return best    : %A" par.ReturnBest)
 
         let mutable i = 0
         let mutable w = w0
@@ -341,9 +340,9 @@ type Optimize =
         let l0 = l
         let mutable wbest = w0
         let mutable lbest = l0
-        let mutable validllast = l0
-        let mutable validlbest = l0
-        let mutable validlbestchar = " "
+        let mutable repllast = l0
+        let mutable replbest = l0
+        let mutable replbestchar = " "
 
         let ldiffchar l = if l < D 0.f then "↓" elif l > D 0.f then "↑" else "-"
 
@@ -352,6 +351,8 @@ type Optimize =
         let mutable stagnation = -par.ValidationInterval
         let mutable earlystop = false
 
+        let start = System.DateTime.Now
+
         while (i < iters) && (not earlystop) do
             let l'', g', p' = dir w f g p
             l' <- l''
@@ -359,38 +360,36 @@ type Optimize =
                 wbest <- w
                 lbest <- l'
 
-            let mutable u' = DV.Zero
-            match lr i w f l' g' gcache p' with
-            | :? D as a -> u' <- a * p'; // A scalar learning rate
-            | :? DV as a -> u' <- a .* p'; // Vector of independent learning rates
-
-
             if i % par.ValidationInterval = 0 then
-                let validldiff = l' - validllast
-                if l' < par.ImprovementThreshold * validlbest then
-                    validlbest <- l'
-                    validlbestchar <- "▼" 
+                let repldiff = l' - repllast
+                if l' < par.ImprovementThreshold * replbest then
+                    replbest <- l'
+                    replbestchar <- "▼" 
                     stagnation <- 0
                 else 
-                    validlbestchar <- " "
+                    replbestchar <- " "
                     stagnation <- stagnation + par.ValidationInterval
                     match par.EarlyStopping with
                     | Early(s, _) ->
                         if stagnation >= s then
-                            if not par.Silent then Util.printLog "*** EARLY STOPPING TRIGGERED: Stagnation  ***"
+                            if not par.Silent then Util.printLog "*** EARLY STOPPING TRIGGERED: Stagnation ***"
                             earlystop <- true
                     | _ -> ()
 
                 if not par.Silent then 
                     match par.EarlyStopping with
                     | Early(s, _) ->
-                        Util.printLog (sprintf "%*i/%i | %O [%s%s] | S:%*i" ichars i iters l' (ldiffchar validldiff) validlbestchar (s.ToString().Length) stagnation)
+                        Util.printLog (sprintf "%*i/%i | %O [%s%s] | Stag:%*i" ichars (i + 1) iters l' (ldiffchar repldiff) replbestchar (s.ToString().Length) stagnation)
                     | _ ->
-                        Util.printLog (sprintf "%*i/%i | %O [%s%s]" ichars i iters l' (ldiffchar validldiff) validlbestchar)
+                        Util.printLog (sprintf "%*i/%i | %O [%s%s]" ichars (i + 1) iters l' (ldiffchar repldiff) replbestchar)
 
-                validllast <- l'
+                repllast <- l'
                 par.ReportFunction i w l'
 
+            let mutable u' = DV.Zero
+            match lr i w f l' g' gcache p' with
+            | :? D as a -> u' <- a * p'; // A scalar learning rate
+            | :? DV as a -> u' <- a .* p'; // Vector of independent learning rates
 
             u' <- mom u u'
 
@@ -407,25 +406,25 @@ type Optimize =
             wbest <- w
             lbest <- l'
 
+        let duration = System.DateTime.Now.Subtract(start)
+
         let wfinal = if par.ReturnBest then wbest else w
         let lfinal = if par.ReturnBest then lbest else l'
 
-        let duration = System.DateTime.Now.Subtract(start)
         let lchg = (lfinal - l0)
         let lchgs = lchg / (float32 duration.TotalSeconds)
         let es = (float i) / (duration.TotalSeconds)
         let em = (float i) / (duration.TotalMinutes)
 
         if not par.Silent then
-            Util.printLog (sprintf "Duration         : %A" duration)
-            Util.printLog (sprintf "Value initial    : %O" (primal l0))
-            Util.printLog (sprintf "Value final      : %O" (primal lfinal))
-            Util.printLog (sprintf "Value change     : %O (%.2f %%)" (primal lchg) (float32 (100 * lchg /l0)))
-            Util.printLog (sprintf "Value chg. / s   : %O" (primal lchgs))
-            Util.printLog (sprintf "Iterations / s   : %A" es)
-            Util.printLog (sprintf "Iterations / min : %A" em)
+            Util.printLog (sprintf "Duration       : %A" duration)
+            Util.printLog (sprintf "Value initial  : %O" (primal l0))
+            Util.printLog (sprintf "Value final    : %O %s" (primal lfinal) (if par.ReturnBest then "(Best)" else "(Last)"))
+            Util.printLog (sprintf "Value change   : %O (%.2f %%)" (primal lchg) (float32 (100 * lchg /l0)))
+            Util.printLog (sprintf "Value chg. / s : %O" (primal lchgs))
+            Util.printLog (sprintf "Iter. / s      : %A" es)
+            Util.printLog (sprintf "Iter. / min    : %A" em)
             Util.printLog "--- Minimization finished"
-
         wfinal, lfinal
 
     static member Train (f:DV->DV->DV, w0:DV, d:Dataset) = Optimize.Train(f, w0, d, Dataset.empty, Params.Default)
@@ -436,9 +435,6 @@ type Optimize =
     static member Train (f:DV->DM->DM, w0:DV, d:Dataset, par:Params) = Optimize.Train(f, w0, d, Dataset.empty, par)
     static member Train (f:DV->DM->DM, w0:DV, d:Dataset, v:Dataset) = Optimize.Train(f, w0, d, v, Params.Default)
     static member internal Train (f:DV->DM->DM, w0:DV, d:Dataset, v:Dataset, par:Params) =
-
-        let start = System.DateTime.Now
-
         let b = par.Batch.Func
         let dir = par.Method.Func
         let lr = par.LearningRate.Func
@@ -469,6 +465,8 @@ type Optimize =
             Util.printLog (sprintf "Loss           : %s" par.Loss.Print)
             Util.printLog (sprintf "Regularizer    : %s" par.Regularization.Print)
             Util.printLog (sprintf "Early stopping : %s" par.EarlyStopping.Print)
+            Util.printLog (sprintf "Improv. thresh.: %A" par.ImprovementThreshold)
+            Util.printLog (sprintf "Return best    : %A" par.ReturnBest)
 
         let q i w = (loss (b d i) (f w)) + reg w
 
@@ -504,24 +502,26 @@ type Optimize =
         let l0 = l
         let mutable wbest = w0
         let mutable lbest = l0
-        let mutable rllast= l0
-        let mutable rlbest = l0
-        let mutable rlbestchar = " "
+        let mutable repllast= l0
+        let mutable replbest = l0
+        let mutable replbestchar = " "
 
-        let mutable rvllast = if Dataset.isEmpty v then D 0.f else qvalid w0
-        let mutable rvlbest = rvllast
-        let mutable rvlbestchar = " "
+        let mutable repvllast = if Dataset.isEmpty v then D 0.f else qvalid w0
+        let mutable repvlbest = repvllast
+        let mutable repvlbestchar = " "
 
         let ldiffchar l = if l < D 0.f then "↓" elif l > D 0.f then "↑" else "-"
 
         let mutable stagnation = -par.ValidationInterval
         let mutable overfitting = 0
-        let mutable vlimproved = false
+        let mutable validlimproved = false
         let mutable earlystop = false
 
         let echars = epochs.ToString().Length
         let bchars = batches.ToString().Length
         let ichars = (epochs * d.Length).ToString().Length
+
+        let start = System.DateTime.Now
 
         while (epoch < epochs) && (not earlystop) do
             batch <- 0
@@ -529,49 +529,68 @@ type Optimize =
 
                 let l'', g', p' = dir w (q batch) g p
                 l' <- l''
-
                 if l' < par.ImprovementThreshold * lbest then
                     wbest <- w
                     lbest <- l'
-                    if not vlimproved then overfitting <- overfitting + 1
+                    if not (Dataset.isEmpty v) then
+                        if not validlimproved then 
+                            overfitting <- overfitting + 1
+                            match par.EarlyStopping with
+                            | Early(_, o) ->
+                                if overfitting >= o then Util.printLog "*** EARLY STOPPING TRIGGERED: Overfitting ***"
+                            | _ -> ()
 
                 if batch % par.ValidationInterval = 0 then
-                    let rldiff = l' - rllast
-                    if l' < par.ImprovementThreshold * rlbest then rlbest <- l'; rlbestchar <- "▼" else rlbestchar <- " "
-                    rllast <- l'
+                    let repldiff = l' - repllast
+                    if l' < par.ImprovementThreshold * replbest then
+                        replbest <- l'
+                        replbestchar <- "▼" 
+                    else 
+                        replbestchar <- " "
+                        if Dataset.isEmpty v then
+                            stagnation <- stagnation + par.ValidationInterval
+                            match par.EarlyStopping with
+                            | Early(s, _) ->
+                                if stagnation >= s then
+                                    if not par.Silent then Util.printLog "*** EARLY STOPPING TRIGGERED: Stagnation of training loss ***"
+                                    earlystop <- true
+                            | _ -> ()
+                    repllast <- l'
 
                     if Dataset.isEmpty v then
-                        if not par.Silent then Util.printLog (sprintf "Ep %*i Batch %*i | Train %O [%s%s]" echars epoch bchars batch l' (ldiffchar rldiff) rlbestchar)
+                        if not par.Silent then
+                            match par.EarlyStopping with
+                            | Early(s, _) ->
+                                Util.printLog (sprintf "%*i/%i Batch %*i/%i | %O [%s%s] | Stag:%*i" echars (epoch + 1) epochs bchars (batch + 1) batches l' (ldiffchar repldiff) replbestchar (s.ToString().Length) stagnation)
+                            | _ ->
+                                Util.printLog (sprintf "%*i/%i Batch %*i/%i | %O [%s%s]" echars (epoch + 1) epochs bchars (batch + 1) batches l' (ldiffchar repldiff) replbestchar)
                     else
                         let vl' = qvalid w
-                        let rvldiff = vl' - rvllast
-                        if vl' < par.ImprovementThreshold * rvlbest then
-                            rvlbest <- vl'
-                            rvlbestchar <- "▼"
+                        let repvldiff = vl' - repvllast
+                        if vl' < par.ImprovementThreshold * repvlbest then
+                            repvlbest <- vl'
+                            repvlbestchar <- "▼"
+                            validlimproved <- true
                             stagnation <- 0
                             overfitting <- 0
-                            vlimproved <- true
                         else
-                            rvlbestchar <- " "
+                            repvlbestchar <- " "
+                            validlimproved <- false
                             stagnation <- stagnation + par.ValidationInterval
-                            vlimproved <- false
                             match par.EarlyStopping with
-                                | Early(s, o) -> 
+                                | Early(s, _) -> 
                                     if stagnation >= s then 
-                                        if not par.Silent then Util.printLog "*** EARLY STOPPING TRIGGERED: Stagnation  ***"
-                                        earlystop <- true
-                                    if overfitting >= o then
-                                        if not par.Silent then Util.printLog "*** EARLY STOPPING TRIGGERED: Overfitting ***"
+                                        if not par.Silent then Util.printLog "*** EARLY STOPPING TRIGGERED: Stagnation of validation loss ***"
                                         earlystop <- true
                                 | _ -> ()
 
                         if not par.Silent then
                             match par.EarlyStopping with
                             | Early(s, o) -> 
-                                Util.printLog (sprintf "Ep %*i Batch %*i | Train %O [%s%s] | Valid %O [%s%s] | S:%*i O:%*i" echars epoch bchars batch l' (ldiffchar rldiff) rlbestchar vl' (ldiffchar rvldiff) rvlbestchar (s.ToString().Length) stagnation (o.ToString().Length) overfitting)
+                                Util.printLog (sprintf "%*i/%i Batch %*i/%i | %O [%s%s] | Valid %O [%s%s] | Stag:%*i Ovfit:%*i" echars (epoch + 1) epochs bchars (batch + 1) batches l' (ldiffchar repldiff) replbestchar vl' (ldiffchar repvldiff) repvlbestchar (s.ToString().Length) stagnation (o.ToString().Length) overfitting)
                             | _ ->
-                                Util.printLog (sprintf "Ep %*i Batch %*i | Train %O [%s%s] | Valid %O [%s%s]" echars epoch bchars batch l' (ldiffchar rldiff) rlbestchar vl' (ldiffchar rvldiff) rvlbestchar)
-                        rvllast <- vl'
+                                Util.printLog (sprintf "%*i/%i Batch %*i/%i | %O [%s%s] | Valid %O [%s%s]" echars (epoch + 1) epochs bchars (batch + 1) batches l' (ldiffchar repldiff) replbestchar vl' (ldiffchar repvldiff) repvlbestchar)
+                        repvllast <- vl'
                         par.ReportFunction epoch w l'
 
                 let mutable u' = DV.Zero
@@ -588,24 +607,24 @@ type Optimize =
                 u <- u'
                 batch <- batch + 1
             epoch <- epoch + 1
+
+        let duration = System.DateTime.Now.Subtract(start)
           
         let wfinal = if par.ReturnBest then wbest else w
         let lfinal = if par.ReturnBest then lbest else l'
 
-        let duration = System.DateTime.Now.Subtract(start)
         let lchg = (lfinal - l0)
         let lchgs = lchg / (float32 duration.TotalSeconds)
         let es = (float epoch) / (duration.TotalSeconds)
         let em = (float epoch) / (duration.TotalMinutes)
         if not par.Silent then
             Util.printLog (sprintf "Duration       : %A" duration)
-            Util.printLog (sprintf "Loss initial   : %A" (primal l0))
-            Util.printLog (sprintf "Loss final     : %A" (primal lfinal))
-            Util.printLog (sprintf "Loss change    : %A (%.2f %%)" (primal lchg) (float32 (100 * (lchg) / l0)))
-            Util.printLog (sprintf "Loss chg. / s  : %A" (primal lchgs))
+            Util.printLog (sprintf "Loss initial   : %O" (primal l0))
+            Util.printLog (sprintf "Loss final     : %O %s" (primal lfinal) (if par.ReturnBest then "(Best)" else "(Last)"))
+            Util.printLog (sprintf "Loss change    : %O (%.2f %%)" (primal lchg) (float32 (100 * (lchg) / l0)))
+            Util.printLog (sprintf "Loss chg. / s  : %O" (primal lchgs))
             Util.printLog (sprintf "Epochs / s     : %A" es)
             Util.printLog (sprintf "Epochs / min   : %A" em)
             Util.printLog "--- Training finished"
-
         wbest, lbest
         
