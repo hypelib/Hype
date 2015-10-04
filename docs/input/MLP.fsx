@@ -1,6 +1,6 @@
 ﻿
-#r "../../src/Hype/bin/Debug/DiffSharp.dll"
-#r "../../src/Hype/bin/Debug/Hype.dll"
+#r "../../src/Hype/bin/Release/DiffSharp.dll"
+#r "../../src/Hype/bin/Release/Hype.dll"
 #I "../../packages/RProvider.1.1.14"
 #load "RProvider.fsx"
 
@@ -17,28 +17,29 @@ open RProvider.graphics
 
 let dataOR = {X = toDM [[0.; 0.; 1.; 1.]
                         [0.; 1.; 0.; 1.]]
-              Y = toDM [[0.; 1.; 1.; 0.]]}
+              Y = toDM [[0.; 1.; 1.; 1.]]}
+
 
 
 let train (x:DV) =
-    let par = {Params.Default with LearningRate = Scheduled x; Batch = Full; Verbose = false}
+    let par = {Params.Default with LearningRate = Scheduled x; Batch = Full; Silent = true}
     let net = FeedForwardLayers()
-    net.Add(LinearLayer(2, 1, Initializer.InitSigmoid))
+    net.Add(LinearLayer(2, 1, Initializer.InitUniform(D -1.41f, D 1.41f)))
     net.Add(ActivationLayer(sigmoid))
-    
+        
     Layer.Train(net, dataOR, par)
+
     Loss.L2Loss.Func dataOR net.Run
 
-let test = grad train (DV.create 10 0.1f)
-
 let hypertrain = 
-    let report i w _ =
-        if i % 2 = 0 then
-            namedParams [   
-                "x", box (w |> convert |> Array.map float);
-                "type", box "o"; 
-                "col", box "blue"]
-            |> R.plot |> ignore
-    let par = {Params.Default with Epochs = 20; ReportFunction = report}
-    Optimizer.Minimize(train, (DV.create 10 0.1f), par)
+    let report i (w:DV) _ =
+        namedParams [   
+            "x", box (w |> convert |> Array.map float);
+            "type", box "o"; 
+            //"ylim", box [0.5; 2.];
+            "col", box "blue"]
+        |> R.plot |> ignore
+    Optimizer.Minimize(train, DV.create 100 (1.f), {Params.Default with Epochs = 1000; ReportFunction = report; ValidationInterval = 10; LearningRate = AdaGrad (D 0.001f)})
 
+
+let test = grad' train (DV.create 40 (1.f))

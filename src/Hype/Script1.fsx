@@ -1,6 +1,6 @@
 ﻿
-#r "../../src/Hype/bin/Debug/DiffSharp.dll"
-#r "../../src/Hype/bin/Debug/Hype.dll"
+#r "bin/Debug/DiffSharp.dll"
+#r "bin/Debug/Hype.dll"
 #I "../../packages/RProvider.1.1.14"
 #load "RProvider.fsx"
 
@@ -76,23 +76,41 @@ let plot3d (f:DV->D) (xmin, xmax) (ymin, ymax) (theta:int) (phi:int) (w:DV) =
 //plot3d rosenbrock (-1.5,1.5) (-1.5,1.5) 150 20 (vector [D -1.; D -1.])
 
 
+let rosenbrock2 (x:DV) = DV.norm x
 
 let learn (draw:bool) (l:DV) = 
     let plot (i:int) (w:DV) (v:D) =
         plot3d rosenbrock (-2.5,2.5) (-2.5,2.5) 150 25 w
-    let mutable par = {Params.Default with Method = GD; LearningRate = Scheduled l; Momentum = NoMomentum}
+    let mutable par = {Params.Default with Method = GD; LearningRate = Scheduled l; ValidationInterval = 1; Silent = true}
     if draw then par <- {par with ReportFunction = plot; ValidationInterval = 1}
     let wopt = Optimizer.Minimize(rosenbrock, toDV [-1.f; -1.f], par) |> fst
-    rosenbrock wopt
+    //printfn "WOPT: %A" wopt
+    let v = rosenbrock wopt
+    //printfn "VVVV: %A" v
+    v
+
 
 
 let metalearn epochs metaepochs =
-    let plot _ w _ =
-        learn true w |> ignore
-    let par = {Params.Default with Method = GD; Epochs = metaepochs; ReportFunction = plot; ValidationInterval = 1; Momentum = NoMomentum}
+    //let plot _ w _ =
+        //learn true w |> ignore
+    let par = {Params.Default with Method = GD; Epochs = metaepochs; ValidationInterval = 1; LearningRate = AdaGrad (D 0.00001f)}
     Optimizer.Minimize((learn false), (DV.create epochs 0.001f), par)
 
 
-let test = metalearn 100 3
+let test = metalearn 100 400
 
-let test2 = grad' (learn false) (DV.create 2 1.1f)
+let test2 = grad' (learn false) (DV.create 100 0.001f)
+
+let test2b = (learn false) (DV.create 100 0.001f)
+let test2c = (learn false) (test |> fst)
+
+printfn "%s" ((test |> fst).ToMathematicaString())
+
+
+let test3 = grad' rosenbrock (toDV [1.1f; 1.1f])
+
+let test4  = grad' (learn false) (toDV [681.55f])
+let test4b = grad' (learn false) (toDV [0.001f])
+
+

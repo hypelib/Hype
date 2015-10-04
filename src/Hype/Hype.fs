@@ -81,7 +81,7 @@ type Dataset =
         {X = x |> DM.ofCols
          Y = y |> DM.ofCols}
     static member empty = {X = DM.empty; Y = DM.empty}
-    static member isEmpty ({X = X; Y = Y}) = X.Rows = 0 && X.Cols = 0 && Y.Rows = 0 && Y.Cols = 0
+    static member isEmpty ({X = X; Y = Y}) = DM.isEmpty X && DM.isEmpty Y
     member d.Item
         with get i = d.X.[*,i], d.Y.[*,i]
     member d.Length = d.X.Cols
