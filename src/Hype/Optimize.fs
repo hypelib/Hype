@@ -32,21 +32,28 @@ open DiffSharp.Util
 
      
 type LearningRate =
-    | Constant of D // Constant
-    | Decay of D * D // 1 / t decay, a = a0 / (1 + kt). Initial value, decay rate
-    | ExpDecay of D * D // Exponential decay, a = a0 * Exp(-kt). Initial value, decay rate
-    | Schedule of DV // Scheduled learning rate vector, its length overrides Params.Epochs
-    | Backtrack of D * D * D // Backtracking line search. Initial value, c, rho
+    | Constant    of D         // Constant
+    | Decay       of D * D     // 1 / t decay, a = a0 / (1 + kt). Initial value, decay rate
+    | ExpDecay    of D * D     // Exponential decay, a = a0 * Exp(-kt). Initial value, decay rate
+    | Schedule    of DV        // Scheduled learning rate vector, its length overrides Params.Epochs
+    | Backtrack   of D * D * D // Backtracking line search. Initial value, c, rho
     | StrongWolfe of D * D * D // Strong Wolfe line search. lmax, c1, c2
-    | AdaGrad of D // Adagrad. Initial value
-    | RMSProp of D * D // RMSProp. Initial value, decay rate
+    | AdaGrad     of D         // Adagrad. Initial value
+    | RMSProp     of D * D     // RMSProp. Initial value, decay rate
+    static member DefaultConstant    = Constant (D 0.001f)
+    static member DefaultDecay       = Decay (D 1.f, D 0.1f)
+    static member DefaultExpDecay    = ExpDecay (D 1.f, D 0.1f)
+    static member DefaultBacktrack   = Backtrack (D 1.f, D 0.0001f, D 0.5f)
+    static member DefaultStrongWolfe = StrongWolfe (D 1.f, D 0.0001f, D 0.5f)
+    static member DefaultAdaGrad     = AdaGrad (D 0.001f)
+    static member DefaultRMSProp     = RMSProp (D 0.001f, D 0.9f)
     member l.Print =
         match l with
         | Constant a                 -> sprintf "Constant a = %A" a
         | Decay (a0, k)              -> sprintf "1/t decay a0 = %A, k = %A" a0 k
-        | ExpDecay (a0, k)   -> sprintf "Exponential decay a = %A, k = %A" a0 k
-        | Schedule a                -> sprintf "Scheduled of length %A" a.Length
-        | Backtrack (a0, c, r)    -> sprintf "Backtracking a0 = %A, c = %A, r = %A" a0 c r
+        | ExpDecay (a0, k)           -> sprintf "Exponential decay a = %A, k = %A" a0 k
+        | Schedule a                 -> sprintf "Scheduled of length %A" a.Length
+        | Backtrack (a0, c, r)       -> sprintf "Backtracking a0 = %A, c = %A, r = %A" a0 c r
         | StrongWolfe (amax, c1, c2) -> sprintf "Strong Wolfe amax = %A, c1 = %A, c2 = %A" amax c1 c2
         | AdaGrad (a0)               -> sprintf "AdaGrad a0 = %A" a0
         | RMSProp (a0, k)            -> sprintf "RMSProp a0 = %A, k = %A" a0 k
@@ -57,7 +64,7 @@ type LearningRate =
         | Decay (a0, k) -> fun i _ _ _ _ _ _ -> box (a0 / (1.f + k * i))
         | ExpDecay (a0, k) -> fun i _ _ _ _ _ _ -> box (a0 * exp (-k * i))
         | Schedule a -> fun i _ _ _ _ _ _ -> box a.[i]
-        | Backtrack (a0, c, r) -> // Typical: Backtracking (D 1.f, D 0.0001f, D 0.5f)
+        | Backtrack (a0, c, r) ->
             fun _ w f v g _ p ->
                 let mutable a = a0
                 let mutable i = 0
@@ -72,7 +79,7 @@ type LearningRate =
                         found <- true
                         Util.printLog "WARNING: Backtracking did not converge."
                 box a
-        | StrongWolfe (amax, c1, c2) -> // Typical: StrongWolfe (D 1.f, D 0.0001f, D 0.5f)
+        | StrongWolfe (amax, c1, c2) ->
             fun _ w f v g _ p ->
                 let v0 = v
                 let gp0 = g * p
@@ -132,11 +139,11 @@ type LearningRate =
                         found <- true
                         Util.printLog "WARNING: Strong Wolfe did not converge."
                 box a''
-        | AdaGrad (a0) -> // Typical: AdaGrad (D 0.001f)
+        | AdaGrad (a0) ->
             fun _ _ _ _ g (gcache:DV ref) _ ->
                 gcache := !gcache + (g .* g)
                 box (a0 / sqrt (!gcache + 1e-8f))
-        | RMSProp (a0, k) -> // Typical: RMSProp (D 0.001f, D 0.9f)
+        | RMSProp (a0, k) ->
             fun _ _ _ _ g (gcache:DV ref) _ ->
                 gcache := (k * !gcache) + (1.f - k) * (g .* g)
                 box (a0 / sqrt (!gcache + 1e-8f))
@@ -223,10 +230,12 @@ type Momentum =
     | Momentum of D
     | Nesterov of D
     | NoMomentum
+    static member DefaultMomentum = Momentum (D 0.9f)
+    static member DefaultNesterov = Nesterov (D 0.9f)
     member m.Print =
         match m with
-        | Momentum m -> sprintf "Constant %A" m
-        | Nesterov m -> sprintf "Constant Nesterov %A" m
+        | Momentum m -> sprintf "Standard %A" m
+        | Nesterov m -> sprintf "Nesterov %A" m
         | NoMomentum -> "None"
     member m.Func =
         match m with
@@ -256,6 +265,8 @@ type Regularization =
     | L1Reg of D
     | L2Reg of D
     | NoReg
+    static member DefaultL1Reg = L1Reg (D 0.0001f)
+    static member DefaultL2Reg = L2Reg (D 0.0001f)
     member r.Print =
         match r with
         | L1Reg l -> sprintf "L1 lambda = %A" l
@@ -269,6 +280,7 @@ type Regularization =
 type EarlyStopping =
     | Early of int * int // Stagnation patience, overfitting patience
     | NoEarly
+    static member DefaultEarly = Early (750, 10)
     member e.Print =
         match e with
         | Early(s, o) -> sprintf "Stagnation thresh. = %A, overfit. thresh. = %A" s o
@@ -289,10 +301,10 @@ type Params =
      ValidationInterval : int
      ReportFunction : int->DV->D->unit}
      static member Default = {Epochs = 100
-                              LearningRate = Backtrack (D 1.f, D 0.0001f, D 0.5f)
+                              LearningRate = LearningRate.DefaultBacktrack
                               Momentum = NoMomentum
                               Loss = L2Loss
-                              Regularization = L2Reg (D 0.0001f)
+                              Regularization = Regularization.DefaultL2Reg
                               Method = GD
                               Batch = Minibatch 10
                               EarlyStopping = NoEarly

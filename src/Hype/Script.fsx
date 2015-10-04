@@ -13,19 +13,23 @@ open DiffSharp.Util
 #time
 fsi.ShowDeclarationValues <- false
 
-let MNIST = {X = Util.LoadMNIST("C:/datasets/MNIST/train-images.idx3-ubyte", 1000)
-             Y = Util.LoadMNIST("C:/datasets/MNIST/train-labels.idx1-ubyte", 1000)}
+let MNIST = {X = Util.LoadMNIST("C:/datasets/MNIST/train-images.idx3-ubyte", 60000)
+             Y = Util.LoadMNIST("C:/datasets/MNIST/train-labels.idx1-ubyte", 60000)} |> Dataset.normalizeX
 
 
-let MNIST' = MNIST.NormalizeX()
-let MNISTtrain = MNIST'.[..800]
-let MNISTvalid = MNIST'.[801..]
+let MNISTtest = {X = Util.LoadMNIST("C:/datasets/MNIST/t10k-images.idx3-ubyte", 10000)
+                 Y = Util.LoadMNIST("C:/datasets/MNIST/t10k-labels.idx1-ubyte", 10000)} |> Dataset.normalizeX
+
+let MNISTtrain = MNIST.[..59000]
+let MNISTvalid = MNIST.[59000..]
 
 
-let n = FeedForwardLayers()
+let n = FeedForward()
 n.Add(LinearLayer(784, 10, Initializer.InitTanh))
+n.Add(ActivationLayer(tanh))
+n.Add(LinearLayer(10, 10, Initializer.InitTanh))
+//n.Add(LinearLayer(100, 10))
 
-//n.Add(ActivationLayer(fun m -> m |> DM.mapCols softmax))
 
 printfn "%s" (n.Print())
 //printfn "%s" (n.PrintFull())
@@ -36,8 +40,8 @@ printfn "%s" (n.Visualize())
 
 n.Init()
 let p1 = {Params.Default with 
-            Epochs = 1000
-            EarlyStopping = Early (400, 100)
+            Epochs = 100
+            EarlyStopping = Early (600, 10)
             ValidationInterval = 10
             Method = GD
             Batch = Minibatch 100
@@ -45,3 +49,44 @@ let p1 = {Params.Default with
             Momentum = Nesterov (D 0.9f)
             LearningRate = RMSProp (D 0.001f, D 0.9f)}
 Layer.Train(n, MNISTtrain, MNISTvalid, p1)
+
+let p2 = {Params.Default with 
+            Epochs = 100
+            EarlyStopping = Early (600, 10)
+            ValidationInterval = 10
+            Method = GD
+            Batch = Minibatch 200
+            Loss = CrossEntropyOnLinear
+            LearningRate = AdaGrad (D 0.001f)}
+Layer.Train(n, MNISTtrain, MNISTvalid, p2)
+
+
+type Classifier(n:Layer) =
+    let n = n
+    member c.Run(x:DM) = n.Run x
+    member c.RunOne(x:DV) = x |> DM.ofDV x.Length |> n.Run |> DM.toDV
+    member c.Classify(x:DM) = 
+        let cc = Array.zeroCreate x.Cols
+        c.Run(x) |> DM.iteriCols (fun i v -> cc.[i] <- DV.MaxIndex(v))
+        cc
+    member c.ClassifyOne(x:DV) =
+        DV.MaxIndex(c.RunOne(x))
+    member c.ClassificationError (x:DM) (y:int[]) =
+        let cc = c.Classify(x)
+        let incorrect = Array.map2 (fun c y -> if c = y then 0 else 1) cc y
+        (float32 (incorrect |> Array.sum)) / (float32 incorrect.Length)
+  
+
+let cc = Classifier(n)
+//[|"0"; "1"; "2"; "3"; "4"; "5"; "6"; "7"; "8"; "9"|]
+
+cc.Classify(MNISTtest.X.[*,30..40])
+MNISTtest.Y.[*, 30..40]
+
+let targetclasses = MNISTtest.Y.[0,*] |> DV.toArray |> Array.map (float32>>int)
+
+cc.ClassificationError MNISTtest.X targetclasses
+
+let a = MNISTtrain.X.[*,9]
+let b = a |> DM.ofDV 28 |> DM.visualize
+printfn "%s" b

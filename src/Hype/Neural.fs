@@ -15,6 +15,11 @@ type Layer() =
     abstract member Print : unit -> string
     abstract member PrintFull : unit -> string
     abstract member Visualize : unit -> string
+    static member init (l:Layer) = l.Init()
+    static member run (x:DM) (l:Layer) = l.Run(x)
+    static member encode (l:Layer) = l.Encode()
+    static member encodeLength (l:Layer) = l.EncodeLength
+    static member decode (l:Layer) (w:DV) = l.Decode(w)
     static member Train (l:Layer, d:Dataset) = Layer.Train(l, d, Dataset.empty, Params.Default)
     static member Train (l:Layer, d:Dataset, par:Params) = Layer.Train(l, d, Dataset.empty, par)
     static member Train (l:Layer, d:Dataset, v:Dataset) = Layer.Train(l, d, v, Params.Default)
@@ -31,30 +36,23 @@ type Layer() =
         Optimize.Train(f, w0, d, v, par) |> fst
         |> l.Decode
 
-[<AutoOpen>]
-module LayerOps =
-    let inline initLayer (l:Layer) = l.Init()
-    let inline runLayer x (l:Layer) = l.Run x
-    let inline encodeLayer (l:Layer) = l.Encode()
-    let inline encodeLength (l:Layer) = l.EncodeLength
-    let inline decodeLayer (l:Layer) w = l.Decode w
 
-type FeedForwardLayers() =
+type FeedForward() =
     inherit Layer()
     let mutable (layers:Layer[]) = Array.empty
     let mutable encodelength = 0
     member n.Add(l:Layer) =
         layers <- Array.append layers [|l|]
-        encodelength <- layers |> Array.map encodeLength |> Array.sum
+        encodelength <- layers |> Array.map Layer.encodeLength |> Array.sum
     member n.Length = layers.Length
 
-    override n.Init() = layers |> Array.iter initLayer
-    override n.Run(x:DM) = Array.fold runLayer x layers
-    override n.Encode() = layers |> Array.map encodeLayer |> Array.reduce DV.append
+    override n.Init() = layers |> Array.iter Layer.init
+    override n.Run(x:DM) = Array.fold Layer.run x layers
+    override n.Encode() = layers |> Array.map Layer.encode |> Array.reduce DV.append
     override n.EncodeLength = encodelength
     override n.Decode(w) =
-        w |> DV.split (layers |> Array.map encodeLength)
-        |> Seq.iter2 decodeLayer layers
+        w |> DV.split (layers |> Array.map Layer.encodeLength)
+        |> Seq.iter2 Layer.decode layers
     override n.Print() =
         let s = System.Text.StringBuilder()
         s.AppendLine("Feedforward layers") |> ignore
@@ -181,8 +179,6 @@ type ActivationLayer(f:DM->DM) =
     override l.EncodeLength = 0
     override l.Decode w = ()
     override l.Print() =
-        "ActivationLayer"
-    override l.PrintFull() =
-        "ActivationLayer"
-    override l.Visualize() =
-        "ActivationLayer"
+        sprintf "ActivationLayer"
+    override l.PrintFull() = l.Print()
+    override l.Visualize() = l.Print()

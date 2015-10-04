@@ -82,12 +82,26 @@ type Dataset =
          Y = y |> DM.ofCols}
     static member empty = {X = DM.empty; Y = DM.empty}
     static member isEmpty ({X = X; Y = Y}) = DM.isEmpty X && DM.isEmpty Y
+    static member normalize (d:Dataset) = d.Normalize()
+    static member normalizeX (d:Dataset) = d.NormalizeX()
+    static member normalizeY (d:Dataset) = d.NormalizeY()
+    static member appendRowX (v:DV) (d:Dataset) = d.AppendRowX(v)
+    static member appendRowY (v:DV) (d:Dataset) = d.AppendRowY(v)
+    static member appendBiasRowX (d:Dataset) = d.AppendBiasRowX()
+    static member print (d:Dataset) = d.Print()
+    static member printFull (d:Dataset) = d.PrintFull()
+    static member toSeq (d:Dataset) = d.ToSeq()
+    static member length (d:Dataset) = d.Length
+    static member randomSubset (n:int) (d:Dataset) = d.RandomSubset(n)
+    static member shuffle (d:Dataset) = d.Shuffle()
+    static member sub (startindex:int) (count:int) (d:Dataset) = d.Sub(startindex, count)
+    static member item (i:int) (d:Dataset) = d.[i]
     member d.Item
         with get i = d.X.[*,i], d.Y.[*,i]
     member d.Length = d.X.Cols
     member d.ToSeq() =
         Seq.init d.Length (fun i -> d.[i])
-    member d.Random(n) =
+    member d.RandomSubset(n) =
         let bi = Rnd.Permutation(d.Length)
         let x = Seq.init n (fun i -> d.X.[*, bi.[i]])
         let y = Seq.init n (fun i -> d.Y.[*, bi.[i]])
@@ -102,7 +116,7 @@ type Dataset =
     member d.NormalizeY() =
         {X = d.X
          Y = DM.normalize d.Y}
-    member d.Shuffle() = d.Random d.Length
+    member d.Shuffle() = d.RandomSubset d.Length
     member d.Sub(i, n) =
         {X = d.X.[*,i..(i+n-1)]
          Y = d.Y.[*,i..(i+n-1)]}
