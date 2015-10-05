@@ -77,7 +77,7 @@ type LearningRate =
                     i <- i + 1
                     if i > loopLimit then
                         found <- true
-                        Util.printLog "WARNING: Backtracking did not converge."
+                        Util.printLog "*** BACKTRACKING DID NOT CONVERGE ***"
                 box a
         | StrongWolfe (amax, c1, c2) ->
             fun _ w f v g _ p ->
@@ -106,7 +106,7 @@ type LearningRate =
                         i <- i + 1
                         if i > loopLimit then
                             found <- true
-                            Util.printLog "WARNING: Strong Wolfe (zoom) did not converge."
+                            Util.printLog "*** STRONG WOLFE (ZOOM) DID NOT CONVERGE ***"
                     a'
                             
                 let mutable v = v0
@@ -137,7 +137,7 @@ type LearningRate =
                         i <- i + 1
                     if i > loopLimit then
                         found <- true
-                        Util.printLog "WARNING: Strong Wolfe did not converge."
+                        Util.printLog "*** STRONG WOLFE DID NOT CONVERGE ***"
                 box a''
         | AdaGrad (a0) ->
             fun _ _ _ _ g (gcache:DV ref) _ ->
@@ -549,7 +549,9 @@ type Optimize =
                             overfitting <- overfitting + 1
                             match par.EarlyStopping with
                             | Early(_, o) ->
-                                if overfitting >= o then Util.printLog "*** EARLY STOPPING TRIGGERED: Overfitting ***"
+                                if overfitting >= o then 
+                                    Util.printLog "*** EARLY STOPPING TRIGGERED: Overfitting ***"
+                                    earlystop <- true
                             | _ -> ()
 
                 if batch % par.ValidationInterval = 0 then
@@ -573,9 +575,9 @@ type Optimize =
                         if not par.Silent then
                             match par.EarlyStopping with
                             | Early(s, _) ->
-                                Util.printLog (sprintf "%*i/%i Batch %*i/%i | %O [%s%s] | Stag:%*i" echars (epoch + 1) epochs bchars (batch + 1) batches l' (ldiffchar repldiff) replbestchar (s.ToString().Length) stagnation)
+                                Util.printLog (sprintf "%*i/%i | Batch %*i/%i | %O [%s%s] | Stag:%*i" echars (epoch + 1) epochs bchars (batch + 1) batches l' (ldiffchar repldiff) replbestchar (s.ToString().Length) stagnation)
                             | _ ->
-                                Util.printLog (sprintf "%*i/%i Batch %*i/%i | %O [%s%s]" echars (epoch + 1) epochs bchars (batch + 1) batches l' (ldiffchar repldiff) replbestchar)
+                                Util.printLog (sprintf "%*i/%i | Batch %*i/%i | %O [%s%s]" echars (epoch + 1) epochs bchars (batch + 1) batches l' (ldiffchar repldiff) replbestchar)
                     else
                         let vl' = qvalid w
                         let repvldiff = vl' - repvllast
@@ -599,9 +601,9 @@ type Optimize =
                         if not par.Silent then
                             match par.EarlyStopping with
                             | Early(s, o) -> 
-                                Util.printLog (sprintf "%*i/%i Batch %*i/%i | %O [%s%s] | Valid %O [%s%s] | Stag:%*i Ovfit:%*i" echars (epoch + 1) epochs bchars (batch + 1) batches l' (ldiffchar repldiff) replbestchar vl' (ldiffchar repvldiff) repvlbestchar (s.ToString().Length) stagnation (o.ToString().Length) overfitting)
+                                Util.printLog (sprintf "%*i/%i | Batch %*i/%i | %O [%s%s] | Valid %O [%s%s] | Stag:%*i Ovfit:%*i" echars (epoch + 1) epochs bchars (batch + 1) batches l' (ldiffchar repldiff) replbestchar vl' (ldiffchar repvldiff) repvlbestchar (s.ToString().Length) stagnation (o.ToString().Length) overfitting)
                             | _ ->
-                                Util.printLog (sprintf "%*i/%i Batch %*i/%i | %O [%s%s] | Valid %O [%s%s]" echars (epoch + 1) epochs bchars (batch + 1) batches l' (ldiffchar repldiff) replbestchar vl' (ldiffchar repvldiff) repvlbestchar)
+                                Util.printLog (sprintf "%*i/%i | Batch %*i/%i | %O [%s%s] | Valid %O [%s%s]" echars (epoch + 1) epochs bchars (batch + 1) batches l' (ldiffchar repldiff) replbestchar vl' (ldiffchar repvldiff) repvlbestchar)
                         repvllast <- vl'
                         par.ReportFunction epoch w l'
 

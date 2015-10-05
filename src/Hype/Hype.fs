@@ -88,8 +88,8 @@ type Dataset =
     static member appendRowX (v:DV) (d:Dataset) = d.AppendRowX(v)
     static member appendRowY (v:DV) (d:Dataset) = d.AppendRowY(v)
     static member appendBiasRowX (d:Dataset) = d.AppendBiasRowX()
-    static member print (d:Dataset) = d.Print()
-    static member printFull (d:Dataset) = d.PrintFull()
+    static member toString (d:Dataset) = d.ToString()
+    static member toStringFull (d:Dataset) = d.ToStringFull()
     static member toSeq (d:Dataset) = d.ToSeq()
     static member length (d:Dataset) = d.Length
     static member randomSubset (n:int) (d:Dataset) = d.RandomSubset(n)
@@ -133,16 +133,26 @@ type Dataset =
         {X = d.X
          Y = d.Y |> DM.appendRow v}
     member d.AppendBiasRowX() = d.AppendRowX(DV.create d.Length 1.f)
-    member d.Print() =
-        "Data\n"
-            + sprintf "   X: %i x %i" d.X.Rows d.X.Cols
-            + sprintf "   Y: %i x %i" d.Y.Rows d.Y.Cols
-    member d.PrintFull() =
-        "Data\n"
-            + sprintf "   X:\n%s\n" (d.X.ToString())
+    override d.ToString() =
+        "Hype.Data\n"
+            + sprintf "   X: %i x %i\n" d.X.Rows d.X.Cols
+            + sprintf "   Y: %i x %i\n" d.Y.Rows d.Y.Cols
+    member d.ToStringFull() =
+        "Hype.Data\n"
+            + sprintf "   X:\n%s\n\n" (d.X.ToString())
             + sprintf "   Y:\n%s\n" (d.Y.ToString())
+    member d.Visualize() =
+        d.ToString() + "\n"
+            + sprintf "   X:\n%s\n\n" (d.X.Visualize())
+            + sprintf "   Y:\n%s\n" (d.Y.Visualize())
+    member d.VisualizeXColsAsImageGrid(imagerows:int) =
+        d.ToString() + "\n"
+            + "X's columns " + Util.VisualizeDMRowsAsImageGrid(d.X |> DM.transpose, imagerows)
+    member d.VisualizeYColsAsImageGrid(imagerows:int) =
+        d.ToString() + "\n"
+            + "Y's columns " + Util.VisualizeDMRowsAsImageGrid(d.Y |> DM.transpose, imagerows)
 
-type Util =
+and Util =
     static member printLog (s:string) = printfn "[%A] %s" System.DateTime.Now s
     static member printModel (f:DV->DV) (d:Dataset) =
         d.ToSeq()
@@ -182,3 +192,16 @@ type Util =
             |> DM.transpose
         | _ -> failwith "Given file is not in the MNIST format."
     static member LoadMNIST(filename) = Util.LoadMNIST(filename, System.Int32.MaxValue)
+    static member VisualizeDMRowsAsImageGrid(w:DM, imagerows:int) =
+        let rows = w.Rows
+        let mm = int (floor (sqrt (float rows)))
+        let nn = int (ceil (float rows / float mm))
+        let m = imagerows
+        let n = (w.[0, *] |> DV.toDM m).Cols
+        let mutable mat = DM.zeroCreate (mm * m) (nn * n)
+        for i = 0 to mm - 1 do
+            for j = 0 to nn - 1 do
+                let row = i * nn + j
+                if row < w.Rows then
+                    mat <- DM.AddSubMatrix(mat, i * m, j * n, w.[row, *] |> DV.toDM m)
+        sprintf "reshaped to (%i x %i), presented in a (%i x %i) grid:\n%s\n" m n mm nn (mat.Visualize())

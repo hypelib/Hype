@@ -26,8 +26,8 @@ let MNISTvalid = MNIST.[59000..]
 
 let n = FeedForward()
 n.Add(LinearLayer(784, 10, Initializer.InitTanh))
-n.Add(ActivationLayer(tanh))
-n.Add(LinearLayer(10, 10, Initializer.InitTanh))
+//n.Add(ActivationLayer(tanh))
+//n.Add(LinearLayer(30, 10, Initializer.InitTanh))
 //n.Add(LinearLayer(100, 10))
 
 
@@ -40,24 +40,24 @@ printfn "%s" (n.Visualize())
 
 n.Init()
 let p1 = {Params.Default with 
-            Epochs = 100
-            EarlyStopping = Early (600, 10)
-            ValidationInterval = 10
-            Method = GD
-            Batch = Minibatch 100
-            Loss = CrossEntropyOnLinear
-            Momentum = Nesterov (D 0.9f)
-            LearningRate = RMSProp (D 0.001f, D 0.9f)}
-Layer.Train(n, MNISTtrain, MNISTvalid, p1)
-
-let p2 = {Params.Default with 
-            Epochs = 100
-            EarlyStopping = Early (600, 10)
+            Epochs = 2
+            EarlyStopping = Early (400, 10)
             ValidationInterval = 10
             Method = GD
             Batch = Minibatch 200
             Loss = CrossEntropyOnLinear
-            LearningRate = AdaGrad (D 0.001f)}
+            //Momentum = Momentum.DefaultNesterov
+            LearningRate = LearningRate.DefaultRMSProp}
+Layer.Train(n, MNISTtrain, MNISTvalid, p1)
+
+let p2 = {Params.Default with 
+            Epochs = 100
+            EarlyStopping = Early (400, 10)
+            ValidationInterval = 10
+            Method = GD
+            Batch = Minibatch 200
+            Loss = CrossEntropyOnLinear
+            LearningRate = LearningRate.DefaultAdaGrad}
 Layer.Train(n, MNISTtrain, MNISTvalid, p2)
 
 
@@ -90,3 +90,7 @@ cc.ClassificationError MNISTtest.X targetclasses
 let a = MNISTtrain.X.[*,9]
 let b = a |> DM.ofDV 28 |> DM.visualize
 printfn "%s" b
+
+let ll = n.[0] :?> LinearLayer
+
+ll.W.[9,*] |> DV.toDM 28 |> DM.visualize |> printfn "%s"
