@@ -146,7 +146,7 @@ type LinearLayer(inputs:int, outputs:int, ?initializer:Initializer) =
     inherit Layer()
     let initializer = defaultArg initializer Initializer.InitTanh
     member val W = initializer.InitDM(outputs, inputs, inputs, outputs) with get, set
-    member val b = DV.zeroCreate outputs with get, set
+    member val b = Rnd.UniformDV(outputs) with get, set
     
     override l.Init() =
         l.W <- initializer.InitDM(l.W.Rows, l.W.Cols, l.W.Cols, l.W.Rows)
