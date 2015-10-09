@@ -150,7 +150,7 @@ type LinearLayer(inputs:int, outputs:int, ?initializer:Initializer) =
     
     override l.Init() =
         l.W <- initializer.InitDM(l.W.Rows, l.W.Cols, l.W.Cols, l.W.Rows)
-        l.b <- DV.zeroCreate l.b.Length
+        l.b <- Rnd.UniformDV l.b.Length
     override l.Run (x:DM) = l.W * x + (l.b |> DM.createCols x.Cols)
     override l.Encode () = DV.append (DM.toDV l.W) l.b
     override l.EncodeLength = l.W.Length + l.b.Length
@@ -183,7 +183,7 @@ type LinearLayer(inputs:int, outputs:int, ?initializer:Initializer) =
             + s.ToString()
     member l.VisualizeWRowsAsImageGrid(imagerows:int) =
         l.ToString() + "\n"
-            + sprintf "   W:\n%s\n" (Util.VisualizeDMRowsAsImageGrid(l.W, imagerows))
+            + sprintf "   W's rows %s\n" (Util.VisualizeDMRowsAsImageGrid(l.W, imagerows))
             + sprintf "   b:\n%s\n" (l.b.Visualize())
 
 
@@ -210,7 +210,7 @@ type LinearNoBiasLayer(inputs:int, outputs:int, ?initializer:Initializer) =
             + sprintf "   W:\n%s\n" (l.W.Visualize())
     member l.VisualizeWRowsAsImageGrid(imagerows:int) =
         l.ToString() + "\n"
-            + sprintf "   W:\n%s\n" (Util.VisualizeDMRowsAsImageGrid(l.W, imagerows))
+            + sprintf "   W's rows %s" (Util.VisualizeDMRowsAsImageGrid(l.W, imagerows))
 
 
 type ActivationLayer(f:DM->DM) =

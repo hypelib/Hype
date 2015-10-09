@@ -276,6 +276,7 @@ type Regularization =
         match r with
         | L1Reg l -> fun (w:DV) -> l * (DV.l1norm w)
         | L2Reg l -> fun w -> l * (DV.l2normSq w)
+        | NoReg -> fun w -> D 0.f
 
 type EarlyStopping =
     | Early of int * int // Stagnation patience, overfitting patience
