@@ -25,27 +25,33 @@ let MNISTvalid = MNIST.[59000..]
 
 
 let n = FeedForward()
-n.Add(LinearLayer(784, 10, Initializer.InitTanh))
+//n.Add(LinearLayer(784, 10, Initializer.InitTanh))
+n.Add(LinearLayer(784, 300, Initializer.InitReLU))
+n.Add(ActivationLayer(reLU))
+n.Add(LinearLayer(300, 10))
 //n.Add(ActivationLayer(tanh))
 //n.Add(LinearLayer(30, 10, Initializer.InitTanh))
 //n.Add(LinearLayer(100, 10))
 
 
-printfn "%s" (n.Print())
-//printfn "%s" (n.PrintFull())
-printfn "%s" (n.Visualize())
+n |> Layer.visualize |> printfn "%s"
+
+let l0 = n.[0] :?> LinearLayer
+l0.VisualizeWRowsAsImageGrid(28) |> printfn "%s"
+l0.b
 
 //let tt = MNIST'.Filter (fun (_, y) -> (y.[0] = D 0.f) || (y.[0] = D 1.f))
 //let test = n.Run MNISTtrain.[0..10].X
 
 n.Init()
 let p1 = {Params.Default with 
-            Epochs = 2
-            EarlyStopping = Early (400, 10)
+            Epochs = 3
+            EarlyStopping = Early (400, 20)
             ValidationInterval = 10
             Method = GD
-            Batch = Minibatch 200
+            Batch = Minibatch 100
             Loss = CrossEntropyOnLinear
+            //Regularization = NoReg
             //Momentum = Momentum.DefaultNesterov
             LearningRate = LearningRate.DefaultRMSProp}
 Layer.Train(n, MNISTtrain, MNISTvalid, p1)

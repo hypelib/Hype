@@ -47,7 +47,7 @@ type LearningRate =
     static member DefaultStrongWolfe = StrongWolfe (D 1.f, D 0.0001f, D 0.5f)
     static member DefaultAdaGrad     = AdaGrad (D 0.001f)
     static member DefaultRMSProp     = RMSProp (D 0.001f, D 0.9f)
-    member l.Print =
+    override l.ToString() =
         match l with
         | Constant a                 -> sprintf "Constant a = %A" a
         | Decay (a0, k)              -> sprintf "1/t decay a0 = %A, k = %A" a0 k
@@ -152,7 +152,7 @@ type Batch =
     | Full
     | Minibatch of int
     | Stochastic // Minibatch with size 1
-    member b.Print =
+    override b.ToString() =
         match b with
         | Full        -> "Full"
         | Minibatch n -> sprintf "Minibatches of %A" n
@@ -171,7 +171,7 @@ type Method =
     | DaiYuanCG
     | NewtonCG
     | Newton
-    member o.Print =
+    override o.ToString() =
         match o with
         | GD          -> "Gradient descent"
         | CG          -> "Conjugate gradient"
@@ -183,46 +183,53 @@ type Method =
     member o.Func =
         match o with
         | GD ->
-            fun w f _ _ ->
+            fun w (f:DV->D) _ _ gradclip ->
                 let v', g' = grad' f w
+                let g' = gradclip g'
                 let p' = -g'
                 v', g', p'
         | CG -> // Hestenes and Stiefel 1952
-            fun w f g p ->
+            fun w f g p gradclip ->
                 let v', g' = grad' f w
+                let g' = gradclip g'
                 let y = g' - g
                 let b = (g' * y) / (p * y)
                 let p' = -g' + b * p
                 v', g', p'
         | CD -> // Fletcher 1987
-            fun w f g p ->
+            fun w f g p gradclip ->
                 let v', g' = grad' f w
+                let g' = gradclip g'
                 let b = (DV.normSq g') / (-p * g)
                 let p' = -g' + b * p
                 v', g', p'
         | DaiYuanCG -> // Dai and Yuan 1999
-            fun w f g p ->
+            fun w f g p gradclip ->
                 let v', g' = grad' f w
+                let g' = gradclip g'
                 let y = g' - g
                 let b = (DV.normSq g') / (p * y)
                 let p' = -g' + b * p
                 v', g', p'
         | NonlinearCG -> // Fletcher and Reeves 1964
-            fun w f g p ->
+            fun w f g p gradclip ->
                 let v', g' = grad' f w
+                let g' = gradclip g'
                 let b = (DV.normSq g') / (DV.normSq g)
                 let p' = -g' + b * p
                 v', g', p'
         | NewtonCG ->
-            fun w f _ p ->
+            fun w f _ p gradclip ->
                 let v', g' = grad' f w
+                let g' = gradclip g'
                 let hv = hessianv f w p
                 let b = (g' * hv) / (p * hv)
                 let p' = -g' + b * p
                 v', g', p'
         | Newton ->
-            fun w f _ _ ->
+            fun w f _ _ gradclip ->
                 let v', g', h' = gradhessian' f w
+                let g' = gradclip g'
                 let p' = -DM.solveSymmetric h' g'
                 v', g', p'
 
@@ -232,7 +239,7 @@ type Momentum =
     | NoMomentum
     static member DefaultMomentum = Momentum (D 0.9f)
     static member DefaultNesterov = Nesterov (D 0.9f)
-    member m.Print =
+    override m.ToString() =
         match m with
         | Momentum m -> sprintf "Standard %A" m
         | Nesterov m -> sprintf "Nesterov %A" m
@@ -246,9 +253,10 @@ type Momentum =
 type Loss =
     | L1Loss
     | L2Loss
+    | CrossEntropy
     | CrossEntropyOnLinear
     | CrossEntropyOnSoftmax
-    member l.Print =
+    override l.ToString() =
         match l with
         | L1Loss -> "L1"
         | L2Loss -> "L2"
@@ -258,8 +266,9 @@ type Loss =
         match l with
         | L1Loss -> fun (d:Dataset) (f:DM->DM) -> ((d.Y - (f d.X)) |> DM.toCols |> Seq.sumBy DV.l1norm) / d.Length
         | L2Loss -> fun d f -> ((d.Y - (f d.X)) |> DM.toCols |> Seq.sumBy DV.l2norm) / d.Length
-        | CrossEntropyOnLinear -> fun d f -> ((f d.X) |> DM.toCols |> Seq.mapi (fun i v -> (logsumexp v) - v.[int (float32 d.Y.[0, i])]) |> Seq.sum) / d.Length
-        | CrossEntropyOnSoftmax -> fun d f -> -((f d.X) |> DM.toCols |> Seq.mapi (fun i v -> (DV.standardBasis v.Length (int (float32 d.Y.[0, i]))) * log v) |> Seq.sum) / d.Length
+        | CrossEntropyOnLinear -> fun d f -> ((f d.X) |> DM.mapiCols (fun i v -> toDV [(logsumexp v) - v.[d.Yi.[i]]]) |> DM.sum) / d.Length
+        | CrossEntropyOnSoftmax -> fun d f -> -((DM.map2Cols (fun t (y:DV) -> toDV [t * log y]) (d.Y) (f d.X)) |> DM.sum) / d.Length
+
 
 type Regularization =
     | L1Reg of D
@@ -267,7 +276,7 @@ type Regularization =
     | NoReg
     static member DefaultL1Reg = L1Reg (D 0.0001f)
     static member DefaultL2Reg = L2Reg (D 0.0001f)
-    member r.Print =
+    override r.ToString() =
         match r with
         | L1Reg l -> sprintf "L1 lambda = %A" l
         | L2Reg l -> sprintf "L2 lambda = %A" l
@@ -278,11 +287,24 @@ type Regularization =
         | L2Reg l -> fun w -> l * (DV.l2normSq w)
         | NoReg -> fun w -> D 0.f
 
+type GradientClipping =
+    | NormClip of D
+    | NoClip
+    static member DefaultNormClip = NormClip (D 1.f)
+    override g.ToString() =
+        match g with
+        | NormClip threshold -> sprintf "Norm clipping threshold = %A" threshold
+        | NoClip -> "None"
+    member g.Func =
+        match g with
+        | NormClip threshold -> fun (g:DV) -> let ng = DV.norm g in if ng > threshold then (threshold / ng) * g else g
+        | NoClip -> id
+
 type EarlyStopping =
     | Early of int * int // Stagnation patience, overfitting patience
     | NoEarly
     static member DefaultEarly = Early (750, 10)
-    member e.Print =
+    override e.ToString() =
         match e with
         | Early(s, o) -> sprintf "Stagnation thresh. = %A, overfit. thresh. = %A" s o
         | NoEarly -> "None"
@@ -294,6 +316,7 @@ type Params =
      Momentum : Momentum
      Loss : Loss
      Regularization : Regularization
+     GradientClipping : GradientClipping
      Batch : Batch
      EarlyStopping : EarlyStopping
      ImprovementThreshold : D
@@ -302,12 +325,13 @@ type Params =
      ValidationInterval : int
      ReportFunction : int->DV->D->unit}
      static member Default = {Epochs = 100
-                              LearningRate = LearningRate.DefaultBacktrack
+                              LearningRate = LearningRate.DefaultRMSProp
                               Momentum = NoMomentum
                               Loss = L2Loss
                               Regularization = Regularization.DefaultL2Reg
+                              GradientClipping = NoClip
                               Method = GD
-                              Batch = Minibatch 10
+                              Batch = Full
                               EarlyStopping = NoEarly
                               ImprovementThreshold = D 0.995f
                               Silent = false
@@ -325,6 +349,7 @@ type Optimize =
     static member Minimize (f:DV->D, w0:DV, par:Params) =
         let dir = par.Method.Func
         let lr = par.LearningRate.Func
+        let gradclip = par.GradientClipping.Func
         let mom = par.Momentum.Func
         let iters = par.GetEpochs
 
@@ -333,10 +358,11 @@ type Optimize =
             Util.printLog (sprintf "Parameters     : %A" w0.Length)
             Util.printLog (sprintf "Iterations     : %A" iters)
             Util.printLog (sprintf "Valid. interval: %i" par.ValidationInterval)
-            Util.printLog (sprintf "Method         : %s" par.Method.Print)
-            Util.printLog (sprintf "Learning rate  : %s" par.LearningRate.Print)
-            Util.printLog (sprintf "Momentum       : %s" par.Momentum.Print)
-            Util.printLog (sprintf "Early stopping : %s" par.EarlyStopping.Print)
+            Util.printLog (sprintf "Method         : %O" par.Method)
+            Util.printLog (sprintf "Learning rate  : %O" par.LearningRate)
+            Util.printLog (sprintf "Momentum       : %O" par.Momentum)
+            Util.printLog (sprintf "Gradient clip. : %O" par.GradientClipping)
+            Util.printLog (sprintf "Early stopping : %O" par.EarlyStopping)
             Util.printLog (sprintf "Improv. thresh.: %A" par.ImprovementThreshold)
             Util.printLog (sprintf "Return best    : %A" par.ReturnBest)
 
@@ -367,7 +393,7 @@ type Optimize =
         let start = System.DateTime.Now
 
         while (i < iters) && (not earlystop) do
-            let l'', g', p' = dir w f g p
+            let l'', g', p' = dir w f g p gradclip
             l' <- l''
             if l' < par.ImprovementThreshold * lbest then
                 wbest <- w
@@ -413,7 +439,7 @@ type Optimize =
             u <- u'
             i <- i + 1
 
-        let l'', _, _ = dir w f g p
+        let l'', _, _ = dir w f g p gradclip
         l' <- l''
         if l' < par.ImprovementThreshold * lbest then
             wbest <- w
@@ -451,6 +477,7 @@ type Optimize =
         let b = par.Batch.Func
         let dir = par.Method.Func
         let lr = par.LearningRate.Func
+        let gradclip = par.GradientClipping.Func
         let mom = par.Momentum.Func
         let reg = par.Regularization.Func
         let epochs = par.GetEpochs
@@ -471,13 +498,14 @@ type Optimize =
                 Util.printLog (sprintf "Validation data: %i" v.Length)
                 Util.printLog (sprintf "Valid. interval: %i" par.ValidationInterval)
             Util.printLog (sprintf "Epochs         : %A" epochs)
-            Util.printLog (sprintf "Batches        : %s (%A per epoch)" par.Batch.Print batches)
-            Util.printLog (sprintf "Method         : %s" par.Method.Print)
-            Util.printLog (sprintf "Learning rate  : %s" par.LearningRate.Print)
-            Util.printLog (sprintf "Momentum       : %s" par.Momentum.Print)
-            Util.printLog (sprintf "Loss           : %s" par.Loss.Print)
-            Util.printLog (sprintf "Regularizer    : %s" par.Regularization.Print)
-            Util.printLog (sprintf "Early stopping : %s" par.EarlyStopping.Print)
+            Util.printLog (sprintf "Batches        : %O (%A per epoch)" par.Batch batches)
+            Util.printLog (sprintf "Method         : %O" par.Method)
+            Util.printLog (sprintf "Learning rate  : %O" par.LearningRate)
+            Util.printLog (sprintf "Momentum       : %O" par.Momentum)
+            Util.printLog (sprintf "Loss           : %O" par.Loss)
+            Util.printLog (sprintf "Regularizer    : %O" par.Regularization)
+            Util.printLog (sprintf "Gradient clip. : %O" par.GradientClipping)
+            Util.printLog (sprintf "Early stopping : %O" par.EarlyStopping)
             Util.printLog (sprintf "Improv. thresh.: %A" par.ImprovementThreshold)
             Util.printLog (sprintf "Return best    : %A" par.ReturnBest)
 
@@ -540,7 +568,7 @@ type Optimize =
             batch <- 0
             while (batch < batches) && (not earlystop) do
 
-                let l'', g', p' = dir w (q batch) g p
+                let l'', g', p' = dir w (q batch) g p gradclip
                 l' <- l''
                 if l' < par.ImprovementThreshold * lbest then
                     wbest <- w
@@ -623,6 +651,12 @@ type Optimize =
                 batch <- batch + 1
             epoch <- epoch + 1
 
+        let l'', _, _ = dir w (q 0) g p gradclip
+        l' <- l''
+        if l' < par.ImprovementThreshold * lbest then
+            wbest <- w
+            lbest <- l'
+
         let duration = System.DateTime.Now.Subtract(start)
           
         let wfinal = if par.ReturnBest then wbest else w
@@ -641,5 +675,5 @@ type Optimize =
             Util.printLog (sprintf "Epochs / s     : %A" es)
             Util.printLog (sprintf "Epochs / min   : %A" em)
             Util.printLog "--- Training finished"
-        wbest, lbest
+        wfinal, lfinal
         

@@ -72,16 +72,44 @@ type Rnd() =
     static member NormalDM(m, n) = DM (Array2D.Parallel.init m n (fun _ _ -> Rnd.Normal()))
     static member NormalDM(m, n, mu, sigma) = DM.init m n (fun _ _ -> Rnd.NormalD(mu, sigma))
 
-
-type Dataset =
-    {X:DM
-     Y:DM}
-    static member ofSeq (s:seq<DV*DV>) =
+type Dataset private (x:DM, y:DM, xi:seq<int>, yi:seq<int>, vocabulary:string[]) =
+    member val X = x with get
+    member val Y = y with get
+    member val Xi = xi |> Array.ofSeq with get
+    member val Yi = yi |> Array.ofSeq with get
+    member val Vocabulary = vocabulary with get
+    new(x:DM, y:DM) =
+        let xi = x |> DM.toCols |> Seq.toArray |> Array.map (fun v -> int (float32 v.[0]))
+        let yi = y |> DM.toCols |> Seq.toArray |> Array.map (fun v -> int (float32 v.[0]))
+        Dataset(x, y, xi, yi, Array.empty)
+    new(xi:seq<int>, yi:seq<int>, onehotdims:int) =
+        let x = xi |> Seq.map (fun i -> DV.standardBasis onehotdims i) |> DM.ofCols
+        let y = yi |> Seq.map (fun i -> DV.standardBasis onehotdims i) |> DM.ofCols
+        Dataset(x, y, xi, yi, Array.empty)
+    new(xi:seq<int>, yi:seq<int>) =
+        let onehotdims = 1 + max (Seq.max xi) (Seq.max yi)
+        Dataset(xi, yi, onehotdims)
+    new(x:DM, yi:seq<int>, onehotdims:int) =
+        let xi = x |> DM.toCols |> Seq.map (fun v -> int (float32 v.[0]))
+        Dataset(xi, yi, onehotdims)
+    new(xi:seq<int>, y:DM, onehotdims:int) =
+        let yi = y |> DM.toCols |> Seq.toArray |> Array.map (fun v -> int (float32 v.[0]))
+        Dataset(xi, yi, onehotdims)
+    new(x:string, y:string) =
+        let xc = [|for c in x -> c|]
+        let yc = [|for c in y -> c|]
+        let vocabulary = Array.append xc yc |> Set.ofSeq |> Set.toArray
+        let xi = xc |> Array.map (fun v -> Array.findIndex (fun c -> c = v) vocabulary)
+        let yi = yc |> Array.map (fun v -> Array.findIndex (fun c -> c = v) vocabulary)
+        let onehotdims = vocabulary.Length
+        let x = xi |> Seq.map (fun i -> DV.standardBasis onehotdims i) |> DM.ofCols
+        let y = yi |> Seq.map (fun i -> DV.standardBasis onehotdims i) |> DM.ofCols
+        Dataset(x, y, xi, yi, vocabulary |> Array.map string)
+    new(s:seq<DV*DV>) =
         let x, y = s |> Seq.toArray |> Array.unzip
-        {X = x |> DM.ofCols
-         Y = y |> DM.ofCols}
-    static member empty = {X = DM.empty; Y = DM.empty}
-    static member isEmpty ({X = X; Y = Y}) = DM.isEmpty X && DM.isEmpty Y
+        Dataset(x |> DM.ofCols, y |> DM.ofCols)
+    static member empty = Dataset(DM.empty, DM.empty)
+    static member isEmpty (d:Dataset) = DM.isEmpty d.X && DM.isEmpty d.Y
     static member normalize (d:Dataset) = d.Normalize()
     static member normalizeX (d:Dataset) = d.NormalizeX()
     static member normalizeY (d:Dataset) = d.NormalizeY()
@@ -97,8 +125,19 @@ type Dataset =
     static member length (d:Dataset) = d.Length
     static member randomSubset (n:int) (d:Dataset) = d.RandomSubset(n)
     static member shuffle (d:Dataset) = d.Shuffle()
-    static member sub (startindex:int) (count:int) (d:Dataset) = d.Sub(startindex, count)
     static member item (i:int) (d:Dataset) = d.[i]
+    member d.EncodeOneHot(x:string) =
+        try
+            let i = Array.findIndex (fun v -> v = x) d.Vocabulary
+            DV.standardBasis d.Vocabulary.Length i |> DM.ofDV d.Vocabulary.Length
+        with
+            | _ -> DM.zeroCreate d.Vocabulary.Length 1
+    member d.DecodeOneHot(x:DM) =
+        try
+            let i = x.[*, 0] |> DV.maxIndex
+            d.Vocabulary.[i]
+        with
+            | _ -> ""
     member d.Item
         with get i = d.X.[*,i], d.Y.[*,i]
     member d.Length = d.X.Cols
@@ -108,55 +147,35 @@ type Dataset =
         let bi = Rnd.Permutation(d.Length)
         let x = Seq.init n (fun i -> d.X.[*, bi.[i]])
         let y = Seq.init n (fun i -> d.Y.[*, bi.[i]])
-        {X = DM.ofCols x
-         Y = DM.ofCols y}
-    member d.Normalize() =
-        {X = DM.normalize d.X
-         Y = DM.normalize d.Y}
-    member d.NormalizeX() =
-        {X = DM.normalize d.X
-         Y = d.Y}
-    member d.NormalizeY() =
-        {X = d.X
-         Y = DM.normalize d.Y}
-    member d.Standardize() =
-        {X = DM.standardize d.X
-         Y = DM.standardize d.Y}
-    member d.StandardizeX() =
-        {X = DM.standardize d.X
-         Y = d.Y}
-    member d.StandardizeY() =
-        {X = d.X
-         Y = DM.standardize d.Y}
+        Dataset(DM.ofCols x, DM.ofCols y)
+    member d.Normalize() = Dataset(DM.normalize d.X, DM.normalize d.Y)
+    member d.NormalizeX() = Dataset(DM.normalize d.X, d.Y)
+    member d.NormalizeY() = Dataset(d.X, DM.normalize d.Y)
+    member d.Standardize() = Dataset(DM.standardize d.X, DM.standardize d.Y)
+    member d.StandardizeX() = Dataset(DM.standardize d.X, d.Y)
+    member d.StandardizeY() = Dataset(d.X, DM.standardize d.Y)
     member d.Shuffle() = d.RandomSubset d.Length
-    member d.Sub(i, n) =
-        {X = d.X.[*,i..(i+n-1)]
-         Y = d.Y.[*,i..(i+n-1)]}
     member d.GetSlice(lower, upper) =
-        let l = defaultArg lower 0
-        let u = defaultArg upper (d.Length - 1)
-        d.Sub(l, u - l + 1)
+        let l = max 0 (defaultArg lower 0)
+        let u = min (d.X.Cols - 1) (defaultArg upper (d.Length - 1))
+        Dataset(d.X.[*,l..u], d.Y.[*,l..u])
     member d.Filter (predicate:(DV*DV)->bool) =
-        d.ToSeq() |> Seq.filter predicate |> Dataset.ofSeq
-    member d.AppendRowX(v:DV) =
-        {X = d.X |> DM.appendRow v
-         Y = d.Y}
-    member d.AppendRowY(v:DV) =
-        {X = d.X
-         Y = d.Y |> DM.appendRow v}
+        d.ToSeq() |> Seq.filter predicate |> Dataset
+    member d.AppendRowX(v:DV) = Dataset(d.X |> DM.appendRow v, d.Y)
+    member d.AppendRowY(v:DV) = Dataset(d.X, d.Y |> DM.appendRow v)
     member d.AppendBiasRowX() = d.AppendRowX(DV.create d.Length 1.f)
     override d.ToString() =
-        "Hype.Data\n"
+        "Hype.Dataset\n"
             + sprintf "   X: %i x %i\n" d.X.Rows d.X.Cols
-            + sprintf "   Y: %i x %i\n" d.Y.Rows d.Y.Cols
+            + sprintf "   Y: %i x %i" d.Y.Rows d.Y.Cols
     member d.ToStringFull() =
-        "Hype.Data\n"
-            + sprintf "   X:\n%s\n\n" (d.X.ToString())
-            + sprintf "   Y:\n%s\n" (d.Y.ToString())
+        "Hype.Dataset\n"
+            + sprintf "   X:\n%O\n\n" d.X
+            + sprintf "   Y:\n%O" d.Y
     member d.Visualize() =
-        d.ToString() + "\n"
+        "Hype.Dataset\n"
             + sprintf "   X:\n%s\n\n" (d.X.Visualize())
-            + sprintf "   Y:\n%s\n" (d.Y.Visualize())
+            + sprintf "   Y:\n%s" (d.Y.Visualize())
     member d.VisualizeXColsAsImageGrid(imagerows:int) =
         d.ToString() + "\n"
             + "X's columns " + Util.VisualizeDMRowsAsImageGrid(d.X |> DM.transpose, imagerows)

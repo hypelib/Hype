@@ -15,34 +15,19 @@ open RProvider.graphics
 
 
 
-let dataOR = {X = toDM [[0.; 0.; 1.; 1.]
+
+let dataor = {X = toDM [[0.; 0.; 1.; 1.]
                         [0.; 1.; 0.; 1.]]
-              Y = toDM [[0.; 1.; 1.; 0.]]}
+              Y = toDM [[0.; 1.; 1.; 1.]]}
 
 
 
-let train (x:DV) =
-    let par = {Params.Default with LearningRate = AdaGrad (D 0.001f); Batch = Full; Silent = false; ReturnBest = true; Epochs = 10000 }
-    let net = FeedForwardLayers()
-    net.Add(LinearLayer(2, 10, Initializer.InitSigmoid))
-    net.Add(ActivationLayer(sigmoid))
-    net.Add(LinearLayer(10, 1, Initializer.InitSigmoid))
-    net.Add(ActivationLayer(sigmoid))
-        
-    Layer.Train(net, dataOR, par)
+let n = FeedForward()
+n.Add(Linear(2, 4))
+n.Add(Activation(sigmoid))
+n.Add(Linear(4, 1))
+n.Add(Activation(sigmoid))
 
-    Loss.L2Loss.Func dataOR net.Run
+n.ToStringFull() |> printfn "%s"
 
-let hypertrain = 
-    let report i (w:DV) _ =
-        namedParams [   
-            "x", box (w |> convert |> Array.map float);
-            "type", box "o"; 
-            //"ylim", box [0.5; 2.];
-            "col", box "blue"]
-        |> R.plot |> ignore
-    Optimize.Minimize(train, DV.create 50 (1.f), {Params.Default with Epochs = 1500; ReportFunction = report; ValidationInterval = 1; LearningRate = AdaGrad (D 0.001f); EarlyStopping = Early(400, 100)})
-
-
-let test = train (DV.create 4000 0.1f)
-let test2 = grad' train (DV.create 40 (1.f))
+Layer.Train(n, dataor)
