@@ -193,6 +193,12 @@ td.title, thead {
 .github-link .normal { display: block; }
 .github-link:hover .normal { display: none; }
 
+code {
+    color: white;
+    background-color: #2f2f2f;
+    font-size: 100%;
+}
+
 /*-------------------------------------------------------------------------- 
   Links 
 /*--------------------------------------------------------------------------*/

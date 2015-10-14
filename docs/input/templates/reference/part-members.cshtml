@@ -1,14 +1,14 @@
 @if (Enumerable.Count(Model.Members) > 0) {
   <h3>@Model.Header</h3>
-  <table class="table table-bordered member-list">
+  <table class="table table-bordered member-list" style="border-color:#2f2f2f">
     <thead>
-      <tr><td>@Model.TableHeader</td><td>Description</td></tr>
+      <tr><td style="border-color:#2f2f2f">@Model.TableHeader</td><td style="border-color:#2f2f2f">Description</td></tr>
     </thead>
     <tbody>
     @foreach (var it in Model.Members)
     {
       <tr>
-        <td class="member-name">
+        <td class="member-name" style="border-color:#2f2f2f">
           @{ var id = Html.UniqueID().ToString(); }
           <code onmouseout="hideTip(event, '@id', @id)" onmouseover="showTip(event, '@id', @id)">
             @Html.Encode(it.Details.FormatUsage(40))
@@ -23,7 +23,7 @@
             }
           </div>
         </td>
-        <td class="xmldoc">
+        <td class="xmldoc" style="border-color:#2f2f2f">
           @if (!String.IsNullOrEmpty(it.Details.FormatSourceLocation))
           {
             <a href="@it.Details.FormatSourceLocation" class="github-link">
