@@ -253,21 +253,21 @@ type Momentum =
 type Loss =
     | L1Loss
     | L2Loss
-    | LeastSquares
+    | Quadratic
     | CrossEntropyOnLinear
     | CrossEntropyOnSoftmax
     override l.ToString() =
         match l with
         | L1Loss -> "L1 norm, least absolute deviations"
         | L2Loss -> "L2 norm"
-        | LeastSquares -> "L2 norm squared, least squares"
+        | Quadratic -> "L2 norm squared, least squares"
         | CrossEntropyOnLinear -> "Cross entropy after linear layer"
         | CrossEntropyOnSoftmax -> "Cross entropy after softmax layer"
     member l.Func =
         match l with
         | L1Loss -> fun (d:Dataset) (f:DM->DM) -> ((d.Y - (f d.X)) |> DM.toCols |> Seq.sumBy DV.l1norm) / d.Length
         | L2Loss -> fun d f -> ((d.Y - (f d.X)) |> DM.toCols |> Seq.sumBy DV.l2norm) / d.Length
-        | LeastSquares -> fun d f -> ((d.Y - (f d.X)) |> DM.toCols |> Seq.sumBy DV.l2normSq) / d.Length
+        | Quadratic -> fun d f -> ((d.Y - (f d.X)) |> DM.toCols |> Seq.sumBy DV.l2normSq) / d.Length
         | CrossEntropyOnLinear -> fun d f -> ((f d.X) |> DM.mapiCols (fun i v -> toDV [(logsumexp v) - v.[d.Yi.[i]]]) |> DM.sum) / d.Length
         | CrossEntropyOnSoftmax -> fun d f -> -((DM.map2Cols (fun t (y:DV) -> toDV [t * log y]) (d.Y) (f d.X)) |> DM.sum) / d.Length
 
