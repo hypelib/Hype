@@ -12,6 +12,11 @@
     <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">
+        google.load("visualization", "1.1", { packages: ["corechart", "annotationchart", "calendar", "gauge", "geochart", "map", "sankey", "table", "timeline", "treemap"] })
+    </script>
+
     <link type="text/css" rel="stylesheet" href="../misc/style.css" />
     <script type="text/javascript" src="../misc/tips.js"></script>
     <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
@@ -23,14 +28,13 @@
     <nav class="navbar navbar-inverse">
       <div class="container">
         <div class="navbar-header">
-          <a class="navbar-brand" href="../index.html">Hype</a>
+          <a class="navbar-brand" href="../index.html"><span class="hype">Hype</span></a>
         </div>
         <div>
           <ul class="nav navbar-nav">
-            <li class="active"><a href="../index.html">Home</a></li>
             <li><a href="https://github.com/gbaydin/Hype">GitHub</a></li>
-            <li><a href="https://github.com/gbaydin/Hype/releases">Release Notes</a></li>
-            <li><a href="index.html">API Reference</a></li>
+            <li><a href="https://github.com/gbaydin/Hype/releases">Release notes</a></li>
+            <li><a href="index.html">API reference</a></li>
             <li><a href="../download.html">Download</a></li>
           </ul>
         </div>
@@ -42,12 +46,18 @@
           @RenderBody()
         </div>
         <div class="col-sm-3">
-          <img src="../img/hype.png" style="width:200px"/>
+          <a href="index.html"><img src="../img/hype.png" style="width:200px"/></a><br>
+          <div class="nav-label">Basics</div>
           <ul class="nav nav-pills nav-stacked">
             <li><a href="../optimization.html">Optimization</a></li>
-            <li><a href="../linearregression.html">Linear Regression</a></li>
-            <li><a href="../logisticregression.html">Logistic Regression</a></li>
-            <li><a href="#">Neural Networks</a></li>
+            <li><a href="../training.html">Training</a></li>
+          </ul>
+          <div class="nav-label">Examples</div>
+          <ul class="nav nav-pills nav-stacked">
+            <li><a href="../regression.html">Regression</a></li>
+            <li><a href="../feedforwardnets.html">Neural Networks</a></li>
+            <li><a href="../recurrentnets.html">Recurrent Neural Nets</a></li>
+            <li><a href="../hmc.html">Hamiltonian MCMC</a></li>
           </ul>
         </div>
       </div>

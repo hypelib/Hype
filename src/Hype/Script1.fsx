@@ -1,6 +1,6 @@
 ﻿
-#r "bin/Debug/DiffSharp.dll"
-#r "bin/Debug/Hype.dll"
+#r "bin/Release/DiffSharp.dll"
+#r "bin/Release/Hype.dll"
 #I "../../packages/RProvider.1.1.14"
 #load "RProvider.fsx"
 
@@ -81,9 +81,9 @@ let rosenbrock2 (x:DV) = DV.norm x
 let learn (draw:bool) (l:DV) = 
     let plot (i:int) (w:DV) (v:D) =
         plot3d rosenbrock (-2.5,2.5) (-2.5,2.5) 150 25 w
-    let mutable par = {Params.Default with Method = GD; LearningRate = Scheduled l; ValidationInterval = 1; Silent = true}
+    let mutable par = {Params.Default with Method = GD; LearningRate = Schedule l; ValidationInterval = 1; Silent = true}
     if draw then par <- {par with ReportFunction = plot; ValidationInterval = 1}
-    let wopt = Optimizer.Minimize(rosenbrock, toDV [-1.f; -1.f], par) |> fst
+    let wopt = Optimize.Minimize(rosenbrock, toDV [-1.f; -1.f], par) |> fst
     //printfn "WOPT: %A" wopt
     let v = rosenbrock wopt
     //printfn "VVVV: %A" v
@@ -95,7 +95,7 @@ let metalearn epochs metaepochs =
     let plot _ w _ =
         learn true w |> ignore
     let par = {Params.Default with Method = GD; Epochs = metaepochs; ValidationInterval = 1; LearningRate = AdaGrad (D 0.00001f); ReportFunction = plot}
-    Optimizer.Minimize((learn false), (DV.create epochs 0.001f), par)
+    Optimize.Minimize((learn false), (DV.create epochs 0.001f), par)
 
 
 let test = metalearn 100 400

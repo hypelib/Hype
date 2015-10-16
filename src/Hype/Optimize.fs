@@ -338,10 +338,6 @@ type Params =
                               ReturnBest = true
                               ValidationInterval = 10
                               ReportFunction = fun _ _ _ -> ()}
-    member p.GetEpochs =
-        match p.LearningRate with
-        | Schedule a -> a.Length
-        | _ -> p.Epochs
         
 
 type Optimize =
@@ -351,7 +347,10 @@ type Optimize =
         let lr = par.LearningRate.Func
         let gradclip = par.GradientClipping.Func
         let mom = par.Momentum.Func
-        let iters = par.GetEpochs
+        let iters = 
+            match par.LearningRate with
+            | Schedule a -> a.Length
+            | _ -> par.Epochs
 
         if not par.Silent then
             Util.printLog "--- Minimization started"
@@ -480,25 +479,30 @@ type Optimize =
         let gradclip = par.GradientClipping.Func
         let mom = par.Momentum.Func
         let reg = par.Regularization.Func
-        let epochs = par.GetEpochs
+        let epochs = par.Epochs
         let loss = par.Loss.Func
-        let batches =
+        let batches, batchsize =
             match par.Batch with
-            | Full -> 1
-            | Minibatch n -> d.Length / n
-            | Stochastic -> d.Length
+            | Full -> 1, d.Length
+            | Minibatch n -> d.Length / n, n
+            | Stochastic -> d.Length, 1
+        let iters =
+            match par.LearningRate with
+            | Schedule a -> a.Length
+            | _ -> epochs * batches
 
         if not par.Silent then
             Util.printLog "--- Training started"
             Util.printLog (sprintf "Parameters     : %A" w0.Length)
+            Util.printLog (sprintf "Iterations     : %A" iters)
+            Util.printLog (sprintf "Epochs         : %A" epochs)
+            Util.printLog (sprintf "Batches        : %O (%A per epoch)" par.Batch batches)
             Util.printLog (sprintf "Training data  : %i" d.Length)
             if Dataset.isEmpty v then
                 Util.printLog (sprintf "Validation data: None")
             else
                 Util.printLog (sprintf "Validation data: %i" v.Length)
-                Util.printLog (sprintf "Valid. interval: %i" par.ValidationInterval)
-            Util.printLog (sprintf "Epochs         : %A" epochs)
-            Util.printLog (sprintf "Batches        : %O (%A per epoch)" par.Batch batches)
+            Util.printLog (sprintf "Valid. interval: %i" par.ValidationInterval)
             Util.printLog (sprintf "Method         : %O" par.Method)
             Util.printLog (sprintf "Learning rate  : %O" par.LearningRate)
             Util.printLog (sprintf "Momentum       : %O" par.Momentum)
@@ -649,6 +653,8 @@ type Optimize =
                 p <- p' // Or, p <- u'
                 u <- u'
                 batch <- batch + 1
+                let iter = batches * epoch + batch
+                if iter >= iters then earlystop <- true
             epoch <- epoch + 1
 
         let l'', _, _ = dir w (q 0) g p gradclip

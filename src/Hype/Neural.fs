@@ -17,6 +17,10 @@ type Layer() =
     abstract member Decode : DV -> unit
     abstract member ToStringFull : unit -> string
     abstract member Visualize : unit -> string
+    member l.Train(d:Dataset) = Layer.Train(l, d)
+    member l.Train(d:Dataset, v:Dataset) = Layer.Train(l, d, v)
+    member l.Train(d:Dataset, par:Params) = Layer.Train(l, d, par)
+    member l.Train(d:Dataset, v:Dataset, par:Params) = Layer.Train(l, d, v, par)
     static member init (l:Layer) = l.Init()
     static member reset (l:Layer) = l.Reset()
     static member run x (l:Layer) = l.Run(x)
@@ -77,79 +81,6 @@ type Initializer =
     member i.InitDM(m:DM) = i.InitDM(m.Rows, m.Cols)
 
 
-type FeedForward() =
-    inherit Layer()
-    let mutable (layers:Layer[]) = Array.empty
-    let mutable encodelength = 0
-    let update() = 
-        encodelength <- layers |> Array.map Layer.encodeLength |> Array.sum
-    member n.Add(l) =
-        layers <- Array.append layers [|l|]
-        update()
-    member n.Insert(i, l) =
-        let a = ResizeArray(layers)
-        a.Insert(i, l)
-        layers <- a.ToArray()
-        update()
-    member n.Remove(i) =
-        let a = ResizeArray(layers)
-        a.RemoveAt(i)
-        layers <- a.ToArray()
-        update()
-    member n.Length = layers.Length
-    member n.Item
-        with get i = layers.[i]
-    override n.Init() = layers |> Array.iter Layer.init
-    override n.Reset() = layers |> Array.iter Layer.reset
-    override n.Run(x:DM) = Array.fold Layer.run x layers
-    override n.Encode() = layers |> Array.map Layer.encode |> Array.reduce DV.append
-    override n.EncodeLength = encodelength
-    override n.Decode(w) =
-        w |> DV.split (layers |> Array.map Layer.encodeLength)
-        |> Seq.iter2 Layer.decode layers
-    override n.ToString() =
-        let s = System.Text.StringBuilder()
-        if n.Length > 0 then
-            s.Append("   ") |> ignore
-            for i = 0 to layers.Length - 1 do
-                s.Append("(" + i.ToString() + ") -> ") |> ignore
-            s.Remove(s.Length - 4, 4) |> ignore
-            s.Append("\n\n") |> ignore
-            for i = 0 to layers.Length - 1 do
-                s.Append("   (" + i.ToString() + "): " + layers.[i].ToString() + "\n\n") |> ignore
-
-        "Hype.Neural.FeedForward\n"
-            + sprintf "   Learnable parameters: %i\n" encodelength
-            + s.ToString()
-    override n.ToStringFull() =
-        let s = System.Text.StringBuilder()
-        if n.Length > 0 then
-            s.Append("   ") |> ignore
-            for i = 0 to layers.Length - 1 do
-                s.Append("(" + i.ToString() + ") -> ") |> ignore
-            s.Remove(s.Length - 4, 4) |> ignore
-            s.Append("\n\n") |> ignore
-            for i = 0 to layers.Length - 1 do
-                s.Append("   (" + i.ToString() + "): " + layers.[i].ToStringFull() + "\n\n") |> ignore
-
-        "Hype.Neural.FeedForward\n"
-            + sprintf "   Learnable parameters: %i\n" encodelength
-            + s.ToString()
-    override n.Visualize() =
-        let s = System.Text.StringBuilder()
-        if n.Length > 0 then
-            s.Append("   ") |> ignore
-            for i = 0 to layers.Length - 1 do
-                s.Append("(" + i.ToString() + ") -> ") |> ignore
-            s.Remove(s.Length - 4, 4) |> ignore
-            s.Append("\n\n") |> ignore
-            for i = 0 to layers.Length - 1 do
-                s.Append("   (" + i.ToString() + "): " + layers.[i].Visualize() + "\n\n") |> ignore
-
-        "Hype.Neural.FeedForward\n"
-            + sprintf "   Learnable parameters: %i\n" encodelength
-            + s.ToString()
-
 
 type Linear(inputs:int, outputs:int, initializer:Initializer) =
     inherit Layer()
@@ -199,6 +130,7 @@ type Linear(inputs:int, outputs:int, initializer:Initializer) =
             + sprintf "   b:\n%s" (l.b.Visualize())
 
 
+
 type LinearNoBias(inputs:int, outputs:int, initializer:Initializer) =
     inherit Layer()
     new(inputs, outputs) = LinearNoBias(inputs, outputs, Initializer.InitStandard)
@@ -237,6 +169,7 @@ type LinearNoBias(inputs:int, outputs:int, initializer:Initializer) =
             + sprintf "   W's rows %s" (Util.VisualizeDMRowsAsImageGrid(l.W, imagerows))
 
 
+
 type Activation(f:DM->DM) =
     inherit Layer()
     let f = f
@@ -252,6 +185,8 @@ type Activation(f:DM->DM) =
     override l.ToStringFull() = l.ToString()
     override l.Visualize() = l.ToString()
 
+
+
 type OneHot(dim:int) =
     inherit Layer()
 
@@ -266,6 +201,82 @@ type OneHot(dim:int) =
             + sprintf "   1 -> %i" dim
     override l.ToStringFull() = l.ToString()
     override l.Visualize() = l.ToString()
+
+
+
+type FeedForward() =
+    inherit Layer()
+    let mutable (layers:Layer[]) = Array.empty
+    let mutable encodelength = 0
+    let update() = 
+        encodelength <- layers |> Array.map Layer.encodeLength |> Array.sum
+    member n.Add(l) =
+        layers <- Array.append layers [|l|]
+        update()
+    member n.Insert(i, l) =
+        let a = ResizeArray(layers)
+        a.Insert(i, l)
+        layers <- a.ToArray()
+        update()
+    member n.Remove(i) =
+        let a = ResizeArray(layers)
+        a.RemoveAt(i)
+        layers <- a.ToArray()
+        update()
+    member n.Add(f:DM->DM) = n.Add(Activation(f))
+    member n.Insert(i, f:DM->DM) = n.Insert(i, Activation(f))
+    member n.Length = layers.Length
+    member n.Item
+        with get i = layers.[i]
+    override n.Init() = layers |> Array.iter Layer.init
+    override n.Reset() = layers |> Array.iter Layer.reset
+    override n.Run(x:DM) = Array.fold Layer.run x layers
+    override n.Encode() = layers |> Array.map Layer.encode |> Array.reduce DV.append
+    override n.EncodeLength = encodelength
+    override n.Decode(w) =
+        w |> DV.split (layers |> Array.map Layer.encodeLength)
+        |> Seq.iter2 Layer.decode layers
+    override n.ToString() =
+        let s = System.Text.StringBuilder()
+        if n.Length > 0 then
+            s.Append("   ") |> ignore
+            for i = 0 to layers.Length - 1 do
+                s.Append("(" + i.ToString() + ") -> ") |> ignore
+            s.Remove(s.Length - 4, 4) |> ignore
+            s.Append("\n\n") |> ignore
+            for i = 0 to layers.Length - 1 do
+                s.Append("   (" + i.ToString() + "): " + layers.[i].ToString() + "\n\n") |> ignore
+        "Hype.Neural.FeedForward\n"
+            + sprintf "   Learnable parameters: %i\n" encodelength
+            + s.ToString()
+    override n.ToStringFull() =
+        let s = System.Text.StringBuilder()
+        if n.Length > 0 then
+            s.Append("   ") |> ignore
+            for i = 0 to layers.Length - 1 do
+                s.Append("(" + i.ToString() + ") -> ") |> ignore
+            s.Remove(s.Length - 4, 4) |> ignore
+            s.Append("\n\n") |> ignore
+            for i = 0 to layers.Length - 1 do
+                s.Append("   (" + i.ToString() + "): " + layers.[i].ToStringFull() + "\n\n") |> ignore
+        "Hype.Neural.FeedForward\n"
+            + sprintf "   Learnable parameters: %i\n" encodelength
+            + s.ToString()
+    override n.Visualize() =
+        let s = System.Text.StringBuilder()
+        if n.Length > 0 then
+            s.Append("   ") |> ignore
+            for i = 0 to layers.Length - 1 do
+                s.Append("(" + i.ToString() + ") -> ") |> ignore
+            s.Remove(s.Length - 4, 4) |> ignore
+            s.Append("\n\n") |> ignore
+            for i = 0 to layers.Length - 1 do
+                s.Append("   (" + i.ToString() + "): " + layers.[i].Visualize() + "\n\n") |> ignore
+        "Hype.Neural.FeedForward\n"
+            + sprintf "   Learnable parameters: %i\n" encodelength
+            + s.ToString()
+
+
 
 type Recurrent(inputs:int, hiddenunits:int, outputs:int, activation:DV->DV, initializer:Initializer) =
     inherit Layer()
@@ -334,6 +345,8 @@ type Recurrent(inputs:int, hiddenunits:int, outputs:int, activation:DV->DV, init
             + sprintf "   Why:\n%s\n" (l.Why.Visualize())
             + sprintf "   bh:\n%s\n" (l.bh.Visualize())
             + sprintf "   by:\n%s" (l.by.Visualize())
+
+
 
 type LSTM(inputs:int, memcells:int) =
     inherit Layer()

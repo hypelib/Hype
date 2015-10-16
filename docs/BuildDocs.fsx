@@ -71,8 +71,11 @@ let tags = ["project-name", "Hype"; "project-author", "Atılım Güneş Baydin";
 Literate.ProcessScriptFile(relative "input/index.fsx", relative "input/templates/template.html", relative "output/index.html", replacements = tags)
 Literate.ProcessScriptFile(relative "input/download.fsx", relative "input/templates/template.html", relative "output/download.html", replacements = tags)
 Literate.ProcessScriptFile(relative "input/Optimization.fsx", relative "input/templates/template.html", relative "output/optimization.html", replacements = tags)
-Literate.ProcessScriptFile(relative "input/LinearRegression.fsx", relative "input/templates/template.html", relative "output/linearregression.html", replacements = tags)
-Literate.ProcessScriptFile(relative "input/LogisticRegression.fsx", relative "input/templates/template.html", relative "output/logisticregression.html", replacements = tags)
+Literate.ProcessScriptFile(relative "input/Training.fsx", relative "input/templates/template.html", relative "output/training.html", replacements = tags)
+Literate.ProcessScriptFile(relative "input/Regression.fsx", relative "input/templates/template.html", relative "output/regression.html", replacements = tags)
+Literate.ProcessScriptFile(relative "input/FeedforwardNets.fsx", relative "input/templates/template.html", relative "output/feedforwardnets.html", replacements = tags)
+Literate.ProcessScriptFile(relative "input/RecurrentNets.fsx", relative "input/templates/template.html", relative "output/recurrentnets.html", replacements = tags)
+Literate.ProcessScriptFile(relative "input/HMC.fsx", relative "input/templates/template.html", relative "output/hmc.html", replacements = tags)
 
 //
 // Generate API reference

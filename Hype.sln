@@ -9,11 +9,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{56DA870A-0
 	ProjectSection(SolutionItems) = preProject
 		docs\BuildDocs.fsx = docs\BuildDocs.fsx
 		docs\input\download.fsx = docs\input\download.fsx
+		docs\input\FeedforwardNets.fsx = docs\input\FeedforwardNets.fsx
+		docs\input\HMC.fsx = docs\input\HMC.fsx
 		docs\input\index.fsx = docs\input\index.fsx
-		docs\input\LinearRegression.fsx = docs\input\LinearRegression.fsx
-		docs\input\LogisticRegression.fsx = docs\input\LogisticRegression.fsx
-		docs\input\MLP.fsx = docs\input\MLP.fsx
 		docs\input\Optimization.fsx = docs\input\Optimization.fsx
+		docs\input\RecurrentNets.fsx = docs\input\RecurrentNets.fsx
+		docs\input\Regression.fsx = docs\input\Regression.fsx
+		docs\input\Training.fsx = docs\input\Training.fsx
 	EndProjectSection
 EndProject
 Global
