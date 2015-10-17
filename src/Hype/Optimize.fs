@@ -326,21 +326,23 @@ type Params =
      ReturnBest : bool
      ValidationInterval : int
      ReportFunction : int->DV->D->unit}
-     static member Default = {Epochs = 100
-                              LearningRate = LearningRate.DefaultRMSProp
-                              Momentum = NoMomentum
-                              Loss = L2Loss
-                              Regularization = Regularization.DefaultL2Reg
-                              GradientClipping = NoClip
-                              Method = GD
-                              Batch = Full
-                              EarlyStopping = NoEarly
-                              ImprovementThreshold = D 0.995f
-                              Silent = false
-                              ReturnBest = true
-                              ValidationInterval = 10
-                              ReportFunction = fun _ _ _ -> ()}
-        
+[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>] 
+module Params =
+     let Default = {Epochs = 100
+                    LearningRate = LearningRate.DefaultRMSProp
+                    Momentum = NoMomentum
+                    Loss = L2Loss
+                    Regularization = Regularization.DefaultL2Reg
+                    GradientClipping = NoClip
+                    Method = GD
+                    Batch = Full
+                    EarlyStopping = NoEarly
+                    ImprovementThreshold = D 0.995f
+                    Silent = false
+                    ReturnBest = true
+                    ValidationInterval = 10
+                    ReportFunction = fun _ _ _ -> ()}
+
 
 type Optimize =
     static member Minimize (f:DV->D, w0:DV) = Optimize.Minimize(f, w0, Params.Default)
