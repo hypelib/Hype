@@ -325,7 +325,7 @@ type Params =
      Silent : bool
      ReturnBest : bool
      ValidationInterval : int
-     ReportFunction : int->DV->D->unit}
+     LoggingFunction : int->DV->D->unit}
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>] 
 module Params =
      let Default = {Epochs = 100
@@ -341,7 +341,7 @@ module Params =
                     Silent = false
                     ReturnBest = true
                     ValidationInterval = 10
-                    ReportFunction = fun _ _ _ -> ()}
+                    LoggingFunction = fun _ _ _ -> ()}
 
 
 type Optimize =
@@ -386,6 +386,9 @@ type Optimize =
         let mutable replbest = l0
         let mutable replbestchar = " "
 
+        let mutable whist = []
+        let mutable lhist = []
+
         let ldiffchar l = if l < D 0.f then "↓" elif l > D 0.f then "↑" else "-"
 
         let ichars = iters.ToString().Length
@@ -401,6 +404,9 @@ type Optimize =
             if l' < par.ImprovementThreshold * lbest then
                 wbest <- w
                 lbest <- l'
+
+            whist <- [w] @ whist
+            lhist <- [l] @ lhist
 
             if i % par.ValidationInterval = 0 then
                 let repldiff = l' - repllast
@@ -426,7 +432,7 @@ type Optimize =
                         Util.printLog (sprintf "%*i/%i | %O [%s%s]" ichars (i + 1) iters l' (ldiffchar repldiff) replbestchar)
 
                 repllast <- l'
-                par.ReportFunction i w l'
+                par.LoggingFunction i w l'
 
             let mutable u' = DV.Zero
             match lr i w f l' g' gcache p' with
@@ -467,7 +473,7 @@ type Optimize =
             Util.printLog (sprintf "Iter. / s      : %A" es)
             Util.printLog (sprintf "Iter. / min    : %A" em)
             Util.printLog "--- Minimization finished"
-        wfinal, lfinal
+        wfinal, lfinal, (whist |> List.rev |> List.toArray), (lhist |> List.rev |> List.toArray)
 
     static member Train (f:DV->DV->DV, w0:DV, d:Dataset) = Optimize.Train(f, w0, d, Dataset.empty, Params.Default)
     static member Train (f:DV->DV->DV, w0:DV, d:Dataset, par:Params) = Optimize.Train(f, w0, d, Dataset.empty, par)
@@ -560,6 +566,9 @@ type Optimize =
         let mutable repvlbestchar = " "
 
         let ldiffchar l = if l < D 0.f then "↓" elif l > D 0.f then "↑" else "-"
+        
+        let mutable whist = []
+        let mutable lhist = []
 
         let mutable stagnation = -par.ValidationInterval
         let mutable overfitting = 0
@@ -578,6 +587,10 @@ type Optimize =
 
                 let l'', g', p' = dir w (q batch) g p gradclip
                 l' <- l''
+
+                whist <- [w] @ whist
+                lhist <- [l] @ lhist
+
                 if l' < par.ImprovementThreshold * lbest then
                     wbest <- w
                     lbest <- l'
@@ -642,7 +655,7 @@ type Optimize =
                             | _ ->
                                 Util.printLog (sprintf "%*i/%i | Batch %*i/%i | %O [%s%s] | Valid %O [%s%s]" echars (epoch + 1) epochs bchars (batch + 1) batches l' (ldiffchar repldiff) replbestchar vl' (ldiffchar repvldiff) repvlbestchar)
                         repvllast <- vl'
-                        par.ReportFunction epoch w l'
+                        par.LoggingFunction epoch w l'
 
                 let mutable u' = DV.Zero
                 match lr epoch w (q batch) l' g' gcache p' with
@@ -685,5 +698,5 @@ type Optimize =
             Util.printLog (sprintf "Epochs / s     : %A" es)
             Util.printLog (sprintf "Epochs / min   : %A" em)
             Util.printLog "--- Training finished"
-        wfinal, lfinal
+        wfinal, lfinal, (whist |> List.rev |> List.toArray), (lhist |> List.rev |> List.toArray)
         

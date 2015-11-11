@@ -43,9 +43,9 @@ type Layer() =
 //            grad (fun w -> Loss.L1Loss.FuncDM(d) (f w)) w0 |> ignore
 //        with
 //            | _ -> failwith "Input/output dimensions mismatch between dataset and the layer."
-        let w, loss = Optimize.Train(f, w0, d, v, par)
+        let w, loss, _, lhist = Optimize.Train(f, w0, d, v, par)
         w |> l.Decode
-        loss
+        loss, lhist
 
 
 type Initializer =
