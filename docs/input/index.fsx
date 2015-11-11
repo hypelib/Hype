@@ -7,15 +7,17 @@ open DiffSharp.AD.Float32
 Hype: Compositional Machine Learning and Hyperparameter Optimization
 ====================================================================
 
-Hype is a proof-of-concept, experimental library for [compositional](http://mathworld.wolfram.com/Composition.html) machine learning, where you can perform optimization on systems of many components, even when such components themselves internally perform optimization. 
+Hype is a proof-of-concept library for [compositional](http://mathworld.wolfram.com/Composition.html) machine learning, where you can perform optimization on systems of many components, even when such components themselves internally perform optimization. 
 
-This is enabled by the nested automatic differentiation (AD) capability provided by a special numeric type __D__, which is used as the standard floating-point type in Hype,  giving you access to the exact derivative of any value in your model with respect to any other. 
+This is enabled by nested automatic differentiation (AD) giving you access to the automatic exact derivative of any floating-point value in your code with respect to any other. Underlying computations are run by a BLAS/LAPACK backend (OpenBLAS by default).
 
 ### Automatic derivatives
 
 You do not need to worry about supplying gradients (or Hessians) of your models, which are computed exactly and efficiently by AD. The underlying AD functionality is provided by [DiffSharp](http://diffsharp.github.io/DiffSharp/index.html). 
 
-AD is a generalized form of "backpropagation" and is distinct from numerical or symbolic differentiation.
+"Reverse mode" AD is a generalized form of "backpropagation" and is distinct from numerical or symbolic differentiation.
+
+In addition to reverse AD, Hype makes use of forward AD and nested combinations of forward and reverse AD. The core [differentiation API](http://diffsharp.github.io/DiffSharp/api-overview.html) provides gradients, Hessians, Jacobians, directional derivatives, and matrix-free exact Hessian- and Jacobian-vector products.
 
 ### Hypergradients
 
@@ -45,7 +47,7 @@ let hypertrain =
 
 (**
 
-You can also take derivatives with respect to your training data, to analyze training sensitivities.
+You can also take derivatives with respect to training data, to analyze training sensitivities.
 
 ### Compositionality
 
@@ -62,7 +64,7 @@ Or you can perform optimization of procedures that are internally using differen
 
 ### Complex objective functions
 
-You can use derivatives in defining objective functions for training your models. For example, your objective function can take input sensitivities into account, for training neural networks that are invariant to a set of chosen input transformations.
+You can use derivatives in the definition of objective functions for training your models. For example, your objective function can take input sensitivities into account, for training models that are invariant under a set input transformations.
 
 Roadmap
 -------
@@ -74,7 +76,7 @@ Roadmap
 
 * OpenBLAS backend by default
 * Regression, feedforward neural networks
-* Recurrent neural networks, LSTM
+* Recurrent neural networks, LSTMs
 * Hamiltonian Monte Carlo
 </div>
 </div>
@@ -83,7 +85,7 @@ Roadmap
 <div class="alert alert-info">
   <strong>Upcoming features</strong> 
 
-* GPU support through CUDA
+* GPU/CUDA backend
 * Probabilistic inference
 * Convolutional neural networks
 </div>
