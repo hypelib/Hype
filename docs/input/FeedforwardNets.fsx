@@ -514,3 +514,4 @@ MNISTtest.[0..4].VisualizeXColsAsImageGrid(28) |> printfn "%s"
                                                                                     
 
 
+*)
