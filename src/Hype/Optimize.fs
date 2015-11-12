@@ -150,8 +150,8 @@ type LearningRate =
 
 type Batch =
     | Full
-    | Minibatch of int
-    | Stochastic // Minibatch with size 1
+    | Minibatch of int // Minibatch of given size
+    | Stochastic       // Minibatch with size 1, SGD
     override b.ToString() =
         match b with
         | Full        -> "Full"
@@ -396,12 +396,28 @@ type Optimize =
         let mutable stagnation = -par.ValidationInterval
         let mutable earlystop = false
 
+        let isNice (v:D) =
+            let vf = float32 v
+            if System.Single.IsNaN(vf) then false
+            elif System.Single.IsInfinity(vf) then false
+            elif System.Single.IsNegativeInfinity(vf) then false
+            elif System.Single.IsPositiveInfinity(vf) then false
+            else true
+
+        let mutable diverged = false
+
         let start = System.DateTime.Now
 
         while (i < iters) && (not earlystop) do
             let l'', g', p' = dir w f g p gradclip
             l' <- l''
-            if l' < par.ImprovementThreshold * lbest then
+
+            if (not (isNice l')) then
+                if not par.Silent then Util.printLog "*** MINIMIZATION DIVERGED: Function value is out of bounds ***"
+                earlystop <- true
+                diverged <- true
+
+            if (l' < par.ImprovementThreshold * lbest) && (not diverged) then
                 wbest <- w
                 lbest <- l'
 
@@ -448,16 +464,17 @@ type Optimize =
             u <- u'
             i <- i + 1
 
-        let l'', _, _ = dir w f g p gradclip
-        l' <- l''
-        if l' < par.ImprovementThreshold * lbest then
-            wbest <- w
-            lbest <- l'
+        if not diverged then
+            let l'', _, _ = dir w f g p gradclip
+            l' <- l''
+            if l' < par.ImprovementThreshold * lbest then
+                wbest <- w
+                lbest <- l'
 
         let duration = System.DateTime.Now.Subtract(start)
 
-        let wfinal = if par.ReturnBest then wbest else w
-        let lfinal = if par.ReturnBest then lbest else l'
+        let wfinal = if par.ReturnBest || diverged then wbest else w
+        let lfinal = if par.ReturnBest || diverged then lbest else l'
 
         let lchg = (lfinal - l0)
         let lchgs = lchg / (float32 duration.TotalSeconds)
@@ -475,6 +492,10 @@ type Optimize =
             Util.printLog "--- Minimization finished"
         wfinal, lfinal, (whist |> List.rev |> List.toArray), (lhist |> List.rev |> List.toArray)
 
+    static member Train (f:DV->DV->D,  w0:DV, d:Dataset) = Optimize.Train((fun w v -> toDV [f w v]), w0, d)
+    static member Train (f:DV->DV->D,  w0:DV, d:Dataset, par:Params) = Optimize.Train((fun w v -> toDV [f w v]), w0, d, par)
+    static member Train (f:DV->DV->D,  w0:DV, d:Dataset, v:Dataset) = Optimize.Train((fun w v -> toDV [f w v]), w0, d, v)
+    static member Train (f:DV->DV->D,  w0:DV, d:Dataset, v:Dataset, par:Params) = Optimize.Train((fun w v -> toDV [f w v]), w0, d, v, par)
     static member Train (f:DV->DV->DV, w0:DV, d:Dataset) = Optimize.Train(f, w0, d, Dataset.empty, Params.Default)
     static member Train (f:DV->DV->DV, w0:DV, d:Dataset, par:Params) = Optimize.Train(f, w0, d, Dataset.empty, par)
     static member Train (f:DV->DV->DV, w0:DV, d:Dataset, v:Dataset) = Optimize.Train(f, w0, d, v, Params.Default)
@@ -579,6 +600,16 @@ type Optimize =
         let bchars = batches.ToString().Length
         let ichars = (epochs * d.Length).ToString().Length
 
+        let isNice (v:D) =
+            let vf = float32 v
+            if System.Single.IsNaN(vf) then false
+            elif System.Single.IsInfinity(vf) then false
+            elif System.Single.IsNegativeInfinity(vf) then false
+            elif System.Single.IsPositiveInfinity(vf) then false
+            else true
+
+        let mutable diverged = false
+
         let start = System.DateTime.Now
 
         while (epoch < epochs) && (not earlystop) do
@@ -588,10 +619,15 @@ type Optimize =
                 let l'', g', p' = dir w (q batch) g p gradclip
                 l' <- l''
 
+                if (not (isNice l')) then
+                    if not par.Silent then Util.printLog "*** TRAINING DIVERGED: Loss is out of bounds ***"
+                    earlystop <- true
+                    diverged <- true
+
                 whist <- [w] @ whist
                 lhist <- [l] @ lhist
 
-                if l' < par.ImprovementThreshold * lbest then
+                if (l' < par.ImprovementThreshold * lbest) && (not diverged) then
                     wbest <- w
                     lbest <- l'
                     if not (Dataset.isEmpty v) then
@@ -600,7 +636,7 @@ type Optimize =
                             match par.EarlyStopping with
                             | Early(_, o) ->
                                 if overfitting >= o then 
-                                    Util.printLog "*** EARLY STOPPING TRIGGERED: Overfitting ***"
+                                    if not par.Silent then Util.printLog "*** EARLY STOPPING TRIGGERED: Overfitting ***"
                                     earlystop <- true
                             | _ -> ()
 
@@ -674,16 +710,17 @@ type Optimize =
                 if iter >= iters then earlystop <- true
             epoch <- epoch + 1
 
-        let l'', _, _ = dir w (q 0) g p gradclip
-        l' <- l''
-        if l' < par.ImprovementThreshold * lbest then
-            wbest <- w
-            lbest <- l'
+        if not diverged then
+            let l'', _, _ = dir w (q 0) g p gradclip
+            l' <- l''
+            if l' < par.ImprovementThreshold * lbest then
+                wbest <- w
+                lbest <- l'
 
         let duration = System.DateTime.Now.Subtract(start)
           
-        let wfinal = if par.ReturnBest then wbest else w
-        let lfinal = if par.ReturnBest then lbest else l'
+        let wfinal = if par.ReturnBest || diverged then wbest else w
+        let lfinal = if par.ReturnBest || diverged then lbest else l'
 
         let lchg = (lfinal - l0)
         let lchgs = lchg / (float32 duration.TotalSeconds)

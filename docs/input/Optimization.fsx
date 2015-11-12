@@ -141,7 +141,7 @@ namedParams[
 (**
 <div class="row">
     <div class="span6 text-center">
-        <img src="img/optimization-3.png" alt="Chart" style="width:500px;"/>
+        <img src="img/Optimization-3.png" alt="Chart" style="width:500px;"/>
     </div>
 </div><br/>
 
@@ -228,7 +228,7 @@ namedParams[
 (**
 <div class="row">
     <div class="span6 text-center">
-        <img src="img/optimization-1.png" alt="Chart" style="width:500px;"/>
+        <img src="img/Optimization-1.png" alt="Chart" style="width:500px;"/>
     </div>
 </div><br/>
 
@@ -270,7 +270,7 @@ namedParams[
 (**
 <div class="row">
     <div class="span6 text-center">
-        <img src="img/optimization-2.png" alt="Chart" style="width:500px;"/>
+        <img src="img/Optimization-2.png" alt="Chart" style="width:500px;"/>
     </div>
 </div><br/>
 
@@ -348,17 +348,6 @@ type Momentum =
     | NoMomentum
     static member DefaultMomentum = Momentum (D 0.9f)
     static member DefaultNesterov = Nesterov (D 0.9f)
-
-(**
-### Regularization
-*)
-
-type Regularization =
-    | L1Reg of D // L1 regularization
-    | L2Reg of D // L2 regularization
-    | NoReg
-    static member DefaultL1Reg = L1Reg (D 0.0001f)
-    static member DefaultL2Reg = L2Reg (D 0.0001f)
 
 (**
 ### Gradient clipping
