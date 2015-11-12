@@ -1,57 +1,78 @@
-﻿#r "../../packages/DiffSharp.0.6.2/lib/DiffSharp.dll"
-#I "../../packages/RProvider.1.1.8"
-#load "RProvider.fsx"
-
-#load "../../src/Hype/Hype.fs"
-#load "../../src/Hype/Optimize.fs"
+﻿(*** hide ***)
+#r "../../packages/Google.DataTable.Net.Wrapper.3.1.2.0/lib/Google.DataTable.Net.Wrapper.dll"
+#r "../../packages/Newtonsoft.Json.7.0.1/lib/net45/Newtonsoft.Json.dll"
+#r "../../packages/XPlot.GoogleCharts.1.2.1/lib/net45/XPlot.GoogleCharts.dll"
+#r "../../packages/XPlot.GoogleCharts.WPF.1.2.1/lib/net45/XPlot.GoogleCharts.WPF.dll"
+#r "../../src/Hype/bin/Release/DiffSharp.dll"
+#r "../../src/Hype/bin/Release/Hype.dll"
 fsi.ShowDeclarationValues <- false
 
-open RDotNet
-open RProvider
-open RProvider.graphics
+(**
+Regression
+==========
 
-open FsAlg.Generic
-open DiffSharp.AD
-open DiffSharp.AD.Vector
+*)
+
 open Hype
-
-let housing = Util.LoadDelimited(__SOURCE_DIRECTORY__ + "/housing.data")
-let housing' = housing |> Matrix.transpose |> Matrix.prependRow (Vector.create housing.Rows 1.)
-
-let data = {X = housing'.[0..(housing'.Rows - 2), *] |> Matrix.map D
-            Y = housing'.[housing'.Rows - 1..housing'.Rows - 1, *] |> Matrix.map D}
-
-let train, test = data.[..250], data.[250..]
+open DiffSharp.AD.Float32
 
 
 
-let h (w:Vector<D>) (x:Vector<D>) = vector [w * x]
+(**
 
-let mutable w = Rnd.Vector(data.X.Rows)
-
-w <- Train {DefaultParams with Epochs = 150} train h w
-
-w <- Train {DefaultParams with Epochs = 50; Batch = Full; OptimizeMethod = DaiYuanCG; LearningRate = StrongWolfe (D 1., D 0.0001, D 0.5)} train h w
+Training a logistic regression model for MNIST, a la Theano.
+*)
 
 
-w <- Train {DefaultParams with Epochs = 130; Batch = Full; OptimizeMethod = Newton; Momentum = None} train h w
+open Hype
+open Hype.Neural
+open DiffSharp.AD.Float32
+open DiffSharp.Util
 
-let model = h w
+#time
 
-let trainloss = Loss.Quadratic train model
-let testloss = Loss.Quadratic test model
+let MNIST = Dataset(Util.LoadMNIST("C:/datasets/MNIST/train-images.idx3-ubyte", 60000),
+                    Util.LoadMNIST("C:/datasets/MNIST/train-labels.idx1-ubyte", 60000)).NormalizeX()
 
-let predict = test.ToSeq() |> Seq.map fst |> Seq.map model |> Seq.map (fun (v:Vector<_>) -> v.[0])
+let MNISTtrain = MNIST.[..58999]
+let MNISTvalid = MNIST.[59000..]
 
-namedParams [
-    "x", box (test.Y |> Matrix.row 0 |> Matrix.toSeq |> Seq.map float)
-    "pch", box 16
-    "col", box "blue"
-    "ylim", box [-20; 70]]
-|> R.plot |> ignore
+let MNISTtest = Dataset(Util.LoadMNIST("C:/datasets/MNIST/t10k-images.idx3-ubyte", 10000),
+                        Util.LoadMNIST("C:/datasets/MNIST/t10k-labels.idx1-ubyte", 10000)).NormalizeX()
 
-namedParams [
-    "x", box (predict |> Seq.map float)
-    "pch", box 16
-    "col", box "red"]
-|> R.points |> ignore
+let MNISTtrain01 = MNISTtrain.Filter(fun (x, y) -> y.[0] <= D 1.f)
+let MNISTvalid01 = MNISTvalid.Filter(fun (x, y) -> y.[0] <= D 1.f)
+let MNISTtest01 = MNISTtest.Filter(fun (x, y) -> y.[0] <= D 1.f)
+
+
+let model = Neural.FeedForward()
+model.Add(Linear(28 * 28, 1))
+model.Add(sigmoid)
+
+let p = {Params.Default with Epochs = 2; Batch = Minibatch 100}
+model.Train(MNISTtrain01, p)
+
+Loss.Quadratic.Func MNISTtest01 model.Run
+
+
+let l = (model.[0] :?> Linear)
+l.VisualizeWRowsAsImageGrid(28) |> printfn "%s"
+
+
+  
+
+let cc = LogisticClassifier(model)
+
+//[|"0"; "1"; "2"; "3"; "4"; "5"; "6"; "7"; "8"; "9"|]
+
+cc.Classify(MNISTtest01.X.[*,0..10]);;
+MNISTtest01.Y.[*, 0..10]
+
+let targetclasses = MNISTtest01.Y.[0,*] |> DV.toArray |> Array.map (float32>>int)
+
+cc.ClassificationError(MNISTtest01.X, targetclasses);;
+
+cc.ClassificationError(MNISTtest01);;
+
+cc.Classify(MNISTtest01.X.[*,0]);;
+MNISTtest01.X.[*,0] |> DV.visualizeAsDM 28 |> printfn "%s"

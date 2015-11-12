@@ -2,19 +2,11 @@
 Download
 ========
 
-You can download the source code or the binaries of the latest release of Hype on [GitHub](https://github.com/gbaydin/Hype/releases).
+Hype is tested on Linux and Windows.
 
-You can also install the library as a package through [NuGet](https://www.nuget.org/packages/Hype).
+You can download the source code or the binaries of the [latest release on GitHub](https://github.com/hypelib/Hype/releases).
 
-<div class="row">
-    <div class="col-sm-1"></div>
-    <div class="col-sm-7">
-    <div class="well well-small" id="nuget">
-        The Hype library <a href="https://www.nuget.org/packages/Hype">is available on NuGet</a>. To install, run the following command in the <a href="http://docs.nuget.org/docs/start-here/using-the-package-manager-console">Package Manager Console</a>:
-        <pre>PM> Install-Package Hype</pre>
-    </div>
-    </div>
-    <div class="col-sm-1"></div>
-</div>
+You can also install the library as a package through [NuGet](https://www.nuget.org/packages/Hype), by running <pre>Install-Package Hype</pre> in the package manager console.
 
+Hype only supports the 64 bit platform, so please make sure that you set "x64" as the platform target. For detailed instructions about this, please see the [installation instructions](http://diffsharp.github.io/DiffSharp/index.html) of DiffSharp, on which Hype depends.
 *)

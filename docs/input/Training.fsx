@@ -1,58 +1,86 @@
-﻿
+﻿(*** hide ***)
+#r "../../packages/Google.DataTable.Net.Wrapper.3.1.2.0/lib/Google.DataTable.Net.Wrapper.dll"
+#r "../../packages/Newtonsoft.Json.7.0.1/lib/net45/Newtonsoft.Json.dll"
+#r "../../packages/XPlot.GoogleCharts.1.2.1/lib/net45/XPlot.GoogleCharts.dll"
+#r "../../packages/XPlot.GoogleCharts.WPF.1.2.1/lib/net45/XPlot.GoogleCharts.WPF.dll"
 #r "../../src/Hype/bin/Release/DiffSharp.dll"
 #r "../../src/Hype/bin/Release/Hype.dll"
-#I "../../packages/RProvider.1.1.14"
-#load "RProvider.fsx"
+fsi.ShowDeclarationValues <- false
+System.Environment.CurrentDirectory <- __SOURCE_DIRECTORY__
+
+(**
+Training
+========
+
+In [optimization,](optimization.html) we've seen how nested AD and gradient-based optimization work together.
+
+Training a model is the optimization of model parameters to minimize a loss function, or equivalently, to maximize the likelihood of a given set of data under the model parameters. In addition to the learn ...
+
+For supervised training, data constits of input and output pairs. We represent data using the **Dataset** type.
+
+Dataset
+-------
+*)
 
 open Hype
-open Hype.Neural
 open DiffSharp.AD.Float32
-open DiffSharp.Util
 
-open RDotNet
-open RProvider
-open RProvider.graphics
+let x = toDM [[0; 0; 1; 1]
+              [0; 1; 0; 1]]
+let y = toDM [[0; 1; 1; 0]]
 
+let xor = Dataset(x, y)
 
+(**
+See API reference for the various ways of constructing Datasets.
 
+Loading from CSV file.
 
-let dataor = Dataset(toDM [[0.; 0.; 1.; 1.]
-                           [0.; 1.; 0.; 1.]],
-                     toDM [[0.; 1.; 1.; 1.]])
+Housing data.
 
+*)
 
+let h = Util.LoadDelimited("housing.data") |> DM.Transpose
+let hx = h.[0..12, *] |> DM.appendRow (DV.create h.Cols 1.f)
+let hy = h.[13..13, *]
 
-let n = FeedForward()
-n.Add(Linear(2, 4))
-n.Add(tanh)
-n.Add(Linear(4, 1))
-n.Add(Activation(sigmoid))
+let housing = Dataset(hx, hy)
 
-n.ToStringFull() |> printfn "%s"
+(**
+Training parameters
+-------------------
 
-Layer.Train(n, dataor, {Params.Default with Epochs = 1000})
+### Loss function
+*)
 
+type Loss =
+    | L1Loss    // L1 norm, least absolute deviations
+    | L2Loss    // L2 norm
+    | Quadratic // L2 norm squared, least squares
+    | CrossEntropyOnLinear  // Cross entropy after linear layer
+    | CrossEntropyOnSoftmax // Cross entropy after softmax layer
 
+(**
 
-let train x =
-    let n = FeedForward()
-    n.Add(Linear(2, 4))
-    n.Add(tanh)
-    n.Add(Linear(4, 1))
-    n.Add(sigmoid)
+### Batch
+*)
 
-    Layer.Train(n, dataor, {Params.Default with LearningRate = Schedule x; Silent = true})
+type Batch =
+    | Full
+    | Minibatch of int 
+    | Stochastic       // Minibatch with size 1
 
+(**
+### Validation and early stopping
+*)
 
-let hypertrain x =
-    Optimize.Minimize(train, DV.create 100 (D 1.5f), {Params.Default with Epochs = x; LearningRate = Constant (D 0.001f)})
+type EarlyStopping =
+    | Early of int * int // Stagnation patience, overfitting patience
+    | NoEarly
+    static member DefaultEarly = Early (750, 10)
+    
+(**
+Nested optimization of training hyperparameters
+-----------------------------------------------
+*)
 
-let w, _ = hypertrain 1000
-
-
-namedParams [
-    "x", box (w |> DV.toArray |> Array.map (float32>>float))
-    "pch", box 16
-    "col", box "blue"
-    "ylim", box [0; 2]]
-|> R.plot |> ignore

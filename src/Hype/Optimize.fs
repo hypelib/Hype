@@ -164,13 +164,13 @@ type Batch =
         | Stochastic ->     fun d i -> d.[i..i]
 
 type Method =
-    | GD
-    | CG
-    | CD
-    | NonlinearCG
-    | DaiYuanCG
-    | NewtonCG
-    | Newton
+    | GD          // Gradient descent
+    | CG          // Conjugate gradient
+    | CD          // Conjugate descent
+    | NonlinearCG // Nonlinear conjugate gradient
+    | DaiYuanCG   // Dai & Yuan conjugate gradient
+    | NewtonCG    // Newton conjugate gradient
+    | Newton      // Exact Newton
     override o.ToString() =
         match o with
         | GD          -> "Gradient descent"
@@ -234,8 +234,8 @@ type Method =
                 v', g', p'
 
 type Momentum =
-    | Momentum of D
-    | Nesterov of D
+    | Momentum of D // Default momentum
+    | Nesterov of D // Nesterov momentum
     | NoMomentum
     static member DefaultMomentum = Momentum (D 0.9f)
     static member DefaultNesterov = Nesterov (D 0.9f)
@@ -251,11 +251,11 @@ type Momentum =
         | NoMomentum -> fun _ u' -> u'
 
 type Loss =
-    | L1Loss
-    | L2Loss
-    | Quadratic
-    | CrossEntropyOnLinear
-    | CrossEntropyOnSoftmax
+    | L1Loss    // L1 norm, least absolute deviations
+    | L2Loss    // L2 norm
+    | Quadratic // L2 norm squared, least squares
+    | CrossEntropyOnLinear  // Cross entropy after linear layer
+    | CrossEntropyOnSoftmax // Cross entropy after softmax layer
     override l.ToString() =
         match l with
         | L1Loss -> "L1 norm, least absolute deviations"
@@ -273,8 +273,8 @@ type Loss =
 
 
 type Regularization =
-    | L1Reg of D
-    | L2Reg of D
+    | L1Reg of D // L1 regularization
+    | L2Reg of D // L2 regularization
     | NoReg
     static member DefaultL1Reg = L1Reg (D 0.0001f)
     static member DefaultL2Reg = L2Reg (D 0.0001f)
@@ -290,7 +290,7 @@ type Regularization =
         | NoReg -> fun w -> D 0.f
 
 type GradientClipping =
-    | NormClip of D
+    | NormClip of D // Norm clipping
     | NoClip
     static member DefaultNormClip = NormClip (D 1.f)
     override g.ToString() =
