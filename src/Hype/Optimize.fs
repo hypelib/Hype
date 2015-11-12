@@ -63,7 +63,7 @@ type LearningRate =
         | Constant a -> fun _ _ _ _ _ _ _ -> box a
         | Decay (a0, k) -> fun i _ _ _ _ _ _ -> box (a0 / (1.f + k * i))
         | ExpDecay (a0, k) -> fun i _ _ _ _ _ _ -> box (a0 * exp (-k * i))
-        | Schedule a -> fun i _ _ _ _ _ _ -> box a.[i]
+        | Schedule a -> fun i _ _ _ _ _ _ -> box a.[i % a.Length]
         | Backtrack (a0, c, r) ->
             fun _ w f v g _ p ->
                 let mutable a = a0
@@ -517,10 +517,7 @@ type Optimize =
             | Full -> 1, d.Length
             | Minibatch n -> d.Length / n, n
             | Stochastic -> d.Length, 1
-        let iters =
-            match par.LearningRate with
-            | Schedule a -> a.Length
-            | _ -> epochs * batches
+        let iters = epochs * batches
 
         if not par.Silent then
             Util.printLog "--- Training started"
@@ -615,7 +612,6 @@ type Optimize =
         while (epoch < epochs) && (not earlystop) do
             batch <- 0
             while (batch < batches) && (not earlystop) do
-
                 let l'', g', p' = dir w (q batch) g p gradclip
                 l' <- l''
 
@@ -708,6 +704,7 @@ type Optimize =
                 batch <- batch + 1
                 let iter = batches * epoch + batch
                 if iter >= iters then earlystop <- true
+
             epoch <- epoch + 1
 
         if not diverged then

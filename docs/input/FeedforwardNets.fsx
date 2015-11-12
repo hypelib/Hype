@@ -6,6 +6,14 @@
 #r "../../src/Hype/bin/Release/Hype.dll"
 fsi.ShowDeclarationValues <- false
 
+(**
+Feedforward Neural Networks
+===========================
+
+In this example, we train a softmax classifier ...
+
+*)
+
 open Hype
 open Hype.Neural
 open DiffSharp.AD.Float32
@@ -36,6 +44,25 @@ n.ToString() |> printfn "%s"
 n.Visualize() |> printfn "%s"
 
 
+
+(**
+
+### Freely implementing transformation layers
+
+**Note: ** an important thing to note here is that the activation/transformation layers added with, for example, **n.Add(sigmoid)**, can be any matrix-to-matrix function that you can express in the language, unlike general machine learning frameworks where you are asked to select a particular layer type that has been implemented beforehand with it's (1) forward evaluation code and (2) reverse gradient code w.r.t layer inputs, and (3) reverse gradient code w.r.t any layer parameters. In such a setting, a new layer design requires you to add a new layer type to the system and implementing these components.
+
+Here, because the system is based on nested AD, you can use any matrix-to-matrix transformation as a layer, and the forward and/or reverse AD operations of your code will be handled automatically by the underlying system. For example, you can write a layer like this: 
+*)
+
+n.Add(fun w ->
+        let min = DM.Min(w)
+        let range = DM.Max(w) - min
+        (w - min) / range)
+
+(** 
+which will be a normalization layer, scaling the values to be between 0 and 1.
+*)
+
 let p1 = {Params.Default with 
             Epochs = 2
             EarlyStopping = Early (400, 100)
@@ -47,6 +74,42 @@ let p1 = {Params.Default with
             LearningRate = RMSProp (D 0.001f, D 0.9f)}
 n.Train(MNISTtrain, MNISTvalid, p1)
 
+(**
+### Weight initialization schemes
+
+*)
+
+type Initializer =
+    | InitUniform of D * D
+    | InitNormal of D * D
+    | InitRBM of D
+    | InitReLU
+    | InitSigmoid
+    | InitTanh
+    | InitStandard
+    | InitCustom of (int->int->D)
+    override i.ToString() =
+        match i with
+        | InitUniform(min, max) -> sprintf "Uniform min=%A max=%A" min max
+        | InitNormal(mu, sigma) -> sprintf "Normal mu=%A sigma=%A" mu sigma
+        | InitRBM sigma -> sprintf "RBM sigma=%A" sigma
+        | InitReLU -> "ReLU"
+        | InitSigmoid -> "Sigmoid"
+        | InitTanh -> "Tanh"
+        | InitStandard -> "Standard"
+        | InitCustom f -> "Custom"
+    member i.InitDM(m, n) =
+        let fanOut, fanIn = m, n
+        match i with
+        | InitUniform(min, max) -> Rnd.UniformDM(m, n, min, max)
+        | InitNormal(mu, sigma) -> Rnd.NormalDM(m, n, mu, sigma)
+        | InitRBM sigma -> Rnd.NormalDM(m, n, D 0.f, sigma)
+        | InitReLU -> Rnd.NormalDM(m, n, D 0.f, sqrt (D 2.f / (float32 fanIn)))
+        | InitSigmoid -> let r = D 4.f * sqrt (D 6.f / (fanIn + fanOut)) in Rnd.UniformDM(m, n, -r, r)
+        | InitTanh -> let r = sqrt (D 6.f / (fanIn + fanOut)) in Rnd.UniformDM(m, n, -r, r)
+        | InitStandard -> let r = (D 1.f) / sqrt (float32 fanIn) in Rnd.UniformDM(m, n, -r, r)
+        | InitCustom f -> DM.init m n (fun _ _ -> f fanIn fanOut)
+    member i.InitDM(m:DM) = i.InitDM(m.Rows, m.Cols)
 
 
 type Classifier(f:DM->DM) =

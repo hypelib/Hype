@@ -32,7 +32,8 @@ open DiffSharp.Util
 
 
 type Rnd() =
-    static let R = new System.Random()
+    static let mutable R = new System.Random()
+    static member Seed(seed) = R <- new System.Random(seed)
     static member Permutation(n:int) =
         let swap i j (a:_[]) =
             let tmp = a.[i]
