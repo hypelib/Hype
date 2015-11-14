@@ -72,6 +72,22 @@ type Rnd() =
     static member UniformDM(m, n, min, max) = DM.init m n (fun _ _ -> Rnd.UniformD(min, max))
     static member NormalDM(m, n) = DM (Array2D.Parallel.init m n (fun _ _ -> Rnd.Normal()))
     static member NormalDM(m, n, mu, sigma) = DM.init m n (fun _ _ -> Rnd.NormalD(mu, sigma))
+    
+    static member Choice(a:_[]) = a.[R.Next(a.Length)]
+    static member Choice(a:_[], probs:float32[]) = Rnd.Choice(a, toDV probs)
+    static member Choice(a:_[], probs:DV) =
+        let probs' = probs / (DV.sum(probs))
+        let p = float32 (R.NextDouble())
+        let mutable r = 0.f
+        let mutable i = 0
+        let mutable hit = false
+        while not hit do
+            r <- r + (float32 probs'.[i])
+            if r >= p then 
+                hit <- true
+            else
+                i <- i + 1
+        a.[i]
 
 type Dataset private (x:DM, y:DM, xi:seq<int>, yi:seq<int>, vocabulary:string[]) =
     member val X = x with get

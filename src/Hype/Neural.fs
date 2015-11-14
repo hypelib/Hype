@@ -76,7 +76,7 @@ type Initializer =
         | InitReLU -> Rnd.NormalDM(m, n, D 0.f, sqrt (D 2.f / (float32 fanIn)))
         | InitSigmoid -> let r = D 4.f * sqrt (D 6.f / (fanIn + fanOut)) in Rnd.UniformDM(m, n, -r, r)
         | InitTanh -> let r = sqrt (D 6.f / (fanIn + fanOut)) in Rnd.UniformDM(m, n, -r, r)
-        | InitStandard -> let r = (D 1.f) / sqrt (float32 fanIn) in Rnd.UniformDM(m, n, -r, r)
+        | InitStandard -> Rnd.NormalDM(m, n, D 0.f, sqrt (D 2.f / (float32 fanIn)))
         | InitCustom f -> DM.init m n (fun _ _ -> f fanIn fanOut)
     member i.InitDM(m:DM) = i.InitDM(m.Rows, m.Cols)
 
@@ -303,17 +303,17 @@ type Recurrent(inputs:int, hiddenunits:int, outputs:int, activation:DV->DV, init
         let y = x |> DM.mapCols (fun x -> 
                                     l.h <- l.Act ((l.Whh * l.h) + (l.Wxh * x) + l.bh)
                                     (l.Why * l.h) + l.by)
-        l.h <- primalDeep l.h
+        //l.h <- primalDeep l.h
         y
     override l.Encode () = [l.Whh; l.Wxh; l.Why] |> List.map DM.toDV |> List.append [l.bh; l.by] |> Seq.fold DV.append DV.Zero
     override l.EncodeLength = l.Whh.Length + l.Wxh.Length + l.Why.Length + l.bh.Length + l.by.Length
     override l.Decode w =
-        let ww = w |> DV.split [l.Whh.Length; l.Wxh.Length; l.Why.Length; l.bh.Length; l.by.Length] |> Array.ofSeq
-        l.Whh <- ww.[0] |> DM.ofDV l.Whh.Rows
-        l.Wxh <- ww.[1] |> DM.ofDV l.Wxh.Rows
-        l.Why <- ww.[2] |> DM.ofDV l.Why.Rows
-        l.bh <- ww.[3]
-        l.by <- ww.[4]
+        let ww = w |> DV.split [l.bh.Length; l.by.Length; l.Whh.Length; l.Wxh.Length; l.Why.Length] |> Array.ofSeq
+        l.bh <- ww.[0]
+        l.by <- ww.[1]
+        l.Whh <- ww.[2] |> DM.ofDV l.Whh.Rows
+        l.Wxh <- ww.[3] |> DM.ofDV l.Wxh.Rows
+        l.Why <- ww.[4] |> DM.ofDV l.Why.Rows
         l.h <- DV.zeroCreate hiddenunits
     override l.ToString() =
         "Hype.Neural.Recurrent\n"
@@ -400,19 +400,19 @@ type LSTM(inputs:int, memcells:int) =
     override l.Encode() = [l.Wxi; l.Whi; l.Wxc; l.Whc; l.Wxf; l.Whf; l.Wxo; l.Who] |> List.map DM.toDV |> List.append [l.bi; l.bc; l.bf; l.bo] |> Seq.fold DV.append DV.Zero
     override l.EncodeLength = l.Wxi.Length + l.Whi.Length + l.Wxc.Length + l.Whc.Length + l.Wxf.Length + l.Whf.Length + l.Wxo.Length + l.Who.Length + l.bi.Length + l.bc.Length + l.bf.Length + l.bo.Length
     override l.Decode w =
-        let ww = w |> DV.split [l.Wxi.Length; l.Whi.Length; l.Wxc.Length; l.Whc.Length; l.Wxf.Length; l.Whf.Length; l.Wxo.Length; l.Who.Length; l.bi.Length; l.bc.Length; l.bf.Length; l.bo.Length] |> Array.ofSeq
-        l.Wxi <- ww.[0] |> DM.ofDV l.Wxi.Rows
-        l.Whi <- ww.[1] |> DM.ofDV l.Whi.Rows
-        l.Wxc <- ww.[2] |> DM.ofDV l.Wxc.Rows
-        l.Whc <- ww.[3] |> DM.ofDV l.Whc.Rows
-        l.Wxf <- ww.[4] |> DM.ofDV l.Wxf.Rows
-        l.Whf <- ww.[5] |> DM.ofDV l.Whf.Rows
-        l.Wxo <- ww.[6] |> DM.ofDV l.Wxo.Rows
-        l.Who <- ww.[7] |> DM.ofDV l.Who.Rows
-        l.bi <- ww.[8]
-        l.bc <- ww.[9]
-        l.bf <- ww.[10]
-        l.bo <- ww.[11]
+        let ww = w |> DV.split [l.bi.Length; l.bc.Length; l.bf.Length; l.bo.Length; l.Wxi.Length; l.Whi.Length; l.Wxc.Length; l.Whc.Length; l.Wxf.Length; l.Whf.Length; l.Wxo.Length; l.Who.Length] |> Array.ofSeq
+        l.bi <- ww.[0]
+        l.bc <- ww.[1]
+        l.bf <- ww.[2]
+        l.bo <- ww.[3]
+        l.Wxi <- ww.[4] |> DM.ofDV l.Wxi.Rows
+        l.Whi <- ww.[5] |> DM.ofDV l.Whi.Rows
+        l.Wxc <- ww.[6] |> DM.ofDV l.Wxc.Rows
+        l.Whc <- ww.[7] |> DM.ofDV l.Whc.Rows
+        l.Wxf <- ww.[8] |> DM.ofDV l.Wxf.Rows
+        l.Whf <- ww.[9] |> DM.ofDV l.Whf.Rows
+        l.Wxo <- ww.[10] |> DM.ofDV l.Wxo.Rows
+        l.Who <- ww.[11] |> DM.ofDV l.Who.Rows
         l.c <- DV.zeroCreate memcells
         l.h <- DV.zeroCreate memcells
     override l.ToString() =

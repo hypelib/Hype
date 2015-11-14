@@ -269,7 +269,7 @@ type Loss =
         | L2Loss -> fun d f -> ((d.Y - (f d.X)) |> DM.toCols |> Seq.sumBy DV.l2norm) / d.Length
         | Quadratic -> fun d f -> ((d.Y - (f d.X)) |> DM.toCols |> Seq.sumBy DV.l2normSq) / d.Length
         | CrossEntropyOnLinear -> fun d f -> ((f d.X) |> DM.mapiCols (fun i v -> toDV [(logsumexp v) - v.[d.Yi.[i]]]) |> DM.sum) / d.Length
-        | CrossEntropyOnSoftmax -> fun d f -> -((f d.X) |> DM.toCols |> Seq.mapi (fun i v -> (DV.standardBasis v.Length (int (float32 d.Y.[0, i]))) * log v) |> Seq.sum) / d.Length
+        | CrossEntropyOnSoftmax -> fun d f -> -((f d.X) |> DM.mapiCols (fun i v -> toDV [(DV.standardBasis v.Length d.Yi.[i]) * log v]) |> DM.sum) / d.Length
 
 type Regularization =
     | L1Reg of D // L1 regularization
