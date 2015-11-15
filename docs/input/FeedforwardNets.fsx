@@ -25,15 +25,15 @@ open Hype.Neural
 open DiffSharp.AD.Float32
 open DiffSharp.Util
 
-let MNIST = Dataset(Util.LoadMNIST("C:/datasets/MNIST/train-images.idx3-ubyte", 60000),
-                    Util.LoadMNIST("C:/datasets/MNIST/train-labels.idx1-ubyte", 60000)).NormalizeX()
+let MNIST = Dataset(Util.LoadMNISTPixels("C:/datasets/MNIST/train-images.idx3-ubyte", 60000),
+                    Util.LoadMNISTLabels("C:/datasets/MNIST/train-labels.idx1-ubyte", 60000)).NormalizeX()
 
 let MNISTtrain = MNIST.[..58999].Shuffle()
 let MNISTvalid = MNIST.[59000..].Shuffle()
 
 let MNISTtest = 
-    Dataset(Util.LoadMNIST("C:/datasets/MNIST/t10k-images.idx3-ubyte", 10000),
-            Util.LoadMNIST("C:/datasets/MNIST/t10k-labels.idx1-ubyte", 10000)).NormalizeX().Shuffle()
+    Dataset(Util.LoadMNISTPixels("C:/datasets/MNIST/t10k-images.idx3-ubyte", 10000),
+            Util.LoadMNISTLabels("C:/datasets/MNIST/t10k-labels.idx1-ubyte", 10000)).NormalizeX().Shuffle()
 
 (**
 <pre>

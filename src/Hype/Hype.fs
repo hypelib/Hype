@@ -89,39 +89,37 @@ type Rnd() =
                 i <- i + 1
         a.[i]
 
-type Dataset private (x:DM, y:DM, xi:seq<int>, yi:seq<int>, vocabulary:string[]) =
+type Dataset private (x:DM, y:DM, xi:seq<int>, yi:seq<int>) =
     member val X = x with get
     member val Y = y with get
     member val Xi = xi |> Array.ofSeq with get
     member val Yi = yi |> Array.ofSeq with get
-    member val Vocabulary = vocabulary with get
     new(x:DM, y:DM) =
-        let xi = x |> DM.toCols |> Seq.toArray |> Array.map (fun v -> int (float32 v.[0]))
-        let yi = y |> DM.toCols |> Seq.toArray |> Array.map (fun v -> int (float32 v.[0]))
-        Dataset(x, y, xi, yi, Array.empty)
-    new(xi:seq<int>, yi:seq<int>, onehotdims:int) =
-        let x = xi |> Seq.map (fun i -> DV.standardBasis onehotdims i) |> DM.ofCols
-        let y = yi |> Seq.map (fun i -> DV.standardBasis onehotdims i) |> DM.ofCols
-        Dataset(x, y, xi, yi, Array.empty)
+        let xi = x |> DM.toCols |> Seq.toArray |> Array.map DV.maxIndex
+        let yi = y |> DM.toCols |> Seq.toArray |> Array.map DV.maxIndex
+        Dataset(x, y, xi, yi)
+    new(xi:seq<int>, onehotdimsx:int, yi:seq<int>, onehotdimsy:int) =
+        let x = xi |> Seq.map (fun i -> DV.standardBasis onehotdimsx i) |> DM.ofCols
+        let y = yi |> Seq.map (fun i -> DV.standardBasis onehotdimsy i) |> DM.ofCols
+        Dataset(x, y, xi, yi)
     new(xi:seq<int>, yi:seq<int>) =
-        let onehotdims = 1 + max (Seq.max xi) (Seq.max yi)
-        Dataset(xi, yi, onehotdims)
-    new(x:DM, yi:seq<int>, onehotdims:int) =
-        let xi = x |> DM.toCols |> Seq.map (fun v -> int (float32 v.[0]))
-        Dataset(xi, yi, onehotdims)
-    new(xi:seq<int>, y:DM, onehotdims:int) =
-        let yi = y |> DM.toCols |> Seq.toArray |> Array.map (fun v -> int (float32 v.[0]))
-        Dataset(xi, yi, onehotdims)
-    new(x:string, y:string) =
-        let xc = [|for c in x -> c|]
-        let yc = [|for c in y -> c|]
-        let vocabulary = Array.append xc yc |> Set.ofSeq |> Set.toArray
-        let xi = xc |> Array.map (fun v -> Array.findIndex (fun c -> c = v) vocabulary)
-        let yi = yc |> Array.map (fun v -> Array.findIndex (fun c -> c = v) vocabulary)
-        let onehotdims = vocabulary.Length
-        let x = xi |> Seq.map (fun i -> DV.standardBasis onehotdims i) |> DM.ofCols
-        let y = yi |> Seq.map (fun i -> DV.standardBasis onehotdims i) |> DM.ofCols
-        Dataset(x, y, xi, yi, vocabulary |> Array.map string)
+        let onehotdimsx = 1 + Seq.max xi
+        let onehotdimsy = 1 + Seq.max yi
+        Dataset(xi, onehotdimsx, yi, onehotdimsy)
+    new(x:DM, yi:seq<int>, onehotdimsy:int) =
+        let xi = x |> DM.toCols |> Seq.toArray |> Array.map DV.maxIndex
+        let y = yi |> Seq.map (fun i -> DV.standardBasis onehotdimsy i) |> DM.ofCols
+        Dataset(x, y, xi, yi)
+    new(xi:seq<int>, onehotdimsx:int, y:DM) =
+        let x = xi |> Seq.map (fun i -> DV.standardBasis onehotdimsx i) |> DM.ofCols
+        let yi = y |> DM.toCols |> Seq.toArray |> Array.map DV.maxIndex
+        Dataset(x, y, xi, yi)
+    new(x:DM, yi:seq<int>) =
+        let onehotdimsy = 1 + Seq.max yi
+        Dataset(x, yi, onehotdimsy)
+    new(xi:seq<int>, y:DM) =
+        let onehotdimsx = 1 + Seq.max xi
+        Dataset(xi, onehotdimsx, y)
     new(s:seq<DV*DV>) =
         let x, y = s |> Seq.toArray |> Array.unzip
         Dataset(x |> DM.ofCols, y |> DM.ofCols)
@@ -143,18 +141,6 @@ type Dataset private (x:DM, y:DM, xi:seq<int>, yi:seq<int>, vocabulary:string[])
     static member randomSubset (n:int) (d:Dataset) = d.RandomSubset(n)
     static member shuffle (d:Dataset) = d.Shuffle()
     static member item (i:int) (d:Dataset) = d.[i]
-    member d.EncodeOneHot(x:string) =
-        try
-            let i = Array.findIndex (fun v -> v = x) d.Vocabulary
-            DV.standardBasis d.Vocabulary.Length i |> DM.ofDV d.Vocabulary.Length
-        with
-            | _ -> DM.zeroCreate d.Vocabulary.Length 1
-    member d.DecodeOneHot(x:DM) =
-        try
-            let i = x.[*, 0] |> DV.maxIndex
-            d.Vocabulary.[i]
-        with
-            | _ -> ""
     member d.Item
         with get i = d.X.[*,i], d.Y.[*,i]
     member d.Length = d.X.Cols
@@ -218,16 +204,10 @@ and Util =
         |> DM.ofRows 
     static member LoadDelimited(filename:string) =
         Util.LoadDelimited(filename, [|' '; ','; '\t'|])
-    static member LoadMNIST(filename, items) =
+    static member LoadMNISTPixels(filename, items) =
         let d = new BinaryReader(File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.Read))
         let magicnumber = d.ReadInt32() |> System.Net.IPAddress.NetworkToHostOrder
         match magicnumber with
-        | 2049 -> // Labels
-            let maxitems = d.ReadInt32() |> System.Net.IPAddress.NetworkToHostOrder
-            d.ReadBytes(min items maxitems)
-            |> Array.map float32
-            |> DV
-            |> DM.ofDV 1
         | 2051 -> // Images
             let maxitems = d.ReadInt32() |> System.Net.IPAddress.NetworkToHostOrder
             let rows = d.ReadInt32() |> System.Net.IPAddress.NetworkToHostOrder
@@ -239,7 +219,17 @@ and Util =
             |> DM.ofDV n
             |> DM.transpose
         | _ -> failwith "Given file is not in the MNIST format."
-    static member LoadMNIST(filename) = Util.LoadMNIST(filename, System.Int32.MaxValue)
+    static member LoadMNISTLabels(filename, items) =
+        let d = new BinaryReader(File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.Read))
+        let magicnumber = d.ReadInt32() |> System.Net.IPAddress.NetworkToHostOrder
+        match magicnumber with
+        | 2049 -> // Labels
+            let maxitems = d.ReadInt32() |> System.Net.IPAddress.NetworkToHostOrder
+            d.ReadBytes(min items maxitems)
+            |> Array.map int
+        | _ -> failwith "Given file is not in the MNIST format."
+    static member LoadMNISTPixels(filename) = Util.LoadMNISTPixels(filename, System.Int32.MaxValue)
+    static member LoadMNISTLabels(filename) = Util.LoadMNISTLabels(filename, System.Int32.MaxValue)
     static member VisualizeDMRowsAsImageGrid(w:DM, imagerows:int) =
         let rows = w.Rows
         let mm = int (floor (sqrt (float rows)))

@@ -60,6 +60,7 @@
     <Compile Include="Optimize.fs" />
     <Compile Include="Neural.fs" />
     <Compile Include="Classifier.fs" />
+    <Compile Include="NLP.fs" />
     <Content Include="packages.config" />
     <Content Include="app.config" />
   </ItemGroup>

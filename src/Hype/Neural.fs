@@ -76,7 +76,7 @@ type Initializer =
         | InitReLU -> Rnd.NormalDM(m, n, D 0.f, sqrt (D 2.f / (float32 fanIn)))
         | InitSigmoid -> let r = D 4.f * sqrt (D 6.f / (fanIn + fanOut)) in Rnd.UniformDM(m, n, -r, r)
         | InitTanh -> let r = sqrt (D 6.f / (fanIn + fanOut)) in Rnd.UniformDM(m, n, -r, r)
-        | InitStandard -> Rnd.NormalDM(m, n, D 0.f, sqrt (D 2.f / (float32 fanIn)))
+        | InitStandard -> let r = (D 1.f) / sqrt (float32 fanIn) in Rnd.UniformDM(m, n, -r, r)
         | InitCustom f -> DM.init m n (fun _ _ -> f fanIn fanOut)
     member i.InitDM(m:DM) = i.InitDM(m.Rows, m.Cols)
 
@@ -465,6 +465,98 @@ type LSTM(inputs:int, memcells:int) =
             + sprintf "   bf:\n%s\n" (l.bf.Visualize())
             + sprintf "   bo:\n%s" (l.bo.Visualize())
 
+type GRU(inputs:int, memcells:int) =
+    inherit Layer()
+    let initializer = Initializer.InitStandard
+
+    member val Wxz = initializer.InitDM(memcells, inputs) with get, set
+    member val Whz = initializer.InitDM(memcells, memcells) with get, set
+    member val Wxr = initializer.InitDM(memcells, inputs) with get, set
+    member val Whr = initializer.InitDM(memcells, memcells) with get, set
+    member val Wxh = initializer.InitDM(memcells, inputs) with get, set
+    member val Whh = initializer.InitDM(memcells, memcells) with get, set
+    member val bz = DV.zeroCreate memcells with get, set
+    member val br = DV.zeroCreate memcells with get, set
+    member val bh = DV.zeroCreate memcells with get, set
+    member val h = DV.zeroCreate memcells with get, set
+
+    override l.Init() =
+        l.Wxz <- initializer.InitDM(l.Wxz)
+        l.Whz <- initializer.InitDM(l.Whz)
+        l.Wxr <- initializer.InitDM(l.Wxr)
+        l.Whr <- initializer.InitDM(l.Whr)
+        l.Wxh <- initializer.InitDM(l.Wxh)
+        l.Whh <- initializer.InitDM(l.Whh)
+        l.bz <- DV.zeroCreate memcells
+        l.br <- DV.zeroCreate memcells
+        l.bh <- DV.zeroCreate memcells
+        l.h <- DV.zeroCreate memcells
+    override l.Reset() =
+        l.h <- DV.zeroCreate memcells
+    override l.Run(x:DM) =
+        let y = x |> DM.mapCols (fun x ->
+                                    let z = sigmoid(l.Wxz * x + l.Whz * l.h + l.bz)
+                                    let r = sigmoid(l.Wxr * x + l.Whr * l.h + l.br)
+                                    let h' = tanh(l.Wxh * x + l.Whh * (l.h .* r))
+                                    l.h <- (1.f - z) .* h' + z .* l.h
+                                    l.h)
+        l.h <- primalDeep l.h
+        y
+    override l.Encode() = [l.Wxz; l.Whz; l.Wxr; l.Whr; l.Wxh; l.Whh] |> List.map DM.toDV |> List.append [l.bz; l.br; l.bh] |> Seq.fold DV.append DV.Zero
+    override l.EncodeLength = l.Wxz.Length + l.Whz.Length + l.Wxr.Length + l.Whr.Length + l.Wxh.Length + l.Whh.Length + l.bz.Length + l.br.Length + l.bh.Length
+    override l.Decode w =
+        let ww = w |> DV.split [l.bz.Length; l.br.Length; l.bh.Length; l.Wxz.Length; l.Whz.Length; l.Wxr.Length; l.Whr.Length; l.Wxh.Length; l.Whh.Length] |> Array.ofSeq
+        l.bz <- ww.[0]
+        l.br <- ww.[1]
+        l.bh <- ww.[2]
+        l.Wxz <- ww.[3] |> DM.ofDV l.Wxh.Rows
+        l.Whz <- ww.[4] |> DM.ofDV l.Whz.Rows
+        l.Wxr <- ww.[5] |> DM.ofDV l.Wxr.Rows
+        l.Whr <- ww.[6] |> DM.ofDV l.Whr.Rows
+        l.Wxh <- ww.[7] |> DM.ofDV l.Wxh.Rows
+        l.Whh <- ww.[8] |> DM.ofDV l.Whh.Rows
+    override l.ToString() =
+        "Hype.Neural.GRU\n"
+            + "   " + inputs.ToString() + " -> " + memcells.ToString() + " -> " + memcells.ToString() + "\n"
+            + sprintf "   Learnable parameters: %i\n" l.EncodeLength
+            + sprintf "   Init: %O\n" initializer
+            + sprintf "   Wxz : %i x %i\n" l.Wxz.Rows l.Wxz.Cols
+            + sprintf "   Whz : %i x %i\n" l.Whz.Rows l.Whz.Cols
+            + sprintf "   Wxr : %i x %i\n" l.Wxr.Rows l.Wxr.Cols
+            + sprintf "   Whr : %i x %i\n" l.Whr.Rows l.Whr.Cols
+            + sprintf "   Wxh : %i x %i\n" l.Wxh.Rows l.Wxh.Cols
+            + sprintf "   Whh : %i x %i\n" l.Whh.Rows l.Whh.Cols
+            + sprintf "   bz : %i\n" l.bz.Length
+            + sprintf "   br : %i\n" l.br.Length
+            + sprintf "   bh : %i\n" l.bh.Length
+    override l.ToStringFull() =
+        "Hype.Neural.GRU\n"
+            + "   " + inputs.ToString() + " -> " + memcells.ToString() + " -> " + memcells.ToString() + "\n"
+            + sprintf "   Learnable parameters: %i\n" l.EncodeLength
+            + sprintf "   Init: %O\n" initializer
+            + sprintf "   Wxz:\n%O\n" l.Wxz
+            + sprintf "   Whz:\n%O\n" l.Whz
+            + sprintf "   Wxr:\n%O\n" l.Wxr
+            + sprintf "   Whr:\n%O\n" l.Whr
+            + sprintf "   Wxh:\n%O\n" l.Wxh
+            + sprintf "   Whh:\n%O\n" l.Whh
+            + sprintf "   bz:\n%O\n" l.bz
+            + sprintf "   br:\n%O\n" l.br
+            + sprintf "   bh:\n%O\n" l.bh
+    override l.Visualize() =
+        "Hype.Neural.GRU\n"
+            + "   " + inputs.ToString() + " -> " + memcells.ToString() + " -> " + memcells.ToString() + "\n"
+            + sprintf "   Learnable parameters: %i\n" l.EncodeLength
+            + sprintf "   Init: %O\n" initializer
+            + sprintf "   Wxz:\n%s\n" (l.Wxz.Visualize())
+            + sprintf "   Whz:\n%s\n" (l.Whz.Visualize())
+            + sprintf "   Wxr:\n%s\n" (l.Wxr.Visualize())
+            + sprintf "   Whr:\n%s\n" (l.Whr.Visualize())
+            + sprintf "   Wxh:\n%s\n" (l.Wxh.Visualize())
+            + sprintf "   Whh:\n%s\n" (l.Whh.Visualize())
+            + sprintf "   bz:\n%s\n" (l.bz.Visualize())
+            + sprintf "   br:\n%s\n" (l.br.Visualize())
+            + sprintf "   bh:\n%s\n" (l.bh.Visualize())
 
 type LSTMAlt(inputs:int, memcells:int) =
     inherit Layer()
