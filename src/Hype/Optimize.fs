@@ -146,7 +146,7 @@ type LearningRate =
         | RMSProp (a0, k) ->
             fun _ _ _ _ g (gcache:DV ref) _ ->
                 gcache := (k * !gcache) + (1.f - k) * (g .* g)
-                box (a0 / sqrt (!gcache + 1e-6f))
+                box (a0 / sqrt (!gcache + 1e-8f))
 
 type Batch =
     | Full

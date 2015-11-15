@@ -23,16 +23,14 @@ open Hype.Neural
 open DiffSharp.AD.Float32
 open DiffSharp.Util
 
-let MNIST = Dataset(Util.LoadMNISTPixels("C:/datasets/MNIST/train-images.idx3-ubyte", 60000),
-                    Util.LoadMNISTLabels("C:/datasets/MNIST/train-labels.idx1-ubyte", 60000) |> toDV |> DM.ofDV 1).NormalizeX()
-
-
+let MNIST = Dataset(Util.LoadMNIST("C:/datasets/MNIST/train-images.idx3-ubyte", 60000),
+                    Util.LoadMNIST("C:/datasets/MNIST/train-labels.idx1-ubyte", 60000)).NormalizeX()
 
 let MNISTtrain = MNIST.[..58999]
 let MNISTvalid = MNIST.[59000..]
 
-let MNISTtest = Dataset(Util.LoadMNISTPixels("C:/datasets/MNIST/t10k-images.idx3-ubyte", 10000),
-                        Util.LoadMNISTLabels("C:/datasets/MNIST/t10k-labels.idx1-ubyte", 10000) |> toDV |> DM.ofDV 1).NormalizeX()
+let MNISTtest = Dataset(Util.LoadMNIST("C:/datasets/MNIST/t10k-images.idx3-ubyte", 10000),
+                        Util.LoadMNIST("C:/datasets/MNIST/t10k-labels.idx1-ubyte", 10000)).NormalizeX()
 
 (**
 We shuffle the columns of the datasets and filter them to only keep the digits of 0 and 1.
