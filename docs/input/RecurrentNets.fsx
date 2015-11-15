@@ -19,17 +19,18 @@ fsi.ShowDeclarationValues <- false
 let ttext = ". Such tents the Patriarchs loved! O long unharmed. May all its agèd boughs o'er-canopy. The small round basin, which this jutting stone. Keeps pure from falling leaves! Long may the Spring, quietly as a sleeping infant's breath, send up cold waters to the traveller. With soft and even pulse! Nor ever cease. Yon tiny cone of sand its soundless dance. "
 
 
-let tdata = Dataset(ttext.Substring(0, ttext.Length - 1),
-                    ttext.Substring(1, ttext.Length - 1))
+//let tdata = Dataset(ttext.Substring(0, ttext.Length - 1),
+//                    ttext.Substring(1, ttext.Length - 1))
 
-//let tdata = Dataset(" Gunes", "Gunes ")
+let tdata = Dataset(" Gunes", "Gunes ")
 
 let dim = tdata.Vocabulary.Length
 
 
 let n = FeedForward()
-n.Add(LSTM(dim, 100))
+n.Add(LSTM2(dim, 100))
 n.Add(Linear(100, dim))
+n.Add(tanh)
 n.Add(DM.mapCols softmax)
 
 
@@ -41,14 +42,14 @@ n.ToStringFull() |> printfn "%s"
 n.Visualize() |> printfn "%s"
 
 let par = {Params.Default with
-            Batch = Minibatch 20
+            //Batch = Minibatch 20
             //LearningRate = LearningRate.DefaultAdaGrad
-            //LearningRate = Constant (D 0.1f)
+            LearningRate = Constant (D 0.1f)
             //Momentum = Momentum.DefaultNesterov
             Loss = CrossEntropyOnSoftmax
             //Loss = CrossEntropyOnLinear
-            GradientClipping = GradientClipping.DefaultNormClip
-            Epochs = 100}
+            //GradientClipping = GradientClipping.DefaultNormClip
+            Epochs = 1000}
 Layer.Train(n, tdata, par)
 
 let generate (net:Layer) (data:Dataset) (start:string) len =
@@ -63,7 +64,7 @@ let generate (net:Layer) (data:Dataset) (start:string) len =
 
 n.Init()
 n.Reset()
-generate n tdata " " 30
+generate n tdata "G" 30
 
 tdata.Vocabulary
 n.Run(tdata.EncodeOneHot("e")) |> DM.mapCols softmax

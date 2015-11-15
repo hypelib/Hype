@@ -303,7 +303,7 @@ type Recurrent(inputs:int, hiddenunits:int, outputs:int, activation:DV->DV, init
         let y = x |> DM.mapCols (fun x -> 
                                     l.h <- l.Act ((l.Whh * l.h) + (l.Wxh * x) + l.bh)
                                     (l.Why * l.h) + l.by)
-        //l.h <- primalDeep l.h
+        l.h <- primalDeep l.h
         y
     override l.Encode () = [l.Whh; l.Wxh; l.Why] |> List.map DM.toDV |> List.append [l.bh; l.by] |> Seq.fold DV.append DV.Zero
     override l.EncodeLength = l.Whh.Length + l.Wxh.Length + l.Why.Length + l.bh.Length + l.by.Length
@@ -345,8 +345,6 @@ type Recurrent(inputs:int, hiddenunits:int, outputs:int, activation:DV->DV, init
             + sprintf "   Why:\n%s\n" (l.Why.Visualize())
             + sprintf "   bh:\n%s\n" (l.bh.Visualize())
             + sprintf "   by:\n%s" (l.by.Visualize())
-
-
 
 type LSTM(inputs:int, memcells:int) =
     inherit Layer()
@@ -466,3 +464,72 @@ type LSTM(inputs:int, memcells:int) =
             + sprintf "   bc:\n%s\n" (l.bc.Visualize())
             + sprintf "   bf:\n%s\n" (l.bf.Visualize())
             + sprintf "   bo:\n%s" (l.bo.Visualize())
+
+
+type LSTMAlt(inputs:int, memcells:int) =
+    inherit Layer()
+    let initializer = Initializer.InitTanh
+
+    member val Wxh = initializer.InitDM(4 * memcells, inputs) with get, set
+    member val Whh = initializer.InitDM(4 * memcells, memcells) with get, set
+    member val b = DV.zeroCreate (4 * memcells) with get, set
+    member val c = DV.zeroCreate memcells with get, set
+    member val h = DV.zeroCreate memcells with get, set
+
+    override l.Init() =
+        l.Wxh <- initializer.InitDM(l.Wxh)
+        l.Whh <- initializer.InitDM(l.Whh)
+        l.b <- DV.zeroCreate (4 * memcells)
+        l.c <- DV.zeroCreate memcells
+        l.h <- DV.zeroCreate memcells
+    override l.Reset() =
+        l.c <- DV.zeroCreate memcells
+        l.h <- DV.zeroCreate memcells
+    override l.Run(x:DM) =
+        let y = x |> DM.mapCols (fun x ->
+                                    let x2h = l.Wxh * x
+                                    let h2h = l.Whh * l.h
+                                    let pre = x2h + h2h + l.b
+                                    let pretan = tanh pre.[..memcells - 1]
+                                    let presig = sigmoid pre.[memcells..]
+                                    let c' = pretan
+                                    let i = presig.[..memcells - 1]
+                                    let f = presig.[memcells..(2 * memcells) - 1]
+                                    let o = presig.[(2 * memcells)..]
+                                    l.c <- (i .* c') + (f .* l.c)
+                                    l.h <- o .* tanh l.c
+                                    l.h)
+        l.h <- primalDeep l.h
+        l.c <- primalDeep l.c
+        y
+    override l.Encode() = [l.Wxh |> DM.toDV; l.Whh |> DM.toDV; l.b] |> Seq.fold DV.append DV.Zero
+    override l.EncodeLength = l.Wxh.Length + l.Whh.Length + l.b.Length
+    override l.Decode w =
+        let ww = w |> DV.split [l.Wxh.Length; l.Whh.Length; l.b.Length] |> Array.ofSeq
+        l.Wxh <- ww.[0] |> DM.ofDV l.Wxh.Rows
+        l.Whh <- ww.[1] |> DM.ofDV l.Whh.Rows
+        l.b <- ww.[2]
+    override l.ToString() =
+        "Hype.Neural.LSTMAlt\n"
+            + "   " + inputs.ToString() + " -> " + memcells.ToString() + " -> " + memcells.ToString() + "\n"
+            + sprintf "   Learnable parameters: %i\n" l.EncodeLength
+            + sprintf "   Init: %O\n" initializer
+            + sprintf "   Wxh : %i x %i\n" l.Wxh.Rows l.Wxh.Cols
+            + sprintf "   Whh : %i x %i\n" l.Whh.Rows l.Whh.Cols
+            + sprintf "   b : %i\n" l.b.Length
+    override l.ToStringFull() =
+        "Hype.Neural.LSTMAlt\n"
+            + "   " + inputs.ToString() + " -> " + memcells.ToString() + " -> " + memcells.ToString() + "\n"
+            + sprintf "   Learnable parameters: %i\n" l.EncodeLength
+            + sprintf "   Init: %O\n" initializer
+            + sprintf "   Wxh:\n%O\n" l.Wxh
+            + sprintf "   Whh:\n%O\n" l.Whh
+            + sprintf "   b:\n%O\n" l.b
+    override l.Visualize() =
+        "Hype.Neural.LSTMAlt\n"
+            + "   " + inputs.ToString() + " -> " + memcells.ToString() + " -> " + memcells.ToString() + "\n"
+            + sprintf "   Learnable parameters: %i\n" l.EncodeLength
+            + sprintf "   Init: %O\n" initializer
+            + sprintf "   Wxh:\n%s\n" (l.Wxh.Visualize())
+            + sprintf "   Whh:\n%s\n" (l.Whh.Visualize())
+            + sprintf "   b:\n%s\n" (l.b.Visualize())
