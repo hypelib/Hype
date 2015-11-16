@@ -509,7 +509,10 @@ type Optimize =
         let gradclip = par.GradientClipping.Func
         let mom = par.Momentum.Func
         let reg = par.Regularization.Func
-        let epochs = par.Epochs
+        let epochs =
+            match par.LearningRate with
+                | Schedule l -> l.Length
+                | _ -> par.Epochs
         let loss = par.Loss.Func
         let batches, batchsize =
             match par.Batch with

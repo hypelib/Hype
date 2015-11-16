@@ -514,4 +514,65 @@ MNISTtest.[0..4].VisualizeXColsAsImageGrid(28) |> printfn "%s"
                                                                                     
 
 
+
+
+Nested optimization of training hyperparameters
+-----------------------------------------------
+
+As we've seen in [optimization](optimization.html), nested AD allows us to apply gradient-based optimization to functions that also internally perform optimization.
+
+This gives us the possibility of optimizing the hyperparameters of training. We can, for example compute the gradient of the final loss of a training procedure with respect to the continuous hyperparameters of the training, such as learning rates, momentum parameters, regularization coefficients, or initialization conditions. 
+
+As an example, let's train a neural network with a learning rate schedule of 50 elements, and optimize this schedule vector with another level of optimization on top of the training.
+*)
+
+let train lrschedule =
+    Rnd.Seed(123)
+    n.Init()
+
+    let p = {Params.Default with
+                LearningRate = Schedule lrschedule
+                Loss = CrossEntropyOnSoftmax
+                ValidationInterval = 1
+                Silent = true
+                ReturnBest = false
+                Batch = Full}
+    let loss, _ = n.Train(MNISTvalid.[..20], p)
+    loss
+
+let hypertrain epochs =
+    let p = {Params.Default with 
+                Epochs = epochs
+                LearningRate = RMSProp(D 0.01f, D 0.9f)
+                ValidationInterval = 1}
+    let lr, _, _, _ = Optimize.Minimize(train, DV.create 50 (D 0.1f), p)
+    lr
+
+let lr = hypertrain 50
+
+(*** hide ***)
+open RProvider
+open RProvider.graphics
+open RProvider.grDevices
+
+let lrlr = lr |> DV.toArray |> Array.map (float32>>float)
+
+namedParams[
+    "x", box lrlr
+    "pch", box 19
+    "col", box "darkblue"
+    "type", box "o"
+    "xlab", box "Iteration"
+    "ylab", box "Learning rate"
+    "width", box 700
+    "height", box 500
+    ]
+|> R.plot|> ignore
+
+(**
+<div class="row">
+    <div class="span6 text-center">
+        <img src="img/Feedforwardnets-4.png" alt="Chart" style="width:500px;"/>
+    </div>
+</div><br/>
 *)
