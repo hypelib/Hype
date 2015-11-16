@@ -61,6 +61,7 @@
     <Compile Include="Neural.fs" />
     <Compile Include="Classifier.fs" />
     <Compile Include="NLP.fs" />
+    <Compile Include="Inference.fs" />
     <Content Include="packages.config" />
     <Content Include="app.config" />
   </ItemGroup>
