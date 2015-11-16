@@ -353,7 +353,9 @@ module Params =
 
 /// Main optimization module
 type Optimize =
+    /// Minimize vector-to-scalar function `f`, starting from initial parameter vector `w0`. Uses the default optimization configuration in `Params.Default`.
     static member Minimize (f:DV->D, w0:DV) = Optimize.Minimize(f, w0, Params.Default)
+    /// Minimize vector-to-scalar function `f`, starting from initial parameter vector `w0`. Uses the optimization configuration given in `par`.
     static member Minimize (f:DV->D, w0:DV, par:Params) =
         let dir = par.Method.Func
         let lr = par.LearningRate.Func
@@ -500,18 +502,30 @@ type Optimize =
             Util.printLog "--- Minimization finished"
         wfinal, lfinal, (whist |> List.rev |> List.toArray), (lhist |> List.rev |> List.toArray)
 
+    /// Train model function `f`, starting from initial parameter vector `w0`, by computing the loss for the training data given in dataset `d`. Uses the default optimization configuration in `Params.Default`
     static member Train (f:DV->DV->D,  w0:DV, d:Dataset) = Optimize.Train((fun w v -> toDV [f w v]), w0, d)
+    /// Train model function `f`, starting from initial parameter vector `w0`, by computing the loss for the training data given in dataset `d`. Uses the optimization configuration given in `par`.
     static member Train (f:DV->DV->D,  w0:DV, d:Dataset, par:Params) = Optimize.Train((fun w v -> toDV [f w v]), w0, d, par)
+    /// Train model function `f`, starting from initial parameter vector `w0`, by computing the loss for the training data given in dataset `d` and also monitoring the loss for the validation data given in dataset `v`. Uses the default optimization configuration in `Params.Default`
     static member Train (f:DV->DV->D,  w0:DV, d:Dataset, v:Dataset) = Optimize.Train((fun w v -> toDV [f w v]), w0, d, v)
+    /// Train model function `f`, starting from initial parameter vector `w0`, by computing the loss for the training data given in dataset `d` and also monitoring the loss for the validation data given in dataset `v`. Uses the optimization configuration given in `par`.
     static member Train (f:DV->DV->D,  w0:DV, d:Dataset, v:Dataset, par:Params) = Optimize.Train((fun w v -> toDV [f w v]), w0, d, v, par)
+    /// Train model function `f`, starting from initial parameter vector `w0`, by computing the loss for the training data given in dataset `d`. Uses the default optimization configuration in `Params.Default`.
     static member Train (f:DV->DV->DV, w0:DV, d:Dataset) = Optimize.Train(f, w0, d, Dataset.empty, Params.Default)
+    /// Train model function `f`, starting from initial parameter vector `w0`, by computing the loss for the training data given in dataset `d`. Uses the optimization configuration given in `par`.
     static member Train (f:DV->DV->DV, w0:DV, d:Dataset, par:Params) = Optimize.Train(f, w0, d, Dataset.empty, par)
+    /// Train model function `f`, starting from initial parameter vector `w0`, by computing the loss for the training data given in dataset `d`, and also monitoring the loss for the validation data given in dataset `v`. Uses the default optimization configuration in `Params.Default`.
     static member Train (f:DV->DV->DV, w0:DV, d:Dataset, v:Dataset) = Optimize.Train(f, w0, d, v, Params.Default)
+    /// Train model function `f`, starting from initial parameter vector `w0`, by computing the loss for the training data given in dataset `d`, and also monitoring the loss for the validation data given in dataset `v`. Uses the optimization configuration given in `par`.
     static member Train (f:DV->DV->DV, w0:DV, d:Dataset, v:Dataset, par:Params) = Optimize.Train (f >> DM.mapCols, w0, d, v, par)
+    /// Train model function `f`, starting from initial parameter vector `w0`, by computing the loss for the training data given in dataset `d`. Uses the default optimization configuration in `Params.Default`.
     static member Train (f:DV->DM->DM, w0:DV, d:Dataset) = Optimize.Train(f, w0, d, Dataset.empty, Params.Default)
+    /// Train model function `f`, starting from initial parameter vector `w0`, by computing the loss for the training data given in dataset `d`. Uses the optimization configuration given in `par`.
     static member Train (f:DV->DM->DM, w0:DV, d:Dataset, par:Params) = Optimize.Train(f, w0, d, Dataset.empty, par)
+    /// Train model function `f`, starting from initial parameter vector `w0`, by computing the loss for the training data given in dataset `d`, and also monitoring the loss for the validation data given in dataset `v`. Uses the default optimization configuration in `Params.Default`.
     static member Train (f:DV->DM->DM, w0:DV, d:Dataset, v:Dataset) = Optimize.Train(f, w0, d, v, Params.Default)
-    static member internal Train (f:DV->DM->DM, w0:DV, d:Dataset, v:Dataset, par:Params) =
+    /// Train model function `f`, starting from initial parameter vector `w0`, by computing the loss for the training data given in dataset `d`, and also monitoring the loss for the validation data given in dataset `v`. Uses the optimization configuration given in `par`.
+    static member Train (f:DV->DM->DM, w0:DV, d:Dataset, v:Dataset, par:Params) =
         let b = par.Batch.Func
         let dir = par.Method.Func
         let lr = par.LearningRate.Func

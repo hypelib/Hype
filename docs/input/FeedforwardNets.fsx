@@ -13,7 +13,7 @@ Feedforward neural networks
 
 In this example, we implement a softmax classifier network with several hidden layers. Also see the [regression example](regression.html) for some relevant basics.
 
-We again demonstrate the library with the MNIST database, this time using the full dataset for building a classifier with 10 outputs representing the class probabilities of an input image belonging to one of the ten categories.
+We again demonstrate the library with the [MNIST](http://yann.lecun.com/exdb/mnist/) database, this time using the full training set of 60,000 examples for building a classifier with 10 outputs representing the class probabilities of an input image belonging to one of the ten categories.
 
 ### Loading the data
 
@@ -175,9 +175,9 @@ Now let's have a closer look at how we implemented the nonlinear transformations
 
 You might think that the instances of **reLU** in **n.Add(reLU)** above refer to a particular layer structure previously implemented as a layer module within the library. They don't. **reLU** is just a matrix-to-matrix elementwise function.
 
-**An important thing to note** here is that the activation/transformation layers added with, for example, **n.Add(reLU)**, can be **any matrix-to-matrix function that you can express in the language,** unlike commonly seen machine learning frameworks where you are asked to select a particular layer type that has been implemented beforehand with it's (1) forward evaluation code and (2) reverse gradient code w.r.t. layer inputs, and (3) reverse gradient code w.r.t. any layer parameters. In such a setting, a new layer design would require you to add a new layer type to the system and carefully implement these components.
+**An important thing to note** here is that the activation/transformation layers added with, for example, **n.Add(reLU)**, can be **any matrix-to-matrix function that you can express in the language,** unlike commonly seen in many machine learning frameworks where you are asked to select a particular layer type that has been implemented beforehand with it's (1) forward evaluation code and (2) reverse gradient code w.r.t. layer inputs, and (3) reverse gradient code w.r.t. any layer parameters. In such a setting, a new layer design would require you to add a new layer type to the system and carefully implement these components.
 
-Here, because the system is based on nested AD, you can use any matrix-to-matrix transformation as a layer, and the forward and/or reverse AD operations of your code will be handled automatically by the underlying system. For example, you can write a layer like this: 
+Here, because the system is based on nested AD, you can freely use any matrix-to-matrix transformation as a layer, and the forward and/or reverse AD operations of your code will be handled automatically by the underlying system. For example, you can write a layer like this: 
 *)
 
 n.Add(fun w ->
@@ -195,7 +195,7 @@ In the above model, this is how the softmax layer is implemented as a mapping of
 n.Add(fun m -> m |> DM.mapCols softmax) 
 
 (**
-In this particular example, the output matrix has 10 rows (for the 10 target classes) and each column (a vector of size 10) is individually passed through the **softmax** function. The output matrix would have as many columns as the input matrix to the model, representing the class probabilities of each input.
+In this particular example, the output matrix has 10 rows (for the 10 target classes) and each column (a vector of size 10) is individually passed through the **softmax** function. The output matrix would have as many columns as the input matrix, representing the class probabilities of each input.
 *)
 
 
@@ -369,7 +369,7 @@ l.VisualizeWRowsAsImageGrid(28) |> printfn "%s"
 
 ### Building the softmax classifier
 
-As explained in [regression](regression.html), we just construct an instance of **SoftmaxClassifier** with the trained neural network as its parameter. Please see the [API reference](/reference/index.html) and the [source code](https://github.com/hypelib/Hype/blob/master/src/Hype/Classifier.fs) for a better understanding of how classifiers are implemented.
+As explained in [regression](regression.html), we just construct an instance of **SoftmaxClassifier** with the trained neural network as its parameter. Please see the [API reference](reference/index.html) and the [source code](https://github.com/hypelib/Hype/blob/master/src/Hype/Classifier.fs) for a better understanding of how classifiers are implemented.
 *)
 
 let cc = SoftmaxClassifier(n)
@@ -389,7 +389,7 @@ val pred : int [] = [|5; 1; 9; 2; 6; 0; 0; 5; 7; 6|]
 val real : int [] = [|5; 1; 9; 2; 6; 0; 0; 5; 7; 6|]
 </pre>
 
-Let's compute the classification error for the whole MNIST training set of 10,000 examples.
+Let's compute the classification error for the whole MNIST test set of 10,000 examples.
 *)
 
 cc.ClassificationError(MNISTtest)
@@ -440,7 +440,7 @@ MNISTtest.X.[*,0] |> DV.visualizeAsDM 28 |> printfn "%s"
                             
                             
 
-Classifying a many digits at the same time:
+Classifying many digits at the same time:
 *)
 
 let clss = cc.Classify(MNISTtest.X.[*,0..4]);;
@@ -521,7 +521,7 @@ Nested optimization of training hyperparameters
 
 As we've seen in [optimization](optimization.html), nested AD allows us to apply gradient-based optimization to functions that also internally perform optimization.
 
-This gives us the possibility of optimizing the hyperparameters of training. We can, for example compute the gradient of the final loss of a training procedure with respect to the continuous hyperparameters of the training, such as learning rates, momentum parameters, regularization coefficients, or initialization conditions. 
+This gives us the possibility of optimizing the hyperparameters of training. We can, for example, compute the gradient of the final loss of a training procedure with respect to the continuous hyperparameters of the training such as learning rates, momentum parameters, regularization coefficients, or initialization conditions. 
 
 As an example, let's train a neural network with a learning rate schedule of 50 elements, and optimize this schedule vector with another level of optimization on top of the training.
 *)

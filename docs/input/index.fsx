@@ -7,7 +7,7 @@ open DiffSharp.AD.Float32
 Hype: Compositional Machine Learning and Hyperparameter Optimization
 ====================================================================
 
-Hype is a proof-of-concept library for [compositional](http://mathworld.wolfram.com/Composition.html) machine learning, where you can perform optimization on systems of many components, even when such components themselves internally perform optimization. 
+Hype is a proof-of-concept deep learning library, where you can perform optimization on [compositional](http://mathworld.wolfram.com/Composition.html) machine learning systems of many components, even when such components themselves internally perform optimization. 
 
 This is enabled by nested automatic differentiation (AD) giving you access to the automatic exact derivative of any floating-point value in your code with respect to any other. Underlying computations are run by a BLAS/LAPACK backend (OpenBLAS by default).
 
@@ -32,9 +32,9 @@ open Hype.Neural
 let train (x:DV) = 
     let n = FeedForward()
     n.Add(Linear(784, 300))
-    n.Add(Activation(tanh))
+    n.Add(tanh)
     n.Add(Linear(300, 10))
-    let loss = Layer.Train(n, data, {Params.Default with 
+    let loss, _ = Layer.Train(n, data, {Params.Default with 
                                         LearningRate = Schedule x
                                         Momentum = Momentum.DefaultNesterov
                                         Batch = Minibatch 100
@@ -60,7 +60,7 @@ where $\mathbf{min}$ uses gradient-based optimization. (Note that the inner func
 
 For example, you can optimize the rules of a multi-player game where the players themselves optimize their own strategy using a simple model of the opponent which they optimize according to their opponent's observed behaviour. 
 
-Or you can perform optimization of procedures that are internally using differentiation for purposes other than optimization, such as adaptive control.
+Or you can perform optimization of procedures that are internally using differentiation for purposes other than optimization, such as adaptive control or simulations.
 
 ### Complex objective functions
 
@@ -76,7 +76,7 @@ Roadmap
 
 * OpenBLAS backend by default
 * Regression, feedforward neural networks
-* Recurrent neural networks, LSTMs
+* Recurrent neural networks, LSTMs, GRUs
 * Hamiltonian Monte Carlo
 </div>
 </div>

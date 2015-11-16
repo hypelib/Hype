@@ -17,7 +17,7 @@ Hype provides a highly configurable and modular gradient-based optimization func
 
 Thanks to nested AD, gradient-based optimization can be combined with any code, including code which internally takes derivatives of a function to produce its output. In other words, you can optimize the value of a function that is internally optimizing another function, or using derivatives for any other purpose (e.g. running particle simulations, adaptive control), up to any level. 
 
-In such a compositional optimization setting, all arising higher-order derivatives are handled for you through **nested instantiations of forward and/or reverse AD** evaluations. In any case, you only need to write your algorithms as usual, **only implementing a regular forward algorithm**.
+In such a compositional optimization setting, all arising higher-order derivatives are handled for you through **nested instantiations of forward and/or reverse AD**. In any case, you only need to write your algorithms as usual, **only implementing a regular forward algorithm**.
 
 Let's explain this through a basic example from the article _"Jeffrey Mark Siskind and Barak A. Pearlmutter. Nesting forward-mode AD in a functional framework. Higher Order and Symbolic Computation 21(4):361-76, 2008. doi:10.1007/s10990-008-9037-1"_, where a parameter of a physics simulation using the gradient of an electric potential is optimized with Newton's method using the Hessian of an error, requiring third-order nesting of derivatives.
 
@@ -42,12 +42,14 @@ $$$
 
 where $\Delta t$ is an integration time step.
 
-For a given parameter $w$, the simulation starts with $t=0$ and finishes when the particle hits the $x$-axis, at position $\mathbf{x}(t_f)$ at time $t_f$. When the particle hits the $x$-axis, we calculate an error $E(w) = x_0 (t_f)^2$, the squared horizontal distance of the particle from the origin. We then minimize this error using Newton's method, which finds the optimal value of $w$ so that the particle hits the $x$-axis at the origin.
+For a given parameter $w$, the simulation starts with $t=0$ and finishes when the particle hits the $x$-axis, at position $\mathbf{x}(t_f)$ at time $t_f$. When the particle hits the $x$-axis, we calculate an error $E(w) = x_0 (t_f)^2$, the squared horizontal distance of the particle from the origin. We then minimize this error using Newton's method, which finds the optimal value of $w$ so that the particle eventually hits the $x$-axis at the origin.
 
 $$$
    w^{(i+1)} = w^{(i)} - \frac{E'(w^{(i)})}{E''(w^{(i)})}
 
-In other words, the code calculating the trajectory of the particle internally computes the gradient of the electric potential $p(\mathbf{x}; w)$. At the same time, the final position of the trajectory $\mathbf{x}(t_f)$ is used to compute an error, and the gradient and Hessian of this error are computed during the optimization procedure.
+In other words, the code calculating the trajectory of the particle internally computes the gradient of the electric potential $p(\mathbf{x}; w)$, and, at the same time, the final position of the trajectory $\mathbf{x}(t_f)$ is used to compute an error, and the gradient and Hessian of this error are computed during the optimization procedure.
+
+Here's how it goes.
 *)
 
 open Hype
@@ -276,7 +278,7 @@ namedParams[
 
 Each instantiation of gradient-based optimization is controlled through a collection of parameters, using the **Hype.Params** type.
 
-If you do not supply any parameters to optimization, the default parameter set is used. The default parameters look like this:
+If you do not supply any parameters to optimization, the default parameter set **Params.Default** is used. The default parameters look like this:
 
 *)
 module Params =

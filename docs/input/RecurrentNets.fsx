@@ -11,11 +11,11 @@ fsi.ShowDeclarationValues <- false
 Recurrent neural networks
 =========================
 
-In this example we build a recurrent neural network (RNN) for a language modeling task and train it with a short passage of text for a quick demonstration. Hype currently has three RNN models implemented as **Hype.Neural** layers, which can be combined freely with other layer types, explained, for example, in the [neural networks](feedforwardnets.html) page: the "vanilla" RNN layer **Hype.Neural.Recurrent**, LSTM layer **Hype.Neural.LSTM** and gated recurrent unit (GRU) in **Hype.Neural.GRU**.
+In this example we build a recurrent neural network (RNN) for a language modeling task and train it with a short passage of text for a quick demonstration. Hype currently has three RNN models implemented as **Hype.Neural** layers, which can be combined freely with other layer types, explained, for example, in the [neural networks](feedforwardnets.html) page. **Hype.Neural.Recurrent** implements the "vanilla" RNN layer, **Hype.Neural.LSTM** implements the LSTM layer, and **Hype.Neural.GRU** implements the gated recurrent unit (GRU) layer.
 
 ### Language modeling
 
-RNNs are considerably well suited for constructing [language models](https://en.wikipedia.org/wiki/Language_model), where we need to predict the probability of a word (or _token_) given the history of the tokens that came before it. Here, we will use an LSTM-based RNN to construct a word-level language model from a short passage of text, for a quick demonstration of usage. This model can be scaled to larger problems. State-of-the-art models of this type can require considerable computing resources and training time.
+RNNs are well suited for constructing [language models,](https://en.wikipedia.org/wiki/Language_model) where we need to predict the probability of a word (or token) given the history of the tokens that came before it. Here, we will use an LSTM-based RNN to construct a word-level language model from a short passage of text, for a basic demonstration of usage. This model can be scaled to larger problems. State-of-the-art models of this type can require considerable computing resources and training time.
 
 The text is from the beginning of Virgil's Aeneid, Book I.
 *)
@@ -23,7 +23,7 @@ The text is from the beginning of Virgil's Aeneid, Book I.
 let text = "I sing of arms and the man, he who, exiled by fate, first came from the coast of Troy to Italy, and to Lavinian shores – hurled about endlessly by land and sea, by the will of the gods, by cruel Juno’s remorseless anger, long suffering also in war, until he founded a city and brought his gods to Latium: from that the Latin people came, the lords of Alba Longa, the walls of noble Rome. Muse, tell me the cause: how was she offended in her divinity, how was she grieved, the Queen of Heaven, to drive a man, noted for virtue, to endure such dangers, to face so many trials? Can there be such anger in the minds of the gods?"
 
 (**
-Hype provides a simple **Hype.NLP.Language** type for tokenizing text. You can look at the [API reference](/reference/index.html) and the [source code](https://github.com/hypelib/Hype/blob/master/src/Hype/NLP.fs) for a better understanding its usage.
+Hype provides a simple **Hype.NLP.Language** type for tokenizing text. You can look at the [API reference](reference/index.html) and the [source code](https://github.com/hypelib/Hype/blob/master/src/Hype/NLP.fs) for a better understanding of its usage.
 *)
 
 open Hype
@@ -67,7 +67,7 @@ text'.Visualize() |> printfn "%s"
 DM : 86 x 145
 </pre>
 
-Out of these 145 words, we will construct a dataset where the inputs are the first 144 words and the target outputs are the 144 words starting with a one word shift. This means that for each word, we want the output (the prediction) to be the following word in our text passage.
+Out of these 145 words, we will construct a dataset where the inputs are the first 144 words and the target outputs are the 144 words starting with a one word shift. This means that, for each word, we want the output (the prediction) to be the following word in our text passage.
 *)
 
 let data = Dataset(text'.[*, 0..(text'.Cols - 2)],
@@ -80,12 +80,12 @@ val data : Dataset = Hype.Dataset
    Y: 86 x 144
 </pre>
 
-Due to the nature of RNNs, and especially the LSTM variety that we will use, the predictions will take long-term dependencies and contextual information into account. When the language model is trained with a large enough text corpus and the network has enough capacity, state-of-the-art RNN language models are able to learn complex grammatical relations.
+RNNs, and especially the LSTM variety that we will use, can make predictions that take long-term dependencies and contextual information into account. When the language model is trained with a large enough text corpus and the network has enough capacity, state-of-the-art RNN language models are able to learn complex grammatical relations.
 
 For our quick demonstration, we use a linear word embedding layer of 20 units, an LSTM of 100 units and a final linear layer of 86 units (the size of our vocabulary) followed by **softmax** activation.
 *)
 
-let dim = lang.Length // Vocabulary size
+let dim = lang.Length // Vocabulary size, here 86
 
 let n = FeedForward()
 n.Add(Linear(dim, 20))
@@ -105,7 +105,9 @@ n.Add(Linear(100, dim))
 n.Add(DM.mapCols softmax)
 
 (**
-We will observe the the performance of our RNN during training by sampling random sentences from the language model. The final output of the network, through the softmax activation, is a vector of word probabilities. When we are sampling, we start with a word, supply this to the network, and use the resulting probabilities at the output to sample from the vocabulary where words with higher probability are more likely to be selected. We then continue by giving the network the last sampled word and repeating this until we hit an "end of sentence" token (we use "." here) or reach a limit of maximum sentence length.
+We will observe the the performance of our RNN during training by sampling random sentences from the language model. 
+
+Remember that the final output of the network, through the softmax activation, is a vector of word probabilities. When we are sampling, we start with a word, supply this to the network, and use the resulting probabilities at the output to sample from the vocabulary where words with higher probability are more likely to be selected. We then continue by giving the network the last sampled word and repeating this until we hit an "end of sentence" token (we use "." here) or reach a limit of maximum sentence length.
 
 This is how we would sample a sentence starting with a specific word.
 *)

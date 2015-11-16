@@ -11,7 +11,7 @@ fsi.ShowDeclarationValues <- true
 Regression
 ==========
 
-In this example we implement a logistic regression based binary classifier and train it to distinguish between the MNIST digits of 0 and 1.
+In this example we implement a logistic regression based binary classifier and train it to distinguish between the [MNIST](http://yann.lecun.com/exdb/mnist/) digits of 0 and 1.
 
 ### Loading the data
 
@@ -512,14 +512,16 @@ l.VisualizeWRowsAsImageGrid(28) |> printfn "%s"
      
 ### Classifier
 
-You can create classifiers by instantiating types such as **LogisticClassifier** or **SoftmaxClassifier**, and passing the classification function in the contructor. Alternatively, you can directly pass the model we have just trained. Please see the [API reference](/reference/index.html) and the [source code](https://github.com/hypelib/Hype/blob/master/src/Hype/Classifier.fs) for a better understanding of how classifiers are implemented.
+You can create classifiers by instantiating types such as **LogisticClassifier** or **SoftmaxClassifier**, and passing a classification function of the form **DM->DM**in the constructor. Alternatively, you can directly pass the model we have just trained. 
+
+Please see the [API reference](reference/index.html) and the [source code](https://github.com/hypelib/Hype/blob/master/src/Hype/Classifier.fs) for a better understanding of how classifiers are implemented.
 
 *)
 
 let cc = LogisticClassifier(n)
 
 (**
-Let's test the class predictions for 10 random elements from the MNIST test set, which we've filtered to have only 0s and 1s.
+Let's test the class predictions for 10 random elements from the MNIST test set, which, if you remember, we've filtered to have only 0s and 1s.
 *)
 
 let pred = cc.Classify(MNISTtest01.X.[*,0..9]);;
