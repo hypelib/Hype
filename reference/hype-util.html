@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Util - Hype</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Hype">
+    <meta name="author" content="Atılım Güneş Baydin; Barak A. Pearlmutter">
+
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">
+        google.load("visualization", "1.1", { packages: ["corechart", "annotationchart", "calendar", "linechart", "geochart", "map", "sankey", "table", "treemap"] })
+    </script>
+
+    <link type="text/css" rel="stylesheet" href="../misc/style.css" />
+    <script type="text/javascript" src="../misc/tips.js"></script>
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-48900508-5', 'auto');
+      ga('send', 'pageview');
+
+    </script>    
+  </head>
+  <body>
+    <nav class="navbar navbar-inverse">
+      <div class="container">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="../index.html"><span class="hype">Hype</span></a>
+        </div>
+        <div>
+          <ul class="nav navbar-nav">
+            <li><a href="https://github.com/hypelib/Hype">GitHub</a></li>
+            <li><a href="https://github.com/hypelib/Hype/releases">Release notes</a></li>
+            <li><a href="index.html">API reference</a></li>
+            <li><a href="../download.html">Download</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    <div class="container">
+      <div class="row">
+        <div class="col-sm-9">
+          
+
+
+
+<h1>Util</h1>
+<div class="xmldoc">
+<p>Various utility functions</p>
+
+
+</div>
+  <h3>Static members</h3>
+  <table class="table table-bordered member-list" style="border-color:#2f2f2f">
+    <thead>
+      <tr><td style="border-color:#2f2f2f">Static member</td><td style="border-color:#2f2f2f">Description</td></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="member-name" style="border-color:#2f2f2f">
+
+          <code onmouseout="hideTip(event, '173', 173)" onmouseover="showTip(event, '173', 173)">
+            LoadDelimited(filename)
+          </code>
+          <div class="tip" id="173">
+            <strong>Signature:</strong> filename:string -&gt; DM<br />
+                      </div>
+        </td>
+        <td class="xmldoc" style="border-color:#2f2f2f">
+          <p>Load values from delimited text file with given <code>filename</code> and a default set of separator characters: space, comma, or tab</p>
+
+
+
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name" style="border-color:#2f2f2f">
+
+          <code onmouseout="hideTip(event, '174', 174)" onmouseover="showTip(event, '174', 174)">
+            LoadDelimited(filename, separators)
+          </code>
+          <div class="tip" id="174">
+            <strong>Signature:</strong> (filename:string * separators:char []) -&gt; DM<br />
+                      </div>
+        </td>
+        <td class="xmldoc" style="border-color:#2f2f2f">
+          <p>Load values from delimited text file with given <code>filename</code> and separator characters <code>separators</code></p>
+
+
+
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name" style="border-color:#2f2f2f">
+
+          <code onmouseout="hideTip(event, '175', 175)" onmouseover="showTip(event, '175', 175)">
+            LoadImage(filename)
+          </code>
+          <div class="tip" id="175">
+            <strong>Signature:</strong> filename:string -&gt; DM<br />
+                      </div>
+        </td>
+        <td class="xmldoc" style="border-color:#2f2f2f">
+          <p>Load bitmap image with given <code>filename</code> to <code>DM</code></p>
+
+
+
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name" style="border-color:#2f2f2f">
+
+          <code onmouseout="hideTip(event, '176', 176)" onmouseover="showTip(event, '176', 176)">
+            LoadMNISTLabels(filename)
+          </code>
+          <div class="tip" id="176">
+            <strong>Signature:</strong> filename:string -&gt; int []<br />
+                      </div>
+        </td>
+        <td class="xmldoc" style="border-color:#2f2f2f">
+          <p>Load values from the MNIST database labels, from given <code>filename</code>, reading all elements</p>
+
+
+
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name" style="border-color:#2f2f2f">
+
+          <code onmouseout="hideTip(event, '177', 177)" onmouseover="showTip(event, '177', 177)">
+            LoadMNISTLabels(filename, n)
+          </code>
+          <div class="tip" id="177">
+            <strong>Signature:</strong> (filename:string * n:int) -&gt; int []<br />
+                      </div>
+        </td>
+        <td class="xmldoc" style="border-color:#2f2f2f">
+          <p>Load values from the MNIST database labels, from given <code>filename</code>, reading <code>n</code> number of elements</p>
+
+
+
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name" style="border-color:#2f2f2f">
+
+          <code onmouseout="hideTip(event, '178', 178)" onmouseover="showTip(event, '178', 178)">
+            LoadMNISTPixels(filename)
+          </code>
+          <div class="tip" id="178">
+            <strong>Signature:</strong> filename:string -&gt; DM<br />
+                      </div>
+        </td>
+        <td class="xmldoc" style="border-color:#2f2f2f">
+          <p>Load values from the MNIST database images, from given <code>filename</code>, reading all elements</p>
+
+
+
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name" style="border-color:#2f2f2f">
+
+          <code onmouseout="hideTip(event, '179', 179)" onmouseover="showTip(event, '179', 179)">
+            LoadMNISTPixels(filename, n)
+          </code>
+          <div class="tip" id="179">
+            <strong>Signature:</strong> (filename:string * n:int) -&gt; DM<br />
+                      </div>
+        </td>
+        <td class="xmldoc" style="border-color:#2f2f2f">
+          <p>Load values from the MNIST database images, from given <code>filename</code>, reading <code>n</code> number of elements</p>
+
+
+
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name" style="border-color:#2f2f2f">
+
+          <code onmouseout="hideTip(event, '180', 180)" onmouseover="showTip(event, '180', 180)">
+            printLog(s)
+          </code>
+          <div class="tip" id="180">
+            <strong>Signature:</strong> s:string -&gt; unit<br />
+                      </div>
+        </td>
+        <td class="xmldoc" style="border-color:#2f2f2f">
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name" style="border-color:#2f2f2f">
+
+          <code onmouseout="hideTip(event, '181', 181)" onmouseover="showTip(event, '181', 181)">
+            printModel(f d)
+          </code>
+          <div class="tip" id="181">
+            <strong>Signature:</strong> (f:(DV -&gt; DV)) -&gt; d:Dataset -&gt; unit<br />
+                      </div>
+        </td>
+        <td class="xmldoc" style="border-color:#2f2f2f">
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name" style="border-color:#2f2f2f">
+
+          <code onmouseout="hideTip(event, '182', 182)" onmouseover="showTip(event, '182', 182)">
+            VisualizeDMRowsAsImageGrid(w, imagerows)
+          </code>
+          <div class="tip" id="182">
+            <strong>Signature:</strong> (w:DM * imagerows:int) -&gt; string<br />
+                      </div>
+        </td>
+        <td class="xmldoc" style="border-color:#2f2f2f">
+          <p>Generate a string representation of matrix <code>w</code>, reshaping each row into an image with <code>imagerows</code> rows, and presenting resulting images together in an optimal grid layout.</p>
+
+
+
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+        </div>
+        <div class="col-sm-3">
+          <a href="../index.html"><img src="../img/hype.png" style="width:200px"/></a><br>
+          <ul class="nav nav-pills nav-stacked">
+            <li><a href="../index.html">Home</a></li>
+          </ul>                
+          <div class="nav-label">Basics</div>
+          <ul class="nav nav-pills nav-stacked">
+            <li><a href="../optimization.html">Optimization</a></li>
+            <li><a href="../training.html">Training</a></li>
+          </ul>
+          <div class="nav-label">Examples</div>
+          <ul class="nav nav-pills nav-stacked">
+            <li><a href="../regression.html">Regression</a></li>
+            <li><a href="../feedforwardnets.html">Neural Networks</a></li>
+            <li><a href="../recurrentnets.html">Recurrent Neural Nets</a></li>
+            <li><a href="../hmc.html">Hamiltonian MCMC</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  <!-- Start of StatCounter Code for Default Guide -->
+  <script type="text/javascript">
+  var sc_project=10701961; 
+  var sc_invisible=1; 
+  var sc_security="a67091ad"; 
+  var scJsHost = (("https:" == document.location.protocol) ?
+  "https://secure." : "http://www.");
+  document.write("<sc"+"ript type='text/javascript' src='" +
+  scJsHost+
+  "statcounter.com/counter/counter.js'></"+"script>");
+  </script>
+  <noscript><div class="statcounter"><a title="shopify
+  analytics ecommerce" href="http://statcounter.com/shopify/"
+  target="_blank"><img class="statcounter"
+  src="http://c.statcounter.com/10701961/0/a67091ad/1/"
+  alt="shopify analytics ecommerce"></a></div></noscript>
+  <!-- End of StatCounter Code for Default Guide -->        
+  </body>  
+</html>

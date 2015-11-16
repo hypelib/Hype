@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Regression
+</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Hype">
+    <meta name="author" content="Atılım Güneş Baydin; Barak A. Pearlmutter">
+
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">
+        google.load("visualization", "1.1", { packages: ["corechart", "annotationchart", "calendar", "linechart", "geochart", "map", "sankey", "table", "treemap"] })
+    </script>
+
+    <link type="text/css" rel="stylesheet" href="misc/style.css" />
+    <script type="text/javascript" src="misc/tips.js"></script>
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-48900508-5', 'auto');
+      ga('send', 'pageview');
+
+    </script>    
+  </head>
+  <body>
+    <nav class="navbar navbar-inverse">
+      <div class="container">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="index.html"><span class="hype">Hype</span></a>
+        </div>
+        <div>
+          <ul class="nav navbar-nav">
+            <li><a href="https://github.com/hypelib/Hype">GitHub</a></li>
+            <li><a href="https://github.com/hypelib/Hype/releases">Release notes</a></li>
+            <li><a href="reference/index.html">API reference</a></li>
+            <li><a href="download.html">Download</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    <div class="container">
+      <div class="row">
+        <div class="col-sm-9">
+          <h1>Regression</h1>
+
+<p>In this example we implement a logistic regression based binary classifier and train it to distinguish between the <a href="http://yann.lecun.com/exdb/mnist/">MNIST</a> digits of 0 and 1.</p>
+
+<h3>Loading the data</h3>
+
+<p>First, let's start by loading the MNIST training and testing data and arranging these into training, validation, and testing sets.</p>
+
+<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l"> 1: </span>
+<span class="l"> 2: </span>
+<span class="l"> 3: </span>
+<span class="l"> 4: </span>
+<span class="l"> 5: </span>
+<span class="l"> 6: </span>
+<span class="l"> 7: </span>
+<span class="l"> 8: </span>
+<span class="l"> 9: </span>
+<span class="l">10: </span>
+<span class="l">11: </span>
+<span class="l">12: </span>
+<span class="l">13: </span>
+<span class="l">14: </span>
+<span class="l">15: </span>
+</pre></td>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">open</span> <span onmouseout="hideTip(event, 'fs3', 3)" onmouseover="showTip(event, 'fs3', 3)" class="i">Hype</span>
+<span class="k">open</span> <span onmouseout="hideTip(event, 'fs3', 4)" onmouseover="showTip(event, 'fs3', 4)" class="i">Hype</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs4', 5)" onmouseover="showTip(event, 'fs4', 5)" class="i">Neural</span>
+<span class="k">open</span> <span onmouseout="hideTip(event, 'fs5', 6)" onmouseover="showTip(event, 'fs5', 6)" class="i">DiffSharp</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs6', 7)" onmouseover="showTip(event, 'fs6', 7)" class="i">AD</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs7', 8)" onmouseover="showTip(event, 'fs7', 8)" class="i">Float32</span>
+<span class="k">open</span> <span onmouseout="hideTip(event, 'fs5', 9)" onmouseover="showTip(event, 'fs5', 9)" class="i">DiffSharp</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs8', 10)" onmouseover="showTip(event, 'fs8', 10)" class="i">Util</span>
+
+<span class="k">let</span> <span onmouseout="hideTip(event, 'fs9', 11)" onmouseover="showTip(event, 'fs9', 11)" class="i">MNIST</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs10', 12)" onmouseover="showTip(event, 'fs10', 12)" class="t">Dataset</span>(<span onmouseout="hideTip(event, 'fs11', 13)" onmouseover="showTip(event, 'fs11', 13)" class="t">Util</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs12', 14)" onmouseover="showTip(event, 'fs12', 14)" class="f">LoadMNISTPixels</span>(<span class="s">&quot;C:/datasets/MNIST/train-images.idx3-ubyte&quot;</span>, <span class="n">60000</span>),
+                    <span onmouseout="hideTip(event, 'fs11', 15)" onmouseover="showTip(event, 'fs11', 15)" class="t">Util</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs13', 16)" onmouseover="showTip(event, 'fs13', 16)" class="f">LoadMNISTLabels</span>(<span class="s">&quot;C:/datasets/MNIST/train-labels.idx1-ubyte&quot;</span>, <span class="n">60000</span>) <span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs14', 17)" onmouseover="showTip(event, 'fs14', 17)" class="f">toDV</span> <span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs15', 18)" onmouseover="showTip(event, 'fs15', 18)" class="t">DM</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs16', 19)" onmouseover="showTip(event, 'fs16', 19)" class="f">ofDV</span> <span class="n">1</span>)<span class="o">.</span><span class="f">NormalizeX</span>()
+
+
+
+<span class="k">let</span> <span onmouseout="hideTip(event, 'fs17', 20)" onmouseover="showTip(event, 'fs17', 20)" class="i">MNISTtrain</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs9', 21)" onmouseover="showTip(event, 'fs9', 21)" class="i">MNIST</span><span class="o">.</span>[<span class="o">..</span><span class="n">58999</span>]
+<span class="k">let</span> <span onmouseout="hideTip(event, 'fs18', 22)" onmouseover="showTip(event, 'fs18', 22)" class="i">MNISTvalid</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs9', 23)" onmouseover="showTip(event, 'fs9', 23)" class="i">MNIST</span><span class="o">.</span>[<span class="n">59000..</span>]
+
+<span class="k">let</span> <span onmouseout="hideTip(event, 'fs19', 24)" onmouseover="showTip(event, 'fs19', 24)" class="i">MNISTtest</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs10', 25)" onmouseover="showTip(event, 'fs10', 25)" class="t">Dataset</span>(<span onmouseout="hideTip(event, 'fs11', 26)" onmouseover="showTip(event, 'fs11', 26)" class="t">Util</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs12', 27)" onmouseover="showTip(event, 'fs12', 27)" class="f">LoadMNISTPixels</span>(<span class="s">&quot;C:/datasets/MNIST/t10k-images.idx3-ubyte&quot;</span>, <span class="n">10000</span>),
+                        <span onmouseout="hideTip(event, 'fs11', 28)" onmouseover="showTip(event, 'fs11', 28)" class="t">Util</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs13', 29)" onmouseover="showTip(event, 'fs13', 29)" class="f">LoadMNISTLabels</span>(<span class="s">&quot;C:/datasets/MNIST/t10k-labels.idx1-ubyte&quot;</span>, <span class="n">10000</span>) <span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs14', 30)" onmouseover="showTip(event, 'fs14', 30)" class="f">toDV</span> <span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs15', 31)" onmouseover="showTip(event, 'fs15', 31)" class="t">DM</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs16', 32)" onmouseover="showTip(event, 'fs16', 32)" class="f">ofDV</span> <span class="n">1</span>)<span class="o">.</span><span class="f">NormalizeX</span>()
+</code></pre></td>
+</tr>
+</table>
+
+<p>We shuffle the columns of the datasets and filter them to only keep the digits of 0 and 1.</p>
+
+<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l">1: </span>
+<span class="l">2: </span>
+<span class="l">3: </span>
+</pre></td>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span onmouseout="hideTip(event, 'fs20', 33)" onmouseover="showTip(event, 'fs20', 33)" class="i">MNISTtrain01</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs17', 34)" onmouseover="showTip(event, 'fs17', 34)" class="i">MNISTtrain</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs21', 35)" onmouseover="showTip(event, 'fs21', 35)" class="f">Shuffle</span>()<span class="o">.</span><span class="f">Filter</span>(<span class="k">fun</span> (<span onmouseout="hideTip(event, 'fs22', 36)" onmouseover="showTip(event, 'fs22', 36)" class="i">x</span>, <span onmouseout="hideTip(event, 'fs23', 37)" onmouseover="showTip(event, 'fs23', 37)" class="i">y</span>) <span class="k">-&gt;</span> <span onmouseout="hideTip(event, 'fs23', 38)" onmouseover="showTip(event, 'fs23', 38)" class="i">y</span><span class="o">.</span>[<span class="n">0</span>] <span class="o">&lt;=</span> <span onmouseout="hideTip(event, 'fs24', 39)" onmouseover="showTip(event, 'fs24', 39)" class="p">D</span> <span class="n">1.f</span>)
+<span class="k">let</span> <span onmouseout="hideTip(event, 'fs25', 40)" onmouseover="showTip(event, 'fs25', 40)" class="i">MNISTvalid01</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs18', 41)" onmouseover="showTip(event, 'fs18', 41)" class="i">MNISTvalid</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs21', 42)" onmouseover="showTip(event, 'fs21', 42)" class="f">Shuffle</span>()<span class="o">.</span><span class="f">Filter</span>(<span class="k">fun</span> (<span onmouseout="hideTip(event, 'fs22', 43)" onmouseover="showTip(event, 'fs22', 43)" class="i">x</span>, <span onmouseout="hideTip(event, 'fs23', 44)" onmouseover="showTip(event, 'fs23', 44)" class="i">y</span>) <span class="k">-&gt;</span> <span onmouseout="hideTip(event, 'fs23', 45)" onmouseover="showTip(event, 'fs23', 45)" class="i">y</span><span class="o">.</span>[<span class="n">0</span>] <span class="o">&lt;=</span> <span onmouseout="hideTip(event, 'fs24', 46)" onmouseover="showTip(event, 'fs24', 46)" class="p">D</span> <span class="n">1.f</span>)
+<span class="k">let</span> <span onmouseout="hideTip(event, 'fs26', 47)" onmouseover="showTip(event, 'fs26', 47)" class="i">MNISTtest01</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs19', 48)" onmouseover="showTip(event, 'fs19', 48)" class="i">MNISTtest</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs21', 49)" onmouseover="showTip(event, 'fs21', 49)" class="f">Shuffle</span>()<span class="o">.</span><span class="f">Filter</span>(<span class="k">fun</span> (<span onmouseout="hideTip(event, 'fs22', 50)" onmouseover="showTip(event, 'fs22', 50)" class="i">x</span>, <span onmouseout="hideTip(event, 'fs23', 51)" onmouseover="showTip(event, 'fs23', 51)" class="i">y</span>) <span class="k">-&gt;</span> <span onmouseout="hideTip(event, 'fs23', 52)" onmouseover="showTip(event, 'fs23', 52)" class="i">y</span><span class="o">.</span>[<span class="n">0</span>] <span class="o">&lt;=</span> <span onmouseout="hideTip(event, 'fs24', 53)" onmouseover="showTip(event, 'fs24', 53)" class="p">D</span> <span class="n">1.f</span>)
+</code></pre></td>
+</tr>
+</table>
+
+<pre>
+val MNISTtrain01 : Dataset = Hype.Dataset
+   X: 784 x 12465
+   Y: 1 x 12465
+val MNISTvalid01 : Dataset = Hype.Dataset
+   X: 784 x 200
+   Y: 1 x 200
+val MNISTtest01 : Dataset = Hype.Dataset
+   X: 784 x 2115
+   Y: 1 x 2115
+</pre>
+
+<p>We can visualize individual digits from the dataset.</p>
+
+<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l">1: </span>
+<span class="l">2: </span>
+</pre></td>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs17', 54)" onmouseover="showTip(event, 'fs17', 54)" class="i">MNISTtrain</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs27', 55)" onmouseover="showTip(event, 'fs27', 55)" class="i">X</span><span class="o">.</span>[<span class="o">*</span>,<span class="n">9</span>] <span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs28', 56)" onmouseover="showTip(event, 'fs28', 56)" class="t">DV</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs29', 57)" onmouseover="showTip(event, 'fs29', 57)" class="f">visualizeAsDM</span> <span class="n">28</span> <span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs30', 58)" onmouseover="showTip(event, 'fs30', 58)" class="f">printfn</span> <span class="s">&quot;</span><span class="pf">%s</span><span class="s">&quot;</span>
+<span onmouseout="hideTip(event, 'fs17', 59)" onmouseover="showTip(event, 'fs17', 59)" class="i">MNISTtrain</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs31', 60)" onmouseover="showTip(event, 'fs31', 60)" class="i">Y</span><span class="o">.</span>[<span class="o">*</span>,<span class="n">9</span>]
+</code></pre></td>
+</tr>
+</table>
+
+<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l"> 1: </span>
+<span class="l"> 2: </span>
+<span class="l"> 3: </span>
+<span class="l"> 4: </span>
+<span class="l"> 5: </span>
+<span class="l"> 6: </span>
+<span class="l"> 7: </span>
+<span class="l"> 8: </span>
+<span class="l"> 9: </span>
+<span class="l">10: </span>
+<span class="l">11: </span>
+<span class="l">12: </span>
+<span class="l">13: </span>
+<span class="l">14: </span>
+<span class="l">15: </span>
+<span class="l">16: </span>
+<span class="l">17: </span>
+<span class="l">18: </span>
+<span class="l">19: </span>
+<span class="l">20: </span>
+<span class="l">21: </span>
+<span class="l">22: </span>
+<span class="l">23: </span>
+<span class="l">24: </span>
+<span class="l">25: </span>
+<span class="l">26: </span>
+<span class="l">27: </span>
+<span class="l">28: </span>
+<span class="l">29: </span>
+<span class="l">30: </span>
+<span class="l">31: </span>
+</pre></td>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="cs">DM <span class="o">:</span> 28 x 28
+
+
+
+
+                      ♦♦    
+                     ▪█▪    
+                    ▴██·    
+                    ♦█♦     
+             ●     ·█■      
+            ■█     ■█·      
+            ♦█     ██·      
+           ▴█■    ●█♦       
+           ■█    ▪█■        
+          ■█▪   ▴██<span class="o">-</span>        
+        <span class="o">-</span>███♦▴  ♦█▪         
+       ·███■██♦■█■          
+      ·██■  ♦█████■         
+      ♦■<span class="o">-</span>    ♦████▪         
+      <span class="o">-</span>      ██·            
+            ▪█■             
+           ▴█■              
+           ■█▴              
+          ■█▪               
+          ▴█·               
+
+
+
+
+
+val it <span class="o">:</span> DV <span class="o">=</span> DV [|4.0f|]
+</code></pre></td></tr></table>
+
+<p>We can also visualize a series of digits in grid layout.</p>
+
+<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l">1: </span>
+</pre></td>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs17', 61)" onmouseover="showTip(event, 'fs17', 61)" class="i">MNISTtrain</span><span class="o">.</span>[<span class="o">..</span><span class="n">5</span>]<span class="o">.</span><span class="f">VisualizeXColsAsImageGrid</span>(<span class="n">28</span>) <span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs30', 62)" onmouseover="showTip(event, 'fs30', 62)" class="f">printfn</span> <span class="s">&quot;</span><span class="pf">%s</span><span class="s">&quot;</span>
+</code></pre></td>
+</tr>
+</table>
+
+<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l"> 1: </span>
+<span class="l"> 2: </span>
+<span class="l"> 3: </span>
+<span class="l"> 4: </span>
+<span class="l"> 5: </span>
+<span class="l"> 6: </span>
+<span class="l"> 7: </span>
+<span class="l"> 8: </span>
+<span class="l"> 9: </span>
+<span class="l">10: </span>
+<span class="l">11: </span>
+<span class="l">12: </span>
+<span class="l">13: </span>
+<span class="l">14: </span>
+<span class="l">15: </span>
+<span class="l">16: </span>
+<span class="l">17: </span>
+<span class="l">18: </span>
+<span class="l">19: </span>
+<span class="l">20: </span>
+<span class="l">21: </span>
+<span class="l">22: </span>
+<span class="l">23: </span>
+<span class="l">24: </span>
+<span class="l">25: </span>
+<span class="l">26: </span>
+<span class="l">27: </span>
+<span class="l">28: </span>
+<span class="l">29: </span>
+<span class="l">30: </span>
+<span class="l">31: </span>
+<span class="l">32: </span>
+<span class="l">33: </span>
+<span class="l">34: </span>
+<span class="l">35: </span>
+<span class="l">36: </span>
+<span class="l">37: </span>
+<span class="l">38: </span>
+<span class="l">39: </span>
+<span class="l">40: </span>
+<span class="l">41: </span>
+<span class="l">42: </span>
+<span class="l">43: </span>
+<span class="l">44: </span>
+<span class="l">45: </span>
+<span class="l">46: </span>
+<span class="l">47: </span>
+<span class="l">48: </span>
+<span class="l">49: </span>
+<span class="l">50: </span>
+<span class="l">51: </span>
+<span class="l">52: </span>
+<span class="l">53: </span>
+<span class="l">54: </span>
+<span class="l">55: </span>
+<span class="l">56: </span>
+<span class="l">57: </span>
+<span class="l">58: </span>
+<span class="l">59: </span>
+<span class="l">60: </span>
+</pre></td>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="cs">Hype.Dataset
+   X: 784 x 6
+   Y: 1 x 6
+X's columns reshaped to (28 x 28), presented <span class="k">in</span> a (2 x 3) grid:
+DM <span class="o">:</span> 56 x 84
+
+
+
+
+                                            ▪█▪                                     
+                ▴▴● ●██▴                   █████                             ■      
+          <span class="o">-</span>▪●█████■●██♦                   ■███■█             ·              ▴●      
+        ██████████<span class="o">-</span>··                    ■███♦·██▴          ▴●              ▪♦      
+        ■█████♦●██                     ●██████<span class="o">-</span>♦█●          ■●              █▪      
+        ·▪<span class="o">-</span>██♦   ▪                     ███♦<span class="o">-</span>█■ ·█●          ■●             ●█▴      
+           ▪█·                        ███● ·▴   ██          █●             ♦█       
+           ▴█♦                       ●█■♦·      ██●        ▴█●             ■█       
+            ♦█·                     ●██·        ██♦        ▪█▴            ●█■       
+             █■▪<span class="o">-</span>                   ██          ██♦        ▪█           ·●██·       
+             ·███▴                 ♦█♦          ██♦        ▪█·     ▴▪▪███●██        
+               ●██▪               ·██<span class="o">-</span>          ██▪        ▪██♦♦♦████♦▪·  ■█        
+                <span class="o">-</span>██♦              ·█■          ▴█●          ▴●●●●●<span class="o">-</span>      <span class="o">-</span>█■        
+                 ███              ·█■         ▴█■·                       ●█▴        
+               ▴●██♦              ·█▪        ●█●                         ●█         
+             ▪■████●              ·█■      <span class="o">-</span>██▪                          ●█         
+           <span class="o">-</span>■████♦·               ·██▪  ·●■█■●                           ●█<span class="o">-</span>        
+          ■████♦·                 ·███■■███♦▴                            ●█<span class="o">-</span>        
+       ●■████♦·                    ♦█████■▪                              ●█▪        
+     ●■█████▴                       ▴███▪                                ●█▪        
+    ▴███■▴▴                                                              <span class="o">-</span>█▪        
+
+
+
+
+
+
+
+
+                  ▴██                                                    <span class="o">-</span>▴         
+                 <span class="o">-</span>███                                                 ▪♦███▪        
+                 ▴███                    ▪♦██<span class="o">-</span>·▪                    ▪███■■█■        
+                 ██■                   ·■██♦♦███●                 ▪████■  ██        
+                ■██<span class="o">-</span>                   ██♦   ●██▴                <span class="o">-</span>████■   ██        
+               ▪██♦                  <span class="o">-</span>██●   ·██■                 ●██■●   ·██        
+               ███                  ▴██▪    ■██·                  ▴      <span class="o">-</span>██        
+              ♦██▴                 ▴██●    ·██▴                          ▪██        
+             <span class="o">-</span>██●                  ■█●    ♦██●                       <span class="o">-</span>▴▴▴♦█♦        
+            ·██♦                   ██  ▴♦████·                      ●█████■         
+            ███▪                   ■█████■■█■                     ■██■●███■▴        
+           ▪███                     ██■▴  ♦█▪                   ·██▴   ♦████·       
+           ■██●                           ██<span class="o">-</span>                  ▴██●   ♦██▴●██●      
+          ███♦                           ·██                  ▴██<span class="o">-</span>   ♦█■   ·●███■   
+          ███·                            ██                 <span class="o">-</span>██· ·●██▴      ·●●    
+         ▪███                            ·██                 ■██♦■███▴              
+         ■██▪                            <span class="o">-</span>██                 ♦████●▴                
+         ██■                              ██                  <span class="o">-</span>▪▴                   
+         ██■                              ■█                                        
+         ♦█■                              <span class="o">-</span>█♦                                       
+                                           ●█●                                      
+                                            ▪█                                      </code></pre></td></tr></table>
+
+<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l">1: </span>
+</pre></td>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs20', 63)" onmouseover="showTip(event, 'fs20', 63)" class="i">MNISTtrain01</span><span class="o">.</span>[<span class="o">..</span><span class="n">5</span>]<span class="o">.</span><span class="f">VisualizeXColsAsImageGrid</span>(<span class="n">28</span>) <span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs30', 64)" onmouseover="showTip(event, 'fs30', 64)" class="f">printfn</span> <span class="s">&quot;</span><span class="pf">%s</span><span class="s">&quot;</span>
+</code></pre></td>
+</tr>
+</table>
+
+<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l"> 1: </span>
+<span class="l"> 2: </span>
+<span class="l"> 3: </span>
+<span class="l"> 4: </span>
+<span class="l"> 5: </span>
+<span class="l"> 6: </span>
+<span class="l"> 7: </span>
+<span class="l"> 8: </span>
+<span class="l"> 9: </span>
+<span class="l">10: </span>
+<span class="l">11: </span>
+<span class="l">12: </span>
+<span class="l">13: </span>
+<span class="l">14: </span>
+<span class="l">15: </span>
+<span class="l">16: </span>
+<span class="l">17: </span>
+<span class="l">18: </span>
+<span class="l">19: </span>
+<span class="l">20: </span>
+<span class="l">21: </span>
+<span class="l">22: </span>
+<span class="l">23: </span>
+<span class="l">24: </span>
+<span class="l">25: </span>
+<span class="l">26: </span>
+<span class="l">27: </span>
+<span class="l">28: </span>
+<span class="l">29: </span>
+<span class="l">30: </span>
+<span class="l">31: </span>
+<span class="l">32: </span>
+<span class="l">33: </span>
+<span class="l">34: </span>
+<span class="l">35: </span>
+<span class="l">36: </span>
+<span class="l">37: </span>
+<span class="l">38: </span>
+<span class="l">39: </span>
+<span class="l">40: </span>
+<span class="l">41: </span>
+<span class="l">42: </span>
+<span class="l">43: </span>
+<span class="l">44: </span>
+<span class="l">45: </span>
+<span class="l">46: </span>
+<span class="l">47: </span>
+<span class="l">48: </span>
+<span class="l">49: </span>
+<span class="l">50: </span>
+<span class="l">51: </span>
+<span class="l">52: </span>
+<span class="l">53: </span>
+<span class="l">54: </span>
+<span class="l">55: </span>
+<span class="l">56: </span>
+<span class="l">57: </span>
+</pre></td>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="cs">Hype.Dataset
+   X: 784 x 6
+   Y: 1 x 6
+X's columns reshaped to (28 x 28), presented <span class="k">in</span> a (2 x 3) grid:
+DM <span class="o">:</span> 56 x 84
+
+
+
+
+                 ▴●███<span class="o">-</span>                      ·♦██                                   
+              ·▪■█████■                      ████●                   <span class="o">-</span>▪██████       
+             ▪████████<span class="o">-</span>                     ●████■                 ▪██████████      
+           ●████▪ ●███▴                     ■████●                ■███■▪▪▴<span class="o">-</span>███●     
+          ████●   ▴███·                    ██████               <span class="o">-</span>███■     ██████    
+         ███▪      ██▴                    <span class="o">-</span>██████               ■██▴      ████▴♦<span class="o">-</span>   
+        ■██·       ●█●                   ▪█████■               ■██        ■█▴█■     
+       ●██·        ▴█●                   ██████               ▪██●         <span class="o">-</span> ■█<span class="o">-</span>    
+      <span class="o">-</span>██▪         ▴█●                   ██████               ██■            ▪█▴    
+      ██■          ▴█●                  ■█████▴              ▴██<span class="o">-</span>            ■█▴    
+     ·██           ▴█●                 ██████<span class="o">-</span>               ▴██             ██▴    
+     ■█■           ▴█●                 █████▴                ▴█■             ██     
+     ■█▪           ▴█●                ♦████<span class="o">-</span>                 ▴█▪            ▴█▪     
+     ██<span class="o">-</span>           ●█●               ♦█████                  ▴█▪            ●█·     
+     ██▴           ██·               █████♦                  <span class="o">-</span>██           <span class="o">-</span>█▪      
+     ███          ●██·              ●█████·                   ██■           █<span class="o">-</span>      
+     <span class="o">-</span>███●       ▴██●              ·█████                     ███          ■■       
+       ■█████♦●●■███■              ♦█████                      ██<span class="o">-</span>       <span class="o">-</span>■█·       
+        ▴■█████████♦               █████♦                      ●██●    <span class="o">-</span>■██▪        
+           ·▪▪●█♦▪▴                ▴████·                       ●████████■<span class="o">-</span>         
+                                                                 ▪█████▪<span class="o">-</span>           
+
+
+
+
+
+
+
+                                            ■▴                         ·····        
+                                            ▴■                       ▪■█████·       
+           ♦♦♦♦♦<span class="o">-</span>·                          ■█                     ▴█████████<span class="o">-</span>      
+         ▪████████■▪                        ██                     ███████████·     
+         ■███████████■                     ▪█■                   ▴■████♦♦ ▴████     
+        █████████  ♦███                    ██<span class="o">-</span>                  ▴████♦▴    ■███·    
+      ▪███●     ●   ·██■                   █●                  ▴████■      ♦███<span class="o">-</span>    
+      ██■            <span class="o">-</span>██·                 ▪█▴                  ████▪        ████    
+     ▪██              ██♦                 ██                   ███<span class="o">-</span>         ████    
+     ●█♦              ▪██                ▪██                 ·███·          ████    
+     ██▴              ▴██                ●██                ·███♦          ▪████    
+     ██               ♦█▪                ██●                ·███          ▪████·    
+     ██<span class="o">-</span>              ██                 ██·                ●███        ·●█████·    
+     ♦█●             ■██                ·██<span class="o">-</span>                ████·      ■██████▴     
+     ▪█■            ■██<span class="o">-</span>                 █♦                 ████■▴▴▴■████████▪      
+     <span class="o">-</span>██●         ▴███♦                 <span class="o">-</span>█♦                 ■██████████████♦        
+      ♦██♦<span class="o">-</span>▪    ▪♦██■<span class="o">-</span>                  ■█♦                 ·████████████▪▴         
+       ♦███████████●                    ■█<span class="o">-</span>                   <span class="o">-</span>█████████▴           
+        ▴■█■■■■■■·                      █■                       ▪ ▪▪               
+                                        ♦▴                                          
+</code></pre></td></tr></table>
+
+<h3>Defining the model</h3>
+
+<p>Let's now create our linear regression model. We implement this using the <strong>Hype.Neural</strong> module, as a linear layer with <span class="math">\(28 \times 28 = 784\)</span> inputs and one output. The output of the layer is passed through the sigmoid function.</p>
+
+<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l">1: </span>
+<span class="l">2: </span>
+<span class="l">3: </span>
+</pre></td>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span onmouseout="hideTip(event, 'fs32', 65)" onmouseover="showTip(event, 'fs32', 65)" class="i">n</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs4', 66)" onmouseover="showTip(event, 'fs4', 66)" class="i">Neural</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs33', 67)" onmouseover="showTip(event, 'fs33', 67)" class="t">FeedForward</span>()
+<span onmouseout="hideTip(event, 'fs32', 68)" onmouseover="showTip(event, 'fs32', 68)" class="i">n</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs34', 69)" onmouseover="showTip(event, 'fs34', 69)" class="f">Add</span>(<span onmouseout="hideTip(event, 'fs35', 70)" onmouseover="showTip(event, 'fs35', 70)" class="t">Linear</span>(<span class="n">28</span> <span class="o">*</span> <span class="n">28</span>, <span class="n">1</span>))
+<span onmouseout="hideTip(event, 'fs32', 71)" onmouseover="showTip(event, 'fs32', 71)" class="i">n</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs34', 72)" onmouseover="showTip(event, 'fs34', 72)" class="f">Add</span>(<span onmouseout="hideTip(event, 'fs36', 73)" onmouseover="showTip(event, 'fs36', 73)" class="f">sigmoid</span>)
+</code></pre></td>
+</tr>
+</table>
+
+<p>We can visualize the initial state of the linear model weights before the training. For information of about weight initialization parameters, please see the <a href="feedforwardnets.html">neural networks example</a>.</p>
+
+<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l">1: </span>
+<span class="l">2: </span>
+</pre></td>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span onmouseout="hideTip(event, 'fs37', 93)" onmouseover="showTip(event, 'fs37', 93)" class="i">l</span> <span class="o">=</span> (<span onmouseout="hideTip(event, 'fs32', 94)" onmouseover="showTip(event, 'fs32', 94)" class="i">n</span><span class="o">.</span>[<span class="n">0</span>] <span class="o">:?&gt;</span> <span onmouseout="hideTip(event, 'fs35', 95)" onmouseover="showTip(event, 'fs35', 95)" class="t">Linear</span>)
+<span onmouseout="hideTip(event, 'fs37', 96)" onmouseover="showTip(event, 'fs37', 96)" class="i">l</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs38', 97)" onmouseover="showTip(event, 'fs38', 97)" class="f">VisualizeWRowsAsImageGrid</span>(<span class="n">28</span>) <span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs30', 98)" onmouseover="showTip(event, 'fs30', 98)" class="f">printfn</span> <span class="s">&quot;</span><span class="pf">%s</span><span class="s">&quot;</span>
+</code></pre></td>
+</tr>
+</table>
+
+<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l"> 1: </span>
+<span class="l"> 2: </span>
+<span class="l"> 3: </span>
+<span class="l"> 4: </span>
+<span class="l"> 5: </span>
+<span class="l"> 6: </span>
+<span class="l"> 7: </span>
+<span class="l"> 8: </span>
+<span class="l"> 9: </span>
+<span class="l">10: </span>
+<span class="l">11: </span>
+<span class="l">12: </span>
+<span class="l">13: </span>
+<span class="l">14: </span>
+<span class="l">15: </span>
+<span class="l">16: </span>
+<span class="l">17: </span>
+<span class="l">18: </span>
+<span class="l">19: </span>
+<span class="l">20: </span>
+<span class="l">21: </span>
+<span class="l">22: </span>
+<span class="l">23: </span>
+<span class="l">24: </span>
+<span class="l">25: </span>
+<span class="l">26: </span>
+<span class="l">27: </span>
+<span class="l">28: </span>
+<span class="l">29: </span>
+<span class="l">30: </span>
+<span class="l">31: </span>
+<span class="l">32: </span>
+<span class="l">33: </span>
+<span class="l">34: </span>
+<span class="l">35: </span>
+<span class="l">36: </span>
+<span class="l">37: </span>
+</pre></td>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="cs">Hype.Neural.Linear
+   784 <span class="o">-</span><span class="o">&gt;</span> 1
+   Learnable parameters: 785
+   Init: Standard
+   W's rows reshaped to (28 x 28), presented <span class="k">in</span> a (1 x 1) grid:
+DM <span class="o">:</span> 28 x 28
+ ▴▪●●<span class="o">-</span>█▴♦♦● ·▴█● ● ▴· ●●●●▪·
+■ █<span class="o">-</span> ▴●●▪ ■♦· ■▪■▪   █  ♦■●■
+♦■ █♦●▪●♦  ♦■   ♦     ■ ▪<span class="o">-</span> ■
+ ■▪ ■♦■♦ █ ▪● ♦▪▴··■█ <span class="o">-</span>▴●▪▪●
+██··▴●●█▪♦■ <span class="o">-</span>·█■ ▪<span class="o">-</span> ··▪·  ██
+<span class="o">-</span> ▪   ♦ ▪●  ▪■█♦<span class="o">-</span> ▴▪ ▴·  ▪·●
+<span class="o">-</span>   ●●▴▴ ▪■ ▴█ ▪▴·▴▴·♦■■♦·■■
+♦▴ ▪■ ▪▪▴■·■<span class="o">-</span><span class="o">-</span>▪♦<span class="o">-</span>   ·♦▪■ ♦·●
+ ·▴·♦▪♦●▪··▴·▪ ● ▪ █  ▴▪·♦▪ 
+■ ▴ ♦█▴ <span class="o">-</span>  ♦●■  █▪■●▪█■▴●<span class="o">-</span><span class="o">-</span>█
+♦■   ●■▴♦ ●· █· ▴· <span class="o">-</span>█<span class="o">-</span>▪●■■<span class="o">-</span>■
+ █<span class="o">-</span>·▪▴<span class="o">-</span>▴█ ♦ █●·♦█▪▪●●■ <span class="o">-</span>   ·
+ <span class="o">-</span>   █ ■♦·●▪▴♦ <span class="o">-</span>▴ <span class="o">-</span>  ■♦· ♦ <span class="o">-</span>
+■█ ▪<span class="o">-</span>  ▪■●♦█▴<span class="o">-</span>█▪■  ■♦▪█■▪■ <span class="o">-</span>
+●♦█▴♦♦ ♦   ▴▪▴▴♦<span class="o">-</span>▴♦♦█ ▴ ▪·● 
+ ·█▪■■█ ●· ●· <span class="o">-</span>●■●··  ▴  <span class="o">-</span><span class="o">-</span>▴
+·♦█▴ ♦♦■ ▴▪●▪<span class="o">-</span>  · <span class="o">-</span>♦●♦ ■ · ■
+■■▪<span class="o">-</span><span class="o">-</span><span class="o">-</span>♦■·●▴▪<span class="o">-</span>▪▴· ▪●● ·♦■ ▪♦▴
+▴ <span class="o">-</span>♦●■█·█   ● ♦▪●■<span class="o">-</span> ·■♦<span class="o">-</span>▪▴■▴
+ ●<span class="o">-</span>■● ···●█▴▪ <span class="o">-</span>█·▪ ♦▴    ● ●
+·█  █▴ ·♦<span class="o">-</span><span class="o">-</span><span class="o">-</span>■▴·█■■▴ ▴■  <span class="o">-</span>  █
+<span class="o">-</span> ▪  ●█·▴♦▪    ■ ▪■ ■···   ▴
+■ ♦♦<span class="o">-</span> █▪♦<span class="o">-</span><span class="o">-</span> ▴ ▴ ··█▴● ■♦    
+■·■■▪▴<span class="o">-</span>·█♦●■ ▴ ♦ ♦▴■♦  ■ ●♦▪
+·█▪<span class="o">-</span> ■●▴▪▴▪ ▪  ▴▪ ·   ▪▴▴··♦
+  ▪█♦■   ·♦ ■▪ ♦ ▴·●█▪· ·▪▴ 
+· ■♦▪■ ▪■● ♦  ··· ·▪█■·  ▪■●
+●▴▪ ·■● <span class="o">-</span>█●█·▪■▴ ▴▴♦  ■  ■ ▴
+
+   b:
+DV <span class="o">:</span> 1
+</code></pre></td></tr></table>
+
+<h3>Training</h3>
+
+<p>Let's train the model for 10 epochs (full passes through the training data), with a minibatch size of 100, using the training and validation sets we've defined. The validation set will make sure that we're not overfitting the model.</p>
+
+<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l">1: </span>
+<span class="l">2: </span>
+<span class="l">3: </span>
+<span class="l">4: </span>
+<span class="l">5: </span>
+<span class="l">6: </span>
+</pre></td>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span onmouseout="hideTip(event, 'fs39', 80)" onmouseover="showTip(event, 'fs39', 80)" class="i">p</span> <span class="o">=</span> {<span onmouseout="hideTip(event, 'fs40', 81)" onmouseover="showTip(event, 'fs40', 81)" class="t">Params</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs41', 82)" onmouseover="showTip(event, 'fs41', 82)" class="i">Default</span> <span class="k">with</span> 
+            <span class="i">Epochs</span> <span class="o">=</span> <span class="n">10</span>; 
+            <span onmouseout="hideTip(event, 'fs42', 83)" onmouseover="showTip(event, 'fs42', 83)" class="i">Batch</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs43', 84)" onmouseover="showTip(event, 'fs43', 84)" class="p">Minibatch</span> <span class="n">100</span>; 
+            <span onmouseout="hideTip(event, 'fs44', 85)" onmouseover="showTip(event, 'fs44', 85)" class="i">EarlyStopping</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs44', 86)" onmouseover="showTip(event, 'fs44', 86)" class="t">EarlyStopping</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs45', 87)" onmouseover="showTip(event, 'fs45', 87)" class="i">DefaultEarly</span>}
+
+<span onmouseout="hideTip(event, 'fs32', 88)" onmouseover="showTip(event, 'fs32', 88)" class="i">n</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs46', 89)" onmouseover="showTip(event, 'fs46', 89)" class="f">Train</span>(<span onmouseout="hideTip(event, 'fs20', 90)" onmouseover="showTip(event, 'fs20', 90)" class="i">MNISTtrain01</span>, <span onmouseout="hideTip(event, 'fs25', 91)" onmouseover="showTip(event, 'fs25', 91)" class="i">MNISTvalid01</span>, <span onmouseout="hideTip(event, 'fs39', 92)" onmouseover="showTip(event, 'fs39', 92)" class="i">p</span>)
+</code></pre></td>
+</tr>
+</table>
+
+<pre>
+[12/11/2015 20:21:12] --- Training started
+[12/11/2015 20:21:12] Parameters     : 785
+[12/11/2015 20:21:12] Iterations     : 1240
+[12/11/2015 20:21:12] Epochs         : 10
+[12/11/2015 20:21:12] Batches        : Minibatches of 100 (124 per epoch)
+[12/11/2015 20:21:12] Training data  : 12465
+[12/11/2015 20:21:12] Validation data: 200
+[12/11/2015 20:21:12] Valid. interval: 10
+[12/11/2015 20:21:12] Method         : Gradient descent
+[12/11/2015 20:21:12] Learning rate  : RMSProp a0 = D 0.00100000005f, k = D 0.899999976f
+[12/11/2015 20:21:12] Momentum       : None
+[12/11/2015 20:21:12] Loss           : L2 norm
+[12/11/2015 20:21:12] Regularizer    : L2 lambda = D 9.99999975e-05f
+[12/11/2015 20:21:12] Gradient clip. : None
+[12/11/2015 20:21:12] Early stopping : Stagnation thresh. = 750, overfit. thresh. = 10
+[12/11/2015 20:21:12] Improv. thresh.: D 0.995000005f
+[12/11/2015 20:21:12] Return best    : true
+[12/11/2015 20:21:12]  1/10 | Batch   1/124 | D  4.748471e-001 [- ] | Valid D  4.866381e-001 [- ] | Stag:  0 Ovfit: 0
+[12/11/2015 20:21:12]  1/10 | Batch  11/124 | D  2.772053e-001 [↓▼] | Valid D  3.013612e-001 [↓▼] | Stag:  0 Ovfit: 0
+[12/11/2015 20:21:12]  1/10 | Batch  21/124 | D  2.178165e-001 [↓▼] | Valid D  2.304372e-001 [↓▼] | Stag:  0 Ovfit: 0
+[12/11/2015 20:21:12]  1/10 | Batch  31/124 | D  2.009703e-001 [↓▼] | Valid D  1.799015e-001 [↓▼] | Stag:  0 Ovfit: 0
+[12/11/2015 20:21:12]  1/10 | Batch  41/124 | D  1.352896e-001 [↓▼] | Valid D  1.405802e-001 [↓▼] | Stag:  0 Ovfit: 0
+[12/11/2015 20:21:12]  1/10 | Batch  51/124 | D  1.182899e-001 [↓▼] | Valid D  1.108390e-001 [↓▼] | Stag:  0 Ovfit: 0
+[12/11/2015 20:21:12]  1/10 | Batch  61/124 | D  1.124191e-001 [↓▼] | Valid D  8.995526e-002 [↓▼] | Stag:  0 Ovfit: 0
+[12/11/2015 20:21:12]  1/10 | Batch  71/124 | D  8.975799e-002 [↓▼] | Valid D  7.361954e-002 [↓▼] | Stag:  0 Ovfit: 0
+[12/11/2015 20:21:12]  1/10 | Batch  81/124 | D  5.031444e-002 [↓▼] | Valid D  5.941865e-002 [↓▼] | Stag:  0 Ovfit: 0
+[12/11/2015 20:21:12]  1/10 | Batch  91/124 | D  5.063754e-002 [↑ ] | Valid D  4.927430e-002 [↓▼] | Stag:  0 Ovfit: 0
+[12/11/2015 20:21:12]  1/10 | Batch 101/124 | D  3.842642e-002 [↓▼] | Valid D  4.095582e-002 [↓▼] | Stag:  0 Ovfit: 0
+[12/11/2015 20:21:12]  1/10 | Batch 111/124 | D  4.326219e-002 [↑ ] | Valid D  3.452797e-002 [↓▼] | Stag:  0 Ovfit: 0
+[12/11/2015 20:21:12]  1/10 | Batch 121/124 | D  2.585407e-002 [↓▼] | Valid D  2.788338e-002 [↓▼] | Stag:  0 Ovfit: 0
+[12/11/2015 20:21:12]  2/10 | Batch   1/124 | D  3.069563e-002 [↑ ] | Valid D  2.663207e-002 [↓▼] | Stag:  0 Ovfit: 0
+[12/11/2015 20:21:12]  2/10 | Batch  11/124 | D  1.765305e-002 [↓▼] | Valid D  2.332163e-002 [↓▼] | Stag:  0 Ovfit: 0
+[12/11/2015 20:21:12]  2/10 | Batch  21/124 | D  2.314118e-002 [↑ ] | Valid D  1.902804e-002 [↓▼] | Stag:  0 Ovfit: 0
+[12/11/2015 20:21:12]  2/10 | Batch  31/124 | D  3.177435e-002 [↑ ] | Valid D  1.691620e-002 [↓▼] | Stag:  0 Ovfit: 0
+[12/11/2015 20:21:12]  2/10 | Batch  41/124 | D  2.219648e-002 [↓ ] | Valid D  1.455527e-002 [↓▼] | Stag:  0 Ovfit: 0
+[12/11/2015 20:21:12]  2/10 | Batch  51/124 | D  1.205402e-002 [↓▼] | Valid D  1.240637e-002 [↓▼] | Stag:  0 Ovfit: 0
+[12/11/2015 20:21:12]  2/10 | Batch  61/124 | D  3.891717e-002 [↑ ] | Valid D  1.189688e-002 [↓▼] | Stag:  0 Ovfit: 0
+[12/11/2015 20:21:12]  2/10 | Batch  71/124 | D  2.114762e-002 [↓ ] | Valid D  1.083007e-002 [↓▼] | Stag:  0 Ovfit: 0
+[12/11/2015 20:21:12]  2/10 | Batch  81/124 | D  5.075417e-003 [↓▼] | Valid D  9.630994e-003 [↓▼] | Stag:  0 Ovfit: 0
+[12/11/2015 20:21:12]  2/10 | Batch  91/124 | D  1.343214e-002 [↑ ] | Valid D  8.666289e-003 [↓▼] | Stag:  0 Ovfit: 0
+[12/11/2015 20:21:13]  2/10 | Batch 101/124 | D  6.054885e-003 [↓ ] | Valid D  8.039203e-003 [↓▼] | Stag:  0 Ovfit: 0
+[12/11/2015 20:21:13]  2/10 | Batch 111/124 | D  1.964125e-002 [↑ ] | Valid D  7.339509e-003 [↓▼] | Stag:  0 Ovfit: 0
+[12/11/2015 20:21:13]  2/10 | Batch 121/124 | D  4.401092e-003 [↓▼] | Valid D  6.376633e-003 [↓▼] | Stag:  0 Ovfit: 0
+[12/11/2015 20:21:13]  3/10 | Batch   1/124 | D  7.068173e-003 [↑ ] | Valid D  6.426438e-003 [↑ ] | Stag: 10 Ovfit: 0
+[12/11/2015 20:21:13]  3/10 | Batch  11/124 | D  3.763680e-003 [↓▼] | Valid D  6.076077e-003 [↓▼] | Stag:  0 Ovfit: 0
+[12/11/2015 20:21:13]  3/10 | Batch  21/124 | D  9.855231e-003 [↑ ] | Valid D  5.091224e-003 [↓▼] | Stag:  0 Ovfit: 0
+[12/11/2015 20:21:13]  3/10 | Batch  31/124 | D  1.263964e-002 [↑ ] | Valid D  4.641499e-003 [↓▼] | Stag:  0 Ovfit: 0
+[12/11/2015 20:21:13]  3/10 | Batch  41/124 | D  1.205439e-002 [↓ ] | Valid D  4.599225e-003 [↓▼] | Stag:  0 Ovfit: 0
+[12/11/2015 20:21:13]  3/10 | Batch  51/124 | D  2.941387e-003 [↓▼] | Valid D  4.381890e-003 [↓▼] | Stag:  0 Ovfit: 0
+[12/11/2015 20:21:13]  3/10 | Batch  61/124 | D  2.546543e-002 [↑ ] | Valid D  4.439059e-003 [↑ ] | Stag: 10 Ovfit: 0
+[12/11/2015 20:21:13]  3/10 | Batch  71/124 | D  9.878366e-003 [↓ ] | Valid D  4.358966e-003 [↓▼] | Stag:  0 Ovfit: 0
+[12/11/2015 20:21:13]  3/10 | Batch  81/124 | D  1.868963e-003 [↓▼] | Valid D  3.960044e-003 [↓▼] | Stag:  0 Ovfit: 0
+[12/11/2015 20:21:13]  3/10 | Batch  91/124 | D  7.171181e-003 [↑ ] | Valid D  3.634899e-003 [↓▼] | Stag:  0 Ovfit: 0
+[12/11/2015 20:21:13]  3/10 | Batch 101/124 | D  2.681098e-003 [↓ ] | Valid D  3.636524e-003 [↑ ] | Stag: 10 Ovfit: 0
+[12/11/2015 20:21:13]  3/10 | Batch 111/124 | D  1.502046e-002 [↑ ] | Valid D  3.393996e-003 [↓▼] | Stag:  0 Ovfit: 0
+[12/11/2015 20:21:13]  3/10 | Batch 121/124 | D  2.381395e-003 [↓ ] | Valid D  3.178693e-003 [↓▼] | Stag:  0 Ovfit: 0
+[12/11/2015 20:21:13]  4/10 | Batch   1/124 | D  3.185510e-003 [↑ ] | Valid D  3.240891e-003 [↑ ] | Stag: 10 Ovfit: 0
+[12/11/2015 20:21:13]  4/10 | Batch  11/124 | D  2.029225e-003 [↓ ] | Valid D  3.163968e-003 [↓ ] | Stag: 20 Ovfit: 0
+[12/11/2015 20:21:13]  4/10 | Batch  21/124 | D  6.450378e-003 [↑ ] | Valid D  2.772849e-003 [↓▼] | Stag:  0 Ovfit: 0
+[12/11/2015 20:21:13]  4/10 | Batch  31/124 | D  7.448227e-003 [↑ ] | Valid D  2.572560e-003 [↓▼] | Stag:  0 Ovfit: 0
+[12/11/2015 20:21:13]  4/10 | Batch  41/124 | D  9.700718e-003 [↑ ] | Valid D  2.693694e-003 [↑ ] | Stag: 10 Ovfit: 0
+[12/11/2015 20:21:13]  4/10 | Batch  51/124 | D  1.799919e-003 [↓▼] | Valid D  2.737873e-003 [↑ ] | Stag: 20 Ovfit: 1
+[12/11/2015 20:21:13]  4/10 | Batch  61/124 | D  1.919956e-002 [↑ ] | Valid D  2.778393e-003 [↑ ] | Stag: 30 Ovfit: 3
+[12/11/2015 20:21:13]  4/10 | Batch  71/124 | D  5.462923e-003 [↓ ] | Valid D  2.870561e-003 [↑ ] | Stag: 40 Ovfit: 3
+[12/11/2015 20:21:13]  4/10 | Batch  81/124 | D  1.455469e-003 [↓▼] | Valid D  2.632472e-003 [↓ ] | Stag: 50 Ovfit: 4
+[12/11/2015 20:21:14]  4/10 | Batch  91/124 | D  5.270801e-003 [↑ ] | Valid D  2.455564e-003 [↓▼] | Stag:  0 Ovfit: 0
+[12/11/2015 20:21:14]  4/10 | Batch 101/124 | D  2.057914e-003 [↓ ] | Valid D  2.511977e-003 [↑ ] | Stag: 10 Ovfit: 0
+[12/11/2015 20:21:14]  4/10 | Batch 111/124 | D  1.314815e-002 [↑ ] | Valid D  2.393763e-003 [↓▼] | Stag:  0 Ovfit: 0
+[12/11/2015 20:21:14]  4/10 | Batch 121/124 | D  2.033168e-003 [↓ ] | Valid D  2.358985e-003 [↓▼] | Stag:  0 Ovfit: 0
+[12/11/2015 20:21:14]  5/10 | Batch   1/124 | D  2.199435e-003 [↑ ] | Valid D  2.389120e-003 [↑ ] | Stag: 10 Ovfit: 0
+[12/11/2015 20:21:14]  5/10 | Batch  11/124 | D  1.668178e-003 [↓ ] | Valid D  2.356529e-003 [↓ ] | Stag: 20 Ovfit: 0
+[12/11/2015 20:21:14]  5/10 | Batch  21/124 | D  5.649061e-003 [↑ ] | Valid D  2.151499e-003 [↓▼] | Stag:  0 Ovfit: 0
+[12/11/2015 20:21:14]  5/10 | Batch  31/124 | D  5.264180e-003 [↓ ] | Valid D  2.038927e-003 [↓▼] | Stag:  0 Ovfit: 0
+[12/11/2015 20:21:14]  5/10 | Batch  41/124 | D  8.416546e-003 [↑ ] | Valid D  2.145057e-003 [↑ ] | Stag: 10 Ovfit: 0
+[12/11/2015 20:21:14]  5/10 | Batch  51/124 | D  1.564733e-003 [↓ ] | Valid D  2.208556e-003 [↑ ] | Stag: 20 Ovfit: 0
+[12/11/2015 20:21:14]  5/10 | Batch  61/124 | D  1.581773e-002 [↑ ] | Valid D  2.233998e-003 [↑ ] | Stag: 30 Ovfit: 0
+[12/11/2015 20:21:14]  5/10 | Batch  71/124 | D  3.898179e-003 [↓ ] | Valid D  2.347554e-003 [↑ ] | Stag: 40 Ovfit: 0
+[12/11/2015 20:21:14]  5/10 | Batch  81/124 | D  1.395002e-003 [↓▼] | Valid D  2.182974e-003 [↓ ] | Stag: 50 Ovfit: 1
+[12/11/2015 20:21:14]  5/10 | Batch  91/124 | D  4.450763e-003 [↑ ] | Valid D  2.069927e-003 [↓ ] | Stag: 60 Ovfit: 1
+[12/11/2015 20:21:14]  5/10 | Batch 101/124 | D  1.927794e-003 [↓ ] | Valid D  2.129479e-003 [↑ ] | Stag: 70 Ovfit: 1
+[12/11/2015 20:21:14]  5/10 | Batch 111/124 | D  1.238949e-002 [↑ ] | Valid D  2.059099e-003 [↓ ] | Stag: 80 Ovfit: 1
+[12/11/2015 20:21:14]  5/10 | Batch 121/124 | D  1.969593e-003 [↓ ] | Valid D  2.072177e-003 [↑ ] | Stag: 90 Ovfit: 1
+[12/11/2015 20:21:14]  6/10 | Batch   1/124 | D  1.885590e-003 [↓ ] | Valid D  2.087292e-003 [↑ ] | Stag:100 Ovfit: 1
+[12/11/2015 20:21:14]  6/10 | Batch  11/124 | D  1.577425e-003 [↓ ] | Valid D  2.074389e-003 [↓ ] | Stag:110 Ovfit: 1
+[12/11/2015 20:21:14]  6/10 | Batch  21/124 | D  5.410788e-003 [↑ ] | Valid D  1.943973e-003 [↓▼] | Stag:  0 Ovfit: 0
+[12/11/2015 20:21:14]  6/10 | Batch  31/124 | D  4.188792e-003 [↓ ] | Valid D  1.863442e-003 [↓▼] | Stag:  0 Ovfit: 0
+[12/11/2015 20:21:14]  6/10 | Batch  41/124 | D  7.516511e-003 [↑ ] | Valid D  1.951990e-003 [↑ ] | Stag: 10 Ovfit: 0
+[12/11/2015 20:21:14]  6/10 | Batch  51/124 | D  1.510475e-003 [↓ ] | Valid D  2.003860e-003 [↑ ] | Stag: 20 Ovfit: 0
+[12/11/2015 20:21:14]  6/10 | Batch  61/124 | D  1.375423e-002 [↑ ] | Valid D  2.020531e-003 [↑ ] | Stag: 30 Ovfit: 0
+[12/11/2015 20:21:14]  6/10 | Batch  71/124 | D  3.260145e-003 [↓ ] | Valid D  2.129138e-003 [↑ ] | Stag: 40 Ovfit: 0
+[12/11/2015 20:21:15]  6/10 | Batch  81/124 | D  1.402565e-003 [↓ ] | Valid D  2.002138e-003 [↓ ] | Stag: 50 Ovfit: 0
+[12/11/2015 20:21:15]  6/10 | Batch  91/124 | D  3.999386e-003 [↑ ] | Valid D  1.920336e-003 [↓ ] | Stag: 60 Ovfit: 0
+[12/11/2015 20:21:15]  6/10 | Batch 101/124 | D  1.929424e-003 [↓ ] | Valid D  1.976652e-003 [↑ ] | Stag: 70 Ovfit: 0
+[12/11/2015 20:21:15]  6/10 | Batch 111/124 | D  1.205915e-002 [↑ ] | Valid D  1.926643e-003 [↓ ] | Stag: 80 Ovfit: 0
+[12/11/2015 20:21:15]  6/10 | Batch 121/124 | D  1.978536e-003 [↓ ] | Valid D  1.951888e-003 [↑ ] | Stag: 90 Ovfit: 0
+[12/11/2015 20:21:15]  7/10 | Batch   1/124 | D  1.769614e-003 [↓ ] | Valid D  1.959661e-003 [↑ ] | Stag:100 Ovfit: 0
+[12/11/2015 20:21:15]  7/10 | Batch  11/124 | D  1.555518e-003 [↓ ] | Valid D  1.955613e-003 [↓ ] | Stag:110 Ovfit: 0
+[12/11/2015 20:21:15]  7/10 | Batch  21/124 | D  5.217655e-003 [↑ ] | Valid D  1.861573e-003 [↓ ] | Stag:120 Ovfit: 0
+[12/11/2015 20:21:15]  7/10 | Batch  31/124 | D  3.625835e-003 [↓ ] | Valid D  1.796666e-003 [↓▼] | Stag:  0 Ovfit: 0
+[12/11/2015 20:21:15]  7/10 | Batch  41/124 | D  6.929778e-003 [↑ ] | Valid D  1.872346e-003 [↑ ] | Stag: 10 Ovfit: 0
+[12/11/2015 20:21:15]  7/10 | Batch  51/124 | D  1.502809e-003 [↓ ] | Valid D  1.913079e-003 [↑ ] | Stag: 20 Ovfit: 0
+[12/11/2015 20:21:15]  7/10 | Batch  61/124 | D  1.241405e-002 [↑ ] | Valid D  1.924762e-003 [↑ ] | Stag: 30 Ovfit: 0
+[12/11/2015 20:21:15]  7/10 | Batch  71/124 | D  2.962820e-003 [↓ ] | Valid D  2.024504e-003 [↑ ] | Stag: 40 Ovfit: 0
+[12/11/2015 20:21:15]  7/10 | Batch  81/124 | D  1.421725e-003 [↓ ] | Valid D  1.919308e-003 [↓ ] | Stag: 50 Ovfit: 0
+[12/11/2015 20:21:15]  7/10 | Batch  91/124 | D  3.717377e-003 [↑ ] | Valid D  1.854433e-003 [↓ ] | Stag: 60 Ovfit: 0
+[12/11/2015 20:21:15]  7/10 | Batch 101/124 | D  1.973184e-003 [↓ ] | Valid D  1.907719e-003 [↑ ] | Stag: 70 Ovfit: 0
+[12/11/2015 20:21:15]  7/10 | Batch 111/124 | D  1.190252e-002 [↑ ] | Valid D  1.867085e-003 [↓ ] | Stag: 80 Ovfit: 0
+[12/11/2015 20:21:15]  7/10 | Batch 121/124 | D  2.006255e-003 [↓ ] | Valid D  1.894716e-003 [↑ ] | Stag: 90 Ovfit: 0
+[12/11/2015 20:21:15]  8/10 | Batch   1/124 | D  1.721533e-003 [↓ ] | Valid D  1.898627e-003 [↑ ] | Stag:100 Ovfit: 0
+[12/11/2015 20:21:15]  8/10 | Batch  11/124 | D  1.553262e-003 [↓ ] | Valid D  1.897926e-003 [↓ ] | Stag:110 Ovfit: 0
+[12/11/2015 20:21:15]  8/10 | Batch  21/124 | D  5.004487e-003 [↑ ] | Valid D  1.823838e-003 [↓ ] | Stag:120 Ovfit: 0
+[12/11/2015 20:21:15]  8/10 | Batch  31/124 | D  3.308986e-003 [↓ ] | Valid D  1.768821e-003 [↓▼] | Stag:  0 Ovfit: 0
+[12/11/2015 20:21:15]  8/10 | Batch  41/124 | D  6.563510e-003 [↑ ] | Valid D  1.835302e-003 [↑ ] | Stag: 10 Ovfit: 0
+[12/11/2015 20:21:15]  8/10 | Batch  51/124 | D  1.507999e-003 [↓ ] | Valid D  1.868091e-003 [↑ ] | Stag: 20 Ovfit: 0
+[12/11/2015 20:21:15]  8/10 | Batch  61/124 | D  1.148601e-002 [↑ ] | Valid D  1.876653e-003 [↑ ] | Stag: 30 Ovfit: 0
+[12/11/2015 20:21:16]  8/10 | Batch  71/124 | D  2.807777e-003 [↓ ] | Valid D  1.968064e-003 [↑ ] | Stag: 40 Ovfit: 0
+[12/11/2015 20:21:16]  8/10 | Batch  81/124 | D  1.440011e-003 [↓ ] | Valid D  1.876611e-003 [↓ ] | Stag: 50 Ovfit: 0
+[12/11/2015 20:21:16]  8/10 | Batch  91/124 | D  3.522004e-003 [↑ ] | Valid D  1.821817e-003 [↓ ] | Stag: 60 Ovfit: 0
+[12/11/2015 20:21:16]  8/10 | Batch 101/124 | D  2.031282e-003 [↓ ] | Valid D  1.872902e-003 [↑ ] | Stag: 70 Ovfit: 0
+[12/11/2015 20:21:16]  8/10 | Batch 111/124 | D  1.182362e-002 [↑ ] | Valid D  1.836957e-003 [↓ ] | Stag: 80 Ovfit: 0
+[12/11/2015 20:21:16]  8/10 | Batch 121/124 | D  2.035742e-003 [↓ ] | Valid D  1.864137e-003 [↑ ] | Stag: 90 Ovfit: 0
+[12/11/2015 20:21:16]  9/10 | Batch   1/124 | D  1.699795e-003 [↓ ] | Valid D  1.865989e-003 [↑ ] | Stag:100 Ovfit: 0
+[12/11/2015 20:21:16]  9/10 | Batch  11/124 | D  1.556397e-003 [↓ ] | Valid D  1.866347e-003 [↑ ] | Stag:110 Ovfit: 0
+[12/11/2015 20:21:16]  9/10 | Batch  21/124 | D  4.788828e-003 [↑ ] | Valid D  1.804229e-003 [↓ ] | Stag:120 Ovfit: 0
+[12/11/2015 20:21:16]  9/10 | Batch  31/124 | D  3.119682e-003 [↓ ] | Valid D  1.756223e-003 [↓▼] | Stag:  0 Ovfit: 0
+[12/11/2015 20:21:16]  9/10 | Batch  41/124 | D  6.336636e-003 [↑ ] | Valid D  1.816257e-003 [↑ ] | Stag: 10 Ovfit: 0
+[12/11/2015 20:21:16]  9/10 | Batch  51/124 | D  1.516153e-003 [↓ ] | Valid D  1.843593e-003 [↑ ] | Stag: 20 Ovfit: 0
+[12/11/2015 20:21:16]  9/10 | Batch  61/124 | D  1.080968e-002 [↑ ] | Valid D  1.850113e-003 [↑ ] | Stag: 30 Ovfit: 0
+[12/11/2015 20:21:16]  9/10 | Batch  71/124 | D  2.720124e-003 [↓ ] | Valid D  1.934669e-003 [↑ ] | Stag: 40 Ovfit: 0
+[12/11/2015 20:21:16]  9/10 | Batch  81/124 | D  1.455176e-003 [↓ ] | Valid D  1.852409e-003 [↓ ] | Stag: 50 Ovfit: 0
+[12/11/2015 20:21:16]  9/10 | Batch  91/124 | D  3.375944e-003 [↑ ] | Valid D  1.804057e-003 [↓ ] | Stag: 60 Ovfit: 0
+[12/11/2015 20:21:16]  9/10 | Batch 101/124 | D  2.093168e-003 [↓ ] | Valid D  1.853583e-003 [↑ ] | Stag: 70 Ovfit: 0
+[12/11/2015 20:21:16]  9/10 | Batch 111/124 | D  1.178356e-002 [↑ ] | Valid D  1.820183e-003 [↓ ] | Stag: 80 Ovfit: 0
+[12/11/2015 20:21:16]  9/10 | Batch 121/124 | D  2.061530e-003 [↓ ] | Valid D  1.846045e-003 [↑ ] | Stag: 90 Ovfit: 0
+[12/11/2015 20:21:16] 10/10 | Batch   1/124 | D  1.689459e-003 [↓ ] | Valid D  1.846794e-003 [↑ ] | Stag:100 Ovfit: 0
+[12/11/2015 20:21:16] 10/10 | Batch  11/124 | D  1.560583e-003 [↓ ] | Valid D  1.847311e-003 [↑ ] | Stag:110 Ovfit: 0
+[12/11/2015 20:21:16] 10/10 | Batch  21/124 | D  4.588457e-003 [↑ ] | Valid D  1.792883e-003 [↓ ] | Stag:120 Ovfit: 0
+[12/11/2015 20:21:16] 10/10 | Batch  31/124 | D  3.001853e-003 [↓ ] | Valid D  1.750141e-003 [↓ ] | Stag:130 Ovfit: 0
+[12/11/2015 20:21:16] 10/10 | Batch  41/124 | D  6.195725e-003 [↑ ] | Valid D  1.805622e-003 [↑ ] | Stag:140 Ovfit: 0
+[12/11/2015 20:21:16] 10/10 | Batch  51/124 | D  1.524289e-003 [↓ ] | Valid D  1.829196e-003 [↑ ] | Stag:150 Ovfit: 0
+[12/11/2015 20:21:17] 10/10 | Batch  61/124 | D  1.029841e-002 [↑ ] | Valid D  1.834366e-003 [↑ ] | Stag:160 Ovfit: 0
+[12/11/2015 20:21:17] 10/10 | Batch  71/124 | D  2.667856e-003 [↓ ] | Valid D  1.913492e-003 [↑ ] | Stag:170 Ovfit: 0
+[12/11/2015 20:21:17] 10/10 | Batch  81/124 | D  1.467351e-003 [↓ ] | Valid D  1.837669e-003 [↓ ] | Stag:180 Ovfit: 0
+[12/11/2015 20:21:17] 10/10 | Batch  91/124 | D  3.261143e-003 [↑ ] | Valid D  1.793646e-003 [↓ ] | Stag:190 Ovfit: 0
+[12/11/2015 20:21:17] 10/10 | Batch 101/124 | D  2.153974e-003 [↓ ] | Valid D  1.842048e-003 [↑ ] | Stag:200 Ovfit: 0
+[12/11/2015 20:21:17] 10/10 | Batch 111/124 | D  1.176465e-002 [↑ ] | Valid D  1.810117e-003 [↓ ] | Stag:210 Ovfit: 0
+[12/11/2015 20:21:17] 10/10 | Batch 121/124 | D  2.082179e-003 [↓ ] | Valid D  1.834467e-003 [↑ ] | Stag:220 Ovfit: 0
+[12/11/2015 20:21:17] Duration       : 00:00:05.2093910
+[12/11/2015 20:21:17] Loss initial   : D  4.748471e-001
+[12/11/2015 20:21:17] Loss final     : D  1.395002e-003 (Best)
+[12/11/2015 20:21:17] Loss change    : D -4.734521e-001 (-99.71 %)
+[12/11/2015 20:21:17] Loss chg. / s  : D -9.088434e-002
+[12/11/2015 20:21:17] Epochs / s     : 1.919610181
+[12/11/2015 20:21:17] Epochs / min   : 115.1766109
+[12/11/2015 20:21:17] --- Training finished
+
+</pre>
+
+<p>After a 5-second training, we can see that the characteristics of the problem domain (distinguishing between the digits of 0 and 1) is captured in the model weights.</p>
+
+<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l">1: </span>
+<span class="l">2: </span>
+</pre></td>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span onmouseout="hideTip(event, 'fs37', 93)" onmouseover="showTip(event, 'fs37', 93)" class="i">l</span> <span class="o">=</span> (<span onmouseout="hideTip(event, 'fs32', 94)" onmouseover="showTip(event, 'fs32', 94)" class="i">n</span><span class="o">.</span>[<span class="n">0</span>] <span class="o">:?&gt;</span> <span onmouseout="hideTip(event, 'fs35', 95)" onmouseover="showTip(event, 'fs35', 95)" class="t">Linear</span>)
+<span onmouseout="hideTip(event, 'fs37', 96)" onmouseover="showTip(event, 'fs37', 96)" class="i">l</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs38', 97)" onmouseover="showTip(event, 'fs38', 97)" class="f">VisualizeWRowsAsImageGrid</span>(<span class="n">28</span>) <span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs30', 98)" onmouseover="showTip(event, 'fs30', 98)" class="f">printfn</span> <span class="s">&quot;</span><span class="pf">%s</span><span class="s">&quot;</span>
+</code></pre></td>
+</tr>
+</table>
+
+<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l"> 1: </span>
+<span class="l"> 2: </span>
+<span class="l"> 3: </span>
+<span class="l"> 4: </span>
+<span class="l"> 5: </span>
+<span class="l"> 6: </span>
+<span class="l"> 7: </span>
+<span class="l"> 8: </span>
+<span class="l"> 9: </span>
+<span class="l">10: </span>
+<span class="l">11: </span>
+<span class="l">12: </span>
+<span class="l">13: </span>
+<span class="l">14: </span>
+<span class="l">15: </span>
+<span class="l">16: </span>
+<span class="l">17: </span>
+<span class="l">18: </span>
+<span class="l">19: </span>
+<span class="l">20: </span>
+<span class="l">21: </span>
+<span class="l">22: </span>
+<span class="l">23: </span>
+<span class="l">24: </span>
+<span class="l">25: </span>
+<span class="l">26: </span>
+<span class="l">27: </span>
+<span class="l">28: </span>
+<span class="l">29: </span>
+<span class="l">30: </span>
+<span class="l">31: </span>
+<span class="l">32: </span>
+<span class="l">33: </span>
+<span class="l">34: </span>
+<span class="l">35: </span>
+<span class="l">36: </span>
+<span class="l">37: </span>
+</pre></td>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="cs">Hype.Neural.Linear
+   784 <span class="o">-</span><span class="o">&gt;</span> 1
+   Learnable parameters: 785
+   Init: Standard
+   W's rows reshaped to (28 x 28), presented <span class="k">in</span> a (1 x 1) grid:
+DM <span class="o">:</span> 28 x 28
+<span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span>
+<span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span>
+<span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span>▴▴▴▴▴<span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span>
+<span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span>▴<span class="o">-</span><span class="o">-</span>▴▴▴▴▴▴<span class="o">-</span>▴<span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span>
+<span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span>▴▴▪▴▪▪▪▴<span class="o">-</span>▴▴▴▪▪▪▴<span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span>
+<span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span>▴<span class="o">-</span>▴▴▴▴▪▪▴▴<span class="o">-</span>·<span class="o">-</span>▴▪▪▪▪▴<span class="o">-</span><span class="o">-</span><span class="o">-</span>
+<span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span>▴<span class="o">-</span><span class="o">-</span>▴▴<span class="o">-</span>▴▴<span class="o">-</span><span class="o">-</span>···▴▪▴▴▴▴<span class="o">-</span><span class="o">-</span><span class="o">-</span>
+<span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span>▴<span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span>▴▴<span class="o">-</span>· <span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span>
+<span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span>··<span class="o">-</span><span class="o">-</span><span class="o">-</span>▴▪<span class="o">-</span><span class="o">-</span>·<span class="o">-</span>·····<span class="o">-</span><span class="o">-</span><span class="o">-</span>
+<span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span>······▴▪▪▪▴<span class="o">-</span>······<span class="o">-</span><span class="o">-</span><span class="o">-</span>
+<span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span>·····  ▴●●●▴·     ·<span class="o">-</span><span class="o">-</span><span class="o">-</span>
+<span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span>·· ·    ▪♦■♦▪      ·<span class="o">-</span><span class="o">-</span><span class="o">-</span>
+<span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span>· ·     ●■■♦▴      ·<span class="o">-</span><span class="o">-</span><span class="o">-</span>
+<span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span>·      ·♦██♦·      ·<span class="o">-</span><span class="o">-</span><span class="o">-</span>
+<span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span>·      ▴■██●       ·<span class="o">-</span><span class="o">-</span><span class="o">-</span>
+<span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span>·       ▪██■▪       ·<span class="o">-</span><span class="o">-</span><span class="o">-</span>
+<span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span>·      <span class="o">-</span>●█■♦<span class="o">-</span>       ·<span class="o">-</span><span class="o">-</span><span class="o">-</span>
+<span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span>·      ▴♦█■●·     ···<span class="o">-</span><span class="o">-</span><span class="o">-</span>
+<span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span>·     ·▴♦♦♦●·   ····<span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span>
+<span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span>·    ·▴▪●●●▪·· ····<span class="o">-</span><span class="o">-</span>▴<span class="o">-</span><span class="o">-</span>
+<span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span>······<span class="o">-</span>▴▪▪▪▴<span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span>▴<span class="o">-</span><span class="o">-</span><span class="o">-</span>
+<span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span>▴▴<span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span>·<span class="o">-</span><span class="o">-</span>▴▴<span class="o">-</span>▴▴<span class="o">-</span>▴▴<span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span>
+<span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span>▴▪▪▴<span class="o">-</span>· ··<span class="o">-</span><span class="o">-</span>▴▴▪▴▴▴▴<span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span>
+<span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span>▴▪▪▪▪▴<span class="o">-</span>· ·<span class="o">-</span>▴▴▪▴▴▴▴<span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span>
+<span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span>▴▪▴▴▴▴·<span class="o">-</span><span class="o">-</span><span class="o">-</span>▴▴▴▴▴<span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span>
+<span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span>▴▴▴▴<span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span>
+<span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span>
+<span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span><span class="o">-</span>
+
+   b:
+DV <span class="o">:</span> 1
+</code></pre></td></tr></table>
+
+<h3>Classifier</h3>
+
+<p>You can create classifiers by instantiating types such as <strong>LogisticClassifier</strong> or <strong>SoftmaxClassifier</strong>, and passing a classification function of the form <strong>DM-&gt;DM</strong>in the constructor. Alternatively, you can directly pass the model we have just trained.</p>
+
+<p>Please see the <a href="reference/index.html">API reference</a> and the <a href="https://github.com/hypelib/Hype/blob/master/src/Hype/Classifier.fs">source code</a> for a better understanding of how classifiers are implemented.</p>
+
+<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l">1: </span>
+</pre></td>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span onmouseout="hideTip(event, 'fs47', 99)" onmouseover="showTip(event, 'fs47', 99)" class="i">cc</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs48', 100)" onmouseover="showTip(event, 'fs48', 100)" class="t">LogisticClassifier</span>(<span onmouseout="hideTip(event, 'fs32', 101)" onmouseover="showTip(event, 'fs32', 101)" class="i">n</span>)
+</code></pre></td>
+</tr>
+</table>
+
+<p>Let's test the class predictions for 10 random elements from the MNIST test set, which, if you remember, we've filtered to have only 0s and 1s.</p>
+
+<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l">1: </span>
+<span class="l">2: </span>
+</pre></td>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span onmouseout="hideTip(event, 'fs49', 102)" onmouseover="showTip(event, 'fs49', 102)" class="i">pred</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs47', 103)" onmouseover="showTip(event, 'fs47', 103)" class="i">cc</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs50', 104)" onmouseover="showTip(event, 'fs50', 104)" class="f">Classify</span>(<span onmouseout="hideTip(event, 'fs26', 105)" onmouseover="showTip(event, 'fs26', 105)" class="i">MNISTtest01</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs27', 106)" onmouseover="showTip(event, 'fs27', 106)" class="i">X</span><span class="o">.</span>[<span class="o">*</span>,<span class="n">0..</span><span class="n">9</span>]);;
+<span class="k">let</span> <span onmouseout="hideTip(event, 'fs51', 107)" onmouseover="showTip(event, 'fs51', 107)" class="i">real</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs26', 108)" onmouseover="showTip(event, 'fs26', 108)" class="i">MNISTtest01</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs31', 109)" onmouseover="showTip(event, 'fs31', 109)" class="i">Y</span><span class="o">.</span>[<span class="o">*</span>, <span class="n">0..</span><span class="n">9</span>] <span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs15', 110)" onmouseover="showTip(event, 'fs15', 110)" class="t">DM</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs52', 111)" onmouseover="showTip(event, 'fs52', 111)" class="f">toDV</span> <span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs28', 112)" onmouseover="showTip(event, 'fs28', 112)" class="t">DV</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs53', 113)" onmouseover="showTip(event, 'fs53', 113)" class="f">toArray</span> <span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs54', 114)" onmouseover="showTip(event, 'fs54', 114)" class="t">Array</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs55', 115)" onmouseover="showTip(event, 'fs55', 115)" class="f">map</span> (<span onmouseout="hideTip(event, 'fs56', 116)" onmouseover="showTip(event, 'fs56', 116)" class="f">float32</span><span class="o">&gt;</span><span class="o">&gt;</span><span onmouseout="hideTip(event, 'fs57', 117)" onmouseover="showTip(event, 'fs57', 117)" class="f">int</span>)
+</code></pre></td>
+</tr>
+</table>
+
+<pre>
+val pred : int [] = [|1; 0; 1; 0; 1; 0; 0; 1; 1; 1|]
+val real : int [] = [|1; 0; 1; 0; 1; 0; 0; 1; 1; 1|]
+</pre>
+
+<p>The classifier seems to be working well. We can compute the classification error for a given dataset.</p>
+
+<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l">1: </span>
+</pre></td>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span onmouseout="hideTip(event, 'fs58', 118)" onmouseover="showTip(event, 'fs58', 118)" class="i">error</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs47', 119)" onmouseover="showTip(event, 'fs47', 119)" class="i">cc</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs59', 120)" onmouseover="showTip(event, 'fs59', 120)" class="f">ClassificationError</span>(<span onmouseout="hideTip(event, 'fs26', 121)" onmouseover="showTip(event, 'fs26', 121)" class="i">MNISTtest01</span>);;
+</code></pre></td>
+</tr>
+</table>
+
+<pre>
+val error : float32 = 0.000472813234f
+</pre>
+
+<p>The classification error is 0.047%.</p>
+
+<p>Finally, this is how you would classify single digits.</p>
+
+<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l">1: </span>
+<span class="l">2: </span>
+</pre></td>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span onmouseout="hideTip(event, 'fs60', 122)" onmouseover="showTip(event, 'fs60', 122)" class="i">cls</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs47', 123)" onmouseover="showTip(event, 'fs47', 123)" class="i">cc</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs50', 124)" onmouseover="showTip(event, 'fs50', 124)" class="f">Classify</span>(<span onmouseout="hideTip(event, 'fs26', 125)" onmouseover="showTip(event, 'fs26', 125)" class="i">MNISTtest01</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs27', 126)" onmouseover="showTip(event, 'fs27', 126)" class="i">X</span><span class="o">.</span>[<span class="o">*</span>,<span class="n">0</span>]);;
+<span onmouseout="hideTip(event, 'fs26', 127)" onmouseover="showTip(event, 'fs26', 127)" class="i">MNISTtest01</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs27', 128)" onmouseover="showTip(event, 'fs27', 128)" class="i">X</span><span class="o">.</span>[<span class="o">*</span>,<span class="n">0</span>] <span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs28', 129)" onmouseover="showTip(event, 'fs28', 129)" class="t">DV</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs29', 130)" onmouseover="showTip(event, 'fs29', 130)" class="f">visualizeAsDM</span> <span class="n">28</span> <span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs30', 131)" onmouseover="showTip(event, 'fs30', 131)" class="f">printfn</span> <span class="s">&quot;</span><span class="pf">%s</span><span class="s">&quot;</span>
+</code></pre></td>
+</tr>
+</table>
+
+<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l"> 1: </span>
+<span class="l"> 2: </span>
+<span class="l"> 3: </span>
+<span class="l"> 4: </span>
+<span class="l"> 5: </span>
+<span class="l"> 6: </span>
+<span class="l"> 7: </span>
+<span class="l"> 8: </span>
+<span class="l"> 9: </span>
+<span class="l">10: </span>
+<span class="l">11: </span>
+<span class="l">12: </span>
+<span class="l">13: </span>
+<span class="l">14: </span>
+<span class="l">15: </span>
+<span class="l">16: </span>
+<span class="l">17: </span>
+<span class="l">18: </span>
+<span class="l">19: </span>
+<span class="l">20: </span>
+<span class="l">21: </span>
+<span class="l">22: </span>
+<span class="l">23: </span>
+<span class="l">24: </span>
+<span class="l">25: </span>
+<span class="l">26: </span>
+<span class="l">27: </span>
+</pre></td>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="cs">val cls <span class="o">:</span> <span class="k">int</span> <span class="o">=</span> 1
+
+DM <span class="o">:</span> 28 x 28
+
+
+
+
+            ♦               
+            ●♦              
+             █              
+             ■·             
+            ▪█<span class="o">-</span>             
+            ▴█<span class="o">-</span>             
+             ■♦             
+             ♦█·            
+             <span class="o">-</span>█▪            
+              █▪            
+              ●▪            
+              ▪█            
+              ▪█<span class="o">-</span>           
+              ▪█▴           
+              ▪█■           
+               █■           
+               ██           
+               ▪█           
+                █▴          
+                █●          
+</code></pre></td></tr></table>
+
+<p>And this is how you would classify many digits efficiently at the same time, by running them through the model together as the columns of an input matrix.</p>
+
+<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l">1: </span>
+<span class="l">2: </span>
+</pre></td>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span onmouseout="hideTip(event, 'fs61', 132)" onmouseover="showTip(event, 'fs61', 132)" class="i">clss</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs47', 133)" onmouseover="showTip(event, 'fs47', 133)" class="i">cc</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs50', 134)" onmouseover="showTip(event, 'fs50', 134)" class="f">Classify</span>(<span onmouseout="hideTip(event, 'fs26', 135)" onmouseover="showTip(event, 'fs26', 135)" class="i">MNISTtest01</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs27', 136)" onmouseover="showTip(event, 'fs27', 136)" class="i">X</span><span class="o">.</span>[<span class="o">*</span>,<span class="n">5..</span><span class="n">9</span>]);;
+<span onmouseout="hideTip(event, 'fs26', 137)" onmouseover="showTip(event, 'fs26', 137)" class="i">MNISTtest01</span><span class="o">.</span>[<span class="n">5..</span><span class="n">9</span>]<span class="o">.</span><span class="f">VisualizeXColsAsImageGrid</span>(<span class="n">28</span>) <span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs30', 138)" onmouseover="showTip(event, 'fs30', 138)" class="f">printfn</span> <span class="s">&quot;</span><span class="pf">%s</span><span class="s">&quot;</span>
+</code></pre></td>
+</tr>
+</table>
+
+<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l"> 1: </span>
+<span class="l"> 2: </span>
+<span class="l"> 3: </span>
+<span class="l"> 4: </span>
+<span class="l"> 5: </span>
+<span class="l"> 6: </span>
+<span class="l"> 7: </span>
+<span class="l"> 8: </span>
+<span class="l"> 9: </span>
+<span class="l">10: </span>
+<span class="l">11: </span>
+<span class="l">12: </span>
+<span class="l">13: </span>
+<span class="l">14: </span>
+<span class="l">15: </span>
+<span class="l">16: </span>
+<span class="l">17: </span>
+<span class="l">18: </span>
+<span class="l">19: </span>
+<span class="l">20: </span>
+<span class="l">21: </span>
+<span class="l">22: </span>
+<span class="l">23: </span>
+<span class="l">24: </span>
+<span class="l">25: </span>
+<span class="l">26: </span>
+<span class="l">27: </span>
+<span class="l">28: </span>
+<span class="l">29: </span>
+<span class="l">30: </span>
+<span class="l">31: </span>
+<span class="l">32: </span>
+<span class="l">33: </span>
+<span class="l">34: </span>
+<span class="l">35: </span>
+<span class="l">36: </span>
+<span class="l">37: </span>
+<span class="l">38: </span>
+<span class="l">39: </span>
+<span class="l">40: </span>
+<span class="l">41: </span>
+<span class="l">42: </span>
+<span class="l">43: </span>
+<span class="l">44: </span>
+<span class="l">45: </span>
+<span class="l">46: </span>
+<span class="l">47: </span>
+<span class="l">48: </span>
+<span class="l">49: </span>
+<span class="l">50: </span>
+<span class="l">51: </span>
+<span class="l">52: </span>
+<span class="l">53: </span>
+<span class="l">54: </span>
+<span class="l">55: </span>
+<span class="l">56: </span>
+<span class="l">57: </span>
+<span class="l">58: </span>
+<span class="l">59: </span>
+<span class="l">60: </span>
+</pre></td>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="cs">val clss <span class="o">:</span> <span class="k">int</span> [] <span class="o">=</span> [|0; 0; 1; 1; 1|]
+
+Hype.Dataset
+   X: 784 x 5
+   Y: 1 x 5
+X's columns reshaped to (28 x 28), presented <span class="k">in</span> a (2 x 3) grid:
+DM <span class="o">:</span> 56 x 84
+
+
+
+
+             ██·                                                                    
+            ●███♦<span class="o">-</span>                        ·████♦·                   <span class="o">-</span>█▴             
+            ██████■<span class="o">-</span>                     ♦███████<span class="o">-</span>                  ▪██·            
+           ●███████■                  ♦███████████▴                 ●██·            
+          ▪███● <span class="o">-</span>███<span class="o">-</span>                ♦█████████████■                ▴♦█·            
+          ♦██▪   <span class="o">-</span>██■                ████♦ ●●████████                ▪█·            
+         ▪███    ·██■               ●█████·  ··██████                ▪█·            
+         ■██▪    ·██■              ▪██████·    ██████                ▪█·            
+        ·██■     ▪██■             <span class="o">-</span>██████♦     ██████                ▪█·            
+        ♦██▪     ■██■            ▪███████     ·█████♦                ●█·            
+       ·███<span class="o">-</span>     ■██■            ██████♦·    ♦██████·                ██·            
+       ♦██■     ·███■            ██████<span class="o">-</span>   ▪███████<span class="o">-</span>                 ██·            
+       ■██<span class="o">-</span>     <span class="o">-</span>███<span class="o">-</span>            ██████   ●███████▴                  ██·            
+       ■██·     ■██♦             ██████·♦████████■                   ██·            
+       ■██·    ■███●             ████████████████                    ██             
+       ■██●    ████              ██████████████<span class="o">-</span>                     ██             
+       ▴███· <span class="o">-</span>■███<span class="o">-</span>              ▴████████████▴                     ·██             
+       ·█████████♦                ■████████■●                        ██             
+        ▴███████♦                  ████████                         ·█♦·            
+          ▪███♦·                    ●●■●●<span class="o">-</span>                          ·██▴            
+                                                                     █■             
+
+
+
+
+
+
+
+                  ·██                                                               
+                  ███                       <span class="o">-</span>██■                                    
+                 ●██■                      ▪████<span class="o">-</span>                                   
+                 ♦██                       ♦███■                                    
+                ·███                      ·████■                                    
+                ■██♦                      ▴███■                                     
+               ▪██■                      <span class="o">-</span>████●                                     
+               ███<span class="o">-</span>                      ▴████▪                                     
+              ▪██■                      ·████♦                                      
+             <span class="o">-</span>███▴                      █████·                                      
+             ♦██●                       ████♦                                       
+            <span class="o">-</span>███                       ▪████·                                       
+            ███▴                       ■███■                                        
+           <span class="o">-</span>███                       ▴████·                                        
+           ███●                       ■███■                                         
+          ████                        ■███▪                                         
+         ●███<span class="o">-</span>                       <span class="o">-</span>███♦                                          
+        ▴███●                        ●███▪                                          
+        ●██♦                         ████▪                                          
+        ●██·                         ■███▴                                          
+                                      ■■<span class="o">-</span>                                           </code></pre></td></tr></table>
+
+          <div class="tip" id="fs1">val fsi : Compiler.Interactive.InteractiveSession<br /><br />Full name: Microsoft.FSharp.Compiler.Interactive.Settings.fsi</div>
+<div class="tip" id="fs2">property Compiler.Interactive.InteractiveSession.ShowDeclarationValues: bool</div>
+<div class="tip" id="fs3">namespace Hype</div>
+<div class="tip" id="fs4">namespace Hype.Neural</div>
+<div class="tip" id="fs5">namespace DiffSharp</div>
+<div class="tip" id="fs6">namespace DiffSharp.AD</div>
+<div class="tip" id="fs7">module Float32<br /><br />from DiffSharp.AD</div>
+<div class="tip" id="fs8">module Util<br /><br />from DiffSharp</div>
+<div class="tip" id="fs9">val MNIST : Dataset<br /><br />Full name: Regression.MNIST</div>
+<div class="tip" id="fs10">Multiple items<br />type Dataset =<br />&#160;&#160;new : s:seq&lt;DV * DV&gt; -&gt; Dataset<br />&#160;&#160;new : xi:seq&lt;int&gt; * y:DM -&gt; Dataset<br />&#160;&#160;new : x:DM * yi:seq&lt;int&gt; -&gt; Dataset<br />&#160;&#160;new : xi:seq&lt;int&gt; * yi:seq&lt;int&gt; -&gt; Dataset<br />&#160;&#160;new : x:DM * y:DM -&gt; Dataset<br />&#160;&#160;new : xi:seq&lt;int&gt; * onehotdimsx:int * y:DM -&gt; Dataset<br />&#160;&#160;new : x:DM * yi:seq&lt;int&gt; * onehotdimsy:int -&gt; Dataset<br />&#160;&#160;new : xi:seq&lt;int&gt; * onehotdimsx:int * yi:seq&lt;int&gt; * onehotdimsy:int -&gt; Dataset<br />&#160;&#160;private new : x:DM * y:DM * xi:seq&lt;int&gt; * yi:seq&lt;int&gt; -&gt; Dataset<br />&#160;&#160;member AppendBiasRowX : unit -&gt; Dataset<br />&#160;&#160;...<br /><br />Full name: Hype.Dataset<br /><br />--------------------<br />new : s:seq&lt;DV * DV&gt; -&gt; Dataset<br />new : x:DM * y:DM -&gt; Dataset<br />new : xi:seq&lt;int&gt; * yi:seq&lt;int&gt; -&gt; Dataset<br />new : x:DM * yi:seq&lt;int&gt; -&gt; Dataset<br />new : xi:seq&lt;int&gt; * y:DM -&gt; Dataset<br />new : x:DM * yi:seq&lt;int&gt; * onehotdimsy:int -&gt; Dataset<br />new : xi:seq&lt;int&gt; * onehotdimsx:int * y:DM -&gt; Dataset<br />new : xi:seq&lt;int&gt; * onehotdimsx:int * yi:seq&lt;int&gt; * onehotdimsy:int -&gt; Dataset</div>
+<div class="tip" id="fs11">type Util =<br />&#160;&#160;static member LoadDelimited : filename:string -&gt; DM<br />&#160;&#160;static member LoadDelimited : filename:string * separators:char [] -&gt; DM<br />&#160;&#160;static member LoadImage : filename:string -&gt; DM<br />&#160;&#160;static member LoadMNISTLabels : filename:string -&gt; int []<br />&#160;&#160;static member LoadMNISTLabels : filename:string * n:int -&gt; int []<br />&#160;&#160;static member LoadMNISTPixels : filename:string -&gt; DM<br />&#160;&#160;static member LoadMNISTPixels : filename:string * n:int -&gt; DM<br />&#160;&#160;static member VisualizeDMRowsAsImageGrid : w:DM * imagerows:int -&gt; string<br />&#160;&#160;static member printLog : s:string -&gt; unit<br />&#160;&#160;static member printModel : f:(DV -&gt; DV) -&gt; d:Dataset -&gt; unit<br /><br />Full name: Hype.Util</div>
+<div class="tip" id="fs12">static member Util.LoadMNISTPixels : filename:string -&gt; DM<br />static member Util.LoadMNISTPixels : filename:string * n:int -&gt; DM</div>
+<div class="tip" id="fs13">static member Util.LoadMNISTLabels : filename:string -&gt; int []<br />static member Util.LoadMNISTLabels : filename:string * n:int -&gt; int []</div>
+<div class="tip" id="fs14">val toDV : v:seq&lt;&#39;a&gt; -&gt; DV (requires member op_Explicit)<br /><br />Full name: DiffSharp.AD.Float32.DOps.toDV</div>
+<div class="tip" id="fs15">Multiple items<br />union case DM.DM: float32 [,] -&gt; DM<br /><br />--------------------<br />module DM<br /><br />from DiffSharp.AD.Float32<br /><br />--------------------<br />type DM =<br />&#160;&#160;| DM of float32 [,]<br />&#160;&#160;| DMF of DM * DM * uint32<br />&#160;&#160;| DMR of DM * DM ref * TraceOp * uint32 ref * uint32<br />&#160;&#160;member Copy : unit -&gt; DM<br />&#160;&#160;member GetCols : unit -&gt; seq&lt;DV&gt;<br />&#160;&#160;member GetForward : t:DM * i:uint32 -&gt; DM<br />&#160;&#160;member GetReverse : i:uint32 -&gt; DM<br />&#160;&#160;member GetRows : unit -&gt; seq&lt;DV&gt;<br />&#160;&#160;member GetSlice : rowStart:int option * rowFinish:int option * col:int -&gt; DV<br />&#160;&#160;member GetSlice : row:int * colStart:int option * colFinish:int option -&gt; DV<br />&#160;&#160;member GetSlice : rowStart:int option * rowFinish:int option * colStart:int option * colFinish:int option -&gt; DM<br />&#160;&#160;member ToMathematicaString : unit -&gt; string<br />&#160;&#160;member ToMatlabString : unit -&gt; string<br />&#160;&#160;override ToString : unit -&gt; string<br />&#160;&#160;member Visualize : unit -&gt; string<br />&#160;&#160;member A : DM<br />&#160;&#160;member Cols : int<br />&#160;&#160;member F : uint32<br />&#160;&#160;member Item : i:int * j:int -&gt; D with get<br />&#160;&#160;member Length : int<br />&#160;&#160;member P : DM<br />&#160;&#160;member PD : DM<br />&#160;&#160;member Rows : int<br />&#160;&#160;member T : DM<br />&#160;&#160;member A : DM with set<br />&#160;&#160;member F : uint32 with set<br />&#160;&#160;static member Abs : a:DM -&gt; DM<br />&#160;&#160;static member Acos : a:DM -&gt; DM<br />&#160;&#160;static member AddDiagonal : a:DM * b:DV -&gt; DM<br />&#160;&#160;static member AddItem : a:DM * i:int * j:int * b:D -&gt; DM<br />&#160;&#160;static member AddSubMatrix : a:DM * i:int * j:int * b:DM -&gt; DM<br />&#160;&#160;static member Asin : a:DM -&gt; DM<br />&#160;&#160;static member Atan : a:DM -&gt; DM<br />&#160;&#160;static member Atan2 : a:int * b:DM -&gt; DM<br />&#160;&#160;static member Atan2 : a:DM * b:int -&gt; DM<br />&#160;&#160;static member Atan2 : a:float32 * b:DM -&gt; DM<br />&#160;&#160;static member Atan2 : a:DM * b:float32 -&gt; DM<br />&#160;&#160;static member Atan2 : a:D * b:DM -&gt; DM<br />&#160;&#160;static member Atan2 : a:DM * b:D -&gt; DM<br />&#160;&#160;static member Atan2 : a:DM * b:DM -&gt; DM<br />&#160;&#160;static member Ceiling : a:DM -&gt; DM<br />&#160;&#160;static member Cos : a:DM -&gt; DM<br />&#160;&#160;static member Cosh : a:DM -&gt; DM<br />&#160;&#160;static member Det : a:DM -&gt; D<br />&#160;&#160;static member Diagonal : a:DM -&gt; DV<br />&#160;&#160;static member Exp : a:DM -&gt; DM<br />&#160;&#160;static member Floor : a:DM -&gt; DM<br />&#160;&#160;static member Inverse : a:DM -&gt; DM<br />&#160;&#160;static member Log : a:DM -&gt; DM<br />&#160;&#160;static member Log10 : a:DM -&gt; DM<br />&#160;&#160;static member Max : a:DM -&gt; D<br />&#160;&#160;static member Max : a:D * b:DM -&gt; DM<br />&#160;&#160;static member Max : a:DM * b:D -&gt; DM<br />&#160;&#160;static member Max : a:DM * b:DM -&gt; DM<br />&#160;&#160;static member MaxIndex : a:DM -&gt; int * int<br />&#160;&#160;static member Mean : a:DM -&gt; D<br />&#160;&#160;static member Min : a:DM -&gt; D<br />&#160;&#160;static member Min : a:D * b:DM -&gt; DM<br />&#160;&#160;static member Min : a:DM * b:D -&gt; DM<br />&#160;&#160;static member Min : a:DM * b:DM -&gt; DM<br />&#160;&#160;static member MinIndex : a:DM -&gt; int * int<br />&#160;&#160;static member Normalize : a:DM -&gt; DM<br />&#160;&#160;static member OfArray : m:int * a:D [] -&gt; DM<br />&#160;&#160;static member OfArray2D : a:D [,] -&gt; DM<br />&#160;&#160;static member OfCols : n:int * a:DV -&gt; DM<br />&#160;&#160;static member OfRows : s:seq&lt;DV&gt; -&gt; DM<br />&#160;&#160;static member OfRows : m:int * a:DV -&gt; DM<br />&#160;&#160;static member Op_DM_D : a:DM * ff:(float32 [,] -&gt; float32) * fd:(DM -&gt; D) * df:(D * DM * DM -&gt; D) * r:(DM -&gt; TraceOp) -&gt; D<br />&#160;&#160;static member Op_DM_DM : a:DM * ff:(float32 [,] -&gt; float32 [,]) * fd:(DM -&gt; DM) * df:(DM * DM * DM -&gt; DM) * r:(DM -&gt; TraceOp) -&gt; DM<br />&#160;&#160;static member Op_DM_DM_DM : a:DM * b:DM * ff:(float32 [,] * float32 [,] -&gt; float32 [,]) * fd:(DM * DM -&gt; DM) * df_da:(DM * DM * DM -&gt; DM) * df_db:(DM * DM * DM -&gt; DM) * df_dab:(DM * DM * DM * DM * DM -&gt; DM) * r_d_d:(DM * DM -&gt; TraceOp) * r_d_c:(DM * DM -&gt; TraceOp) * r_c_d:(DM * DM -&gt; TraceOp) -&gt; DM<br />&#160;&#160;static member Op_DM_DV : a:DM * ff:(float32 [,] -&gt; float32 []) * fd:(DM -&gt; DV) * df:(DV * DM * DM -&gt; DV) * r:(DM -&gt; TraceOp) -&gt; DV<br />&#160;&#160;static member Op_DM_DV_DM : a:DM * b:DV * ff:(float32 [,] * float32 [] -&gt; float32 [,]) * fd:(DM * DV -&gt; DM) * df_da:(DM * DM * DM -&gt; DM) * df_db:(DM * DV * DV -&gt; DM) * df_dab:(DM * DM * DM * DV * DV -&gt; DM) * r_d_d:(DM * DV -&gt; TraceOp) * r_d_c:(DM * DV -&gt; TraceOp) * r_c_d:(DM * DV -&gt; TraceOp) -&gt; DM<br />&#160;&#160;static member Op_DM_DV_DV : a:DM * b:DV * ff:(float32 [,] * float32 [] -&gt; float32 []) * fd:(DM * DV -&gt; DV) * df_da:(DV * DM * DM -&gt; DV) * df_db:(DV * DV * DV -&gt; DV) * df_dab:(DV * DM * DM * DV * DV -&gt; DV) * r_d_d:(DM * DV -&gt; TraceOp) * r_d_c:(DM * DV -&gt; TraceOp) * r_c_d:(DM * DV -&gt; TraceOp) -&gt; DV<br />&#160;&#160;static member Op_DM_D_DM : a:DM * b:D * ff:(float32 [,] * float32 -&gt; float32 [,]) * fd:(DM * D -&gt; DM) * df_da:(DM * DM * DM -&gt; DM) * df_db:(DM * D * D -&gt; DM) * df_dab:(DM * DM * DM * D * D -&gt; DM) * r_d_d:(DM * D -&gt; TraceOp) * r_d_c:(DM * D -&gt; TraceOp) * r_c_d:(DM * D -&gt; TraceOp) -&gt; DM<br />&#160;&#160;static member Op_DV_DM_DM : a:DV * b:DM * ff:(float32 [] * float32 [,] -&gt; float32 [,]) * fd:(DV * DM -&gt; DM) * df_da:(DM * DV * DV -&gt; DM) * df_db:(DM * DM * DM -&gt; DM) * df_dab:(DM * DV * DV * DM * DM -&gt; DM) * r_d_d:(DV * DM -&gt; TraceOp) * r_d_c:(DV * DM -&gt; TraceOp) * r_c_d:(DV * DM -&gt; TraceOp) -&gt; DM<br />&#160;&#160;static member Op_DV_DM_DV : a:DV * b:DM * ff:(float32 [] * float32 [,] -&gt; float32 []) * fd:(DV * DM -&gt; DV) * df_da:(DV * DV * DV -&gt; DV) * df_db:(DV * DM * DM -&gt; DV) * df_dab:(DV * DV * DV * DM * DM -&gt; DV) * r_d_d:(DV * DM -&gt; TraceOp) * r_d_c:(DV * DM -&gt; TraceOp) * r_c_d:(DV * DM -&gt; TraceOp) -&gt; DV<br />&#160;&#160;static member Op_D_DM_DM : a:D * b:DM * ff:(float32 * float32 [,] -&gt; float32 [,]) * fd:(D * DM -&gt; DM) * df_da:(DM * D * D -&gt; DM) * df_db:(DM * DM * DM -&gt; DM) * df_dab:(DM * D * D * DM * DM -&gt; DM) * r_d_d:(D * DM -&gt; TraceOp) * r_d_c:(D * DM -&gt; TraceOp) * r_c_d:(D * DM -&gt; TraceOp) -&gt; DM<br />&#160;&#160;static member Pow : a:int * b:DM -&gt; DM<br />&#160;&#160;static member Pow : a:DM * b:int -&gt; DM<br />&#160;&#160;static member Pow : a:float32 * b:DM -&gt; DM<br />&#160;&#160;static member Pow : a:DM * b:float32 -&gt; DM<br />&#160;&#160;static member Pow : a:D * b:DM -&gt; DM<br />&#160;&#160;static member Pow : a:DM * b:D -&gt; DM<br />&#160;&#160;static member Pow : a:DM * b:DM -&gt; DM<br />&#160;&#160;static member ReLU : a:DM -&gt; DM<br />&#160;&#160;static member ReshapeToDV : a:DM -&gt; DV<br />&#160;&#160;static member Round : a:DM -&gt; DM<br />&#160;&#160;static member Sigmoid : a:DM -&gt; DM<br />&#160;&#160;static member Sign : a:DM -&gt; DM<br />&#160;&#160;static member Sin : a:DM -&gt; DM<br />&#160;&#160;static member Sinh : a:DM -&gt; DM<br />&#160;&#160;static member SoftPlus : a:DM -&gt; DM<br />&#160;&#160;static member SoftSign : a:DM -&gt; DM<br />&#160;&#160;static member Solve : a:DM * b:DV -&gt; DV<br />&#160;&#160;static member SolveSymmetric : a:DM * b:DV -&gt; DV<br />&#160;&#160;static member Sqrt : a:DM -&gt; DM<br />&#160;&#160;static member StandardDev : a:DM -&gt; D<br />&#160;&#160;static member Standardize : a:DM -&gt; DM<br />&#160;&#160;static member Sum : a:DM -&gt; D<br />&#160;&#160;static member Tan : a:DM -&gt; DM<br />&#160;&#160;static member Tanh : a:DM -&gt; DM<br />&#160;&#160;static member Trace : a:DM -&gt; D<br />&#160;&#160;static member Transpose : a:DM -&gt; DM<br />&#160;&#160;static member Variance : a:DM -&gt; D<br />&#160;&#160;static member ZeroMN : m:int -&gt; n:int -&gt; DM<br />&#160;&#160;static member Zero : DM<br />&#160;&#160;static member ( + ) : a:int * b:DM -&gt; DM<br />&#160;&#160;static member ( + ) : a:DM * b:int -&gt; DM<br />&#160;&#160;static member ( + ) : a:float32 * b:DM -&gt; DM<br />&#160;&#160;static member ( + ) : a:DM * b:float32 -&gt; DM<br />&#160;&#160;static member ( + ) : a:DM * b:DV -&gt; DM<br />&#160;&#160;static member ( + ) : a:DV * b:DM -&gt; DM<br />&#160;&#160;static member ( + ) : a:D * b:DM -&gt; DM<br />&#160;&#160;static member ( + ) : a:DM * b:D -&gt; DM<br />&#160;&#160;static member ( + ) : a:DM * b:DM -&gt; DM<br />&#160;&#160;static member ( / ) : a:int * b:DM -&gt; DM<br />&#160;&#160;static member ( / ) : a:DM * b:int -&gt; DM<br />&#160;&#160;static member ( / ) : a:float32 * b:DM -&gt; DM<br />&#160;&#160;static member ( / ) : a:DM * b:float32 -&gt; DM<br />&#160;&#160;static member ( / ) : a:D * b:DM -&gt; DM<br />&#160;&#160;static member ( / ) : a:DM * b:D -&gt; DM<br />&#160;&#160;static member ( ./ ) : a:DM * b:DM -&gt; DM<br />&#160;&#160;static member ( .* ) : a:DM * b:DM -&gt; DM<br />&#160;&#160;static member op_Explicit : d:float32 [,] -&gt; DM<br />&#160;&#160;static member op_Explicit : d:DM -&gt; float32 [,]<br />&#160;&#160;static member ( * ) : a:int * b:DM -&gt; DM<br />&#160;&#160;static member ( * ) : a:DM * b:int -&gt; DM<br />&#160;&#160;static member ( * ) : a:float32 * b:DM -&gt; DM<br />&#160;&#160;static member ( * ) : a:DM * b:float32 -&gt; DM<br />&#160;&#160;static member ( * ) : a:D * b:DM -&gt; DM<br />&#160;&#160;static member ( * ) : a:DM * b:D -&gt; DM<br />&#160;&#160;static member ( * ) : a:DV * b:DM -&gt; DV<br />&#160;&#160;static member ( * ) : a:DM * b:DV -&gt; DV<br />&#160;&#160;static member ( * ) : a:DM * b:DM -&gt; DM<br />&#160;&#160;static member ( - ) : a:int * b:DM -&gt; DM<br />&#160;&#160;static member ( - ) : a:DM * b:int -&gt; DM<br />&#160;&#160;static member ( - ) : a:float32 * b:DM -&gt; DM<br />&#160;&#160;static member ( - ) : a:DM * b:float32 -&gt; DM<br />&#160;&#160;static member ( - ) : a:D * b:DM -&gt; DM<br />&#160;&#160;static member ( - ) : a:DM * b:D -&gt; DM<br />&#160;&#160;static member ( - ) : a:DM * b:DM -&gt; DM<br />&#160;&#160;static member ( ~- ) : a:DM -&gt; DM<br /><br />Full name: DiffSharp.AD.Float32.DM</div>
+<div class="tip" id="fs16">val ofDV : m:int -&gt; v:DV -&gt; DM<br /><br />Full name: DiffSharp.AD.Float32.DM.ofDV</div>
+<div class="tip" id="fs17">val MNISTtrain : Dataset<br /><br />Full name: Regression.MNISTtrain</div>
+<div class="tip" id="fs18">val MNISTvalid : Dataset<br /><br />Full name: Regression.MNISTvalid</div>
+<div class="tip" id="fs19">val MNISTtest : Dataset<br /><br />Full name: Regression.MNISTtest</div>
+<div class="tip" id="fs20">val MNISTtrain01 : Dataset<br /><br />Full name: Regression.MNISTtrain01</div>
+<div class="tip" id="fs21">member Dataset.Shuffle : unit -&gt; Dataset</div>
+<div class="tip" id="fs22">val x : DV</div>
+<div class="tip" id="fs23">val y : DV</div>
+<div class="tip" id="fs24">union case D.D: float32 -&gt; D</div>
+<div class="tip" id="fs25">val MNISTvalid01 : Dataset<br /><br />Full name: Regression.MNISTvalid01</div>
+<div class="tip" id="fs26">val MNISTtest01 : Dataset<br /><br />Full name: Regression.MNISTtest01</div>
+<div class="tip" id="fs27">property Dataset.X: DM</div>
+<div class="tip" id="fs28">Multiple items<br />union case DV.DV: float32 [] -&gt; DV<br /><br />--------------------<br />module DV<br /><br />from DiffSharp.AD.Float32<br /><br />--------------------<br />type DV =<br />&#160;&#160;| DV of float32 []<br />&#160;&#160;| DVF of DV * DV * uint32<br />&#160;&#160;| DVR of DV * DV ref * TraceOp * uint32 ref * uint32<br />&#160;&#160;member Copy : unit -&gt; DV<br />&#160;&#160;member GetForward : t:DV * i:uint32 -&gt; DV<br />&#160;&#160;member GetReverse : i:uint32 -&gt; DV<br />&#160;&#160;member GetSlice : lower:int option * upper:int option -&gt; DV<br />&#160;&#160;member ToArray : unit -&gt; D []<br />&#160;&#160;member ToColDM : unit -&gt; DM<br />&#160;&#160;member ToMathematicaString : unit -&gt; string<br />&#160;&#160;member ToMatlabString : unit -&gt; string<br />&#160;&#160;member ToRowDM : unit -&gt; DM<br />&#160;&#160;override ToString : unit -&gt; string<br />&#160;&#160;member Visualize : unit -&gt; string<br />&#160;&#160;member A : DV<br />&#160;&#160;member F : uint32<br />&#160;&#160;member Item : i:int -&gt; D with get<br />&#160;&#160;member Length : int<br />&#160;&#160;member P : DV<br />&#160;&#160;member PD : DV<br />&#160;&#160;member T : DV<br />&#160;&#160;member A : DV with set<br />&#160;&#160;member F : uint32 with set<br />&#160;&#160;static member Abs : a:DV -&gt; DV<br />&#160;&#160;static member Acos : a:DV -&gt; DV<br />&#160;&#160;static member AddItem : a:DV * i:int * b:D -&gt; DV<br />&#160;&#160;static member AddSubVector : a:DV * i:int * b:DV -&gt; DV<br />&#160;&#160;static member Append : a:DV * b:DV -&gt; DV<br />&#160;&#160;static member Asin : a:DV -&gt; DV<br />&#160;&#160;static member Atan : a:DV -&gt; DV<br />&#160;&#160;static member Atan2 : a:int * b:DV -&gt; DV<br />&#160;&#160;static member Atan2 : a:DV * b:int -&gt; DV<br />&#160;&#160;static member Atan2 : a:float32 * b:DV -&gt; DV<br />&#160;&#160;static member Atan2 : a:DV * b:float32 -&gt; DV<br />&#160;&#160;static member Atan2 : a:D * b:DV -&gt; DV<br />&#160;&#160;static member Atan2 : a:DV * b:D -&gt; DV<br />&#160;&#160;static member Atan2 : a:DV * b:DV -&gt; DV<br />&#160;&#160;static member Ceiling : a:DV -&gt; DV<br />&#160;&#160;static member Cos : a:DV -&gt; DV<br />&#160;&#160;static member Cosh : a:DV -&gt; DV<br />&#160;&#160;static member Exp : a:DV -&gt; DV<br />&#160;&#160;static member Floor : a:DV -&gt; DV<br />&#160;&#160;static member L1Norm : a:DV -&gt; D<br />&#160;&#160;static member L2Norm : a:DV -&gt; D<br />&#160;&#160;static member L2NormSq : a:DV -&gt; D<br />&#160;&#160;static member Log : a:DV -&gt; DV<br />&#160;&#160;static member Log10 : a:DV -&gt; DV<br />&#160;&#160;static member LogSumExp : a:DV -&gt; D<br />&#160;&#160;static member Max : a:DV -&gt; D<br />&#160;&#160;static member Max : a:D * b:DV -&gt; DV<br />&#160;&#160;static member Max : a:DV * b:D -&gt; DV<br />&#160;&#160;static member Max : a:DV * b:DV -&gt; DV<br />&#160;&#160;static member MaxIndex : a:DV -&gt; int<br />&#160;&#160;static member Mean : a:DV -&gt; D<br />&#160;&#160;static member Min : a:DV -&gt; D<br />&#160;&#160;static member Min : a:D * b:DV -&gt; DV<br />&#160;&#160;static member Min : a:DV * b:D -&gt; DV<br />&#160;&#160;static member Min : a:DV * b:DV -&gt; DV<br />&#160;&#160;static member MinIndex : a:DV -&gt; int<br />&#160;&#160;static member Normalize : a:DV -&gt; DV<br />&#160;&#160;static member OfArray : a:D [] -&gt; DV<br />&#160;&#160;static member Op_DV_D : a:DV * ff:(float32 [] -&gt; float32) * fd:(DV -&gt; D) * df:(D * DV * DV -&gt; D) * r:(DV -&gt; TraceOp) -&gt; D<br />&#160;&#160;static member Op_DV_DM : a:DV * ff:(float32 [] -&gt; float32 [,]) * fd:(DV -&gt; DM) * df:(DM * DV * DV -&gt; DM) * r:(DV -&gt; TraceOp) -&gt; DM<br />&#160;&#160;static member Op_DV_DV : a:DV * ff:(float32 [] -&gt; float32 []) * fd:(DV -&gt; DV) * df:(DV * DV * DV -&gt; DV) * r:(DV -&gt; TraceOp) -&gt; DV<br />&#160;&#160;static member Op_DV_DV_D : a:DV * b:DV * ff:(float32 [] * float32 [] -&gt; float32) * fd:(DV * DV -&gt; D) * df_da:(D * DV * DV -&gt; D) * df_db:(D * DV * DV -&gt; D) * df_dab:(D * DV * DV * DV * DV -&gt; D) * r_d_d:(DV * DV -&gt; TraceOp) * r_d_c:(DV * DV -&gt; TraceOp) * r_c_d:(DV * DV -&gt; TraceOp) -&gt; D<br />&#160;&#160;static member Op_DV_DV_DM : a:DV * b:DV * ff:(float32 [] * float32 [] -&gt; float32 [,]) * fd:(DV * DV -&gt; DM) * df_da:(DM * DV * DV -&gt; DM) * df_db:(DM * DV * DV -&gt; DM) * df_dab:(DM * DV * DV * DV * DV -&gt; DM) * r_d_d:(DV * DV -&gt; TraceOp) * r_d_c:(DV * DV -&gt; TraceOp) * r_c_d:(DV * DV -&gt; TraceOp) -&gt; DM<br />&#160;&#160;static member Op_DV_DV_DV : a:DV * b:DV * ff:(float32 [] * float32 [] -&gt; float32 []) * fd:(DV * DV -&gt; DV) * df_da:(DV * DV * DV -&gt; DV) * df_db:(DV * DV * DV -&gt; DV) * df_dab:(DV * DV * DV * DV * DV -&gt; DV) * r_d_d:(DV * DV -&gt; TraceOp) * r_d_c:(DV * DV -&gt; TraceOp) * r_c_d:(DV * DV -&gt; TraceOp) -&gt; DV<br />&#160;&#160;static member Op_DV_D_DV : a:DV * b:D * ff:(float32 [] * float32 -&gt; float32 []) * fd:(DV * D -&gt; DV) * df_da:(DV * DV * DV -&gt; DV) * df_db:(DV * D * D -&gt; DV) * df_dab:(DV * DV * DV * D * D -&gt; DV) * r_d_d:(DV * D -&gt; TraceOp) * r_d_c:(DV * D -&gt; TraceOp) * r_c_d:(DV * D -&gt; TraceOp) -&gt; DV<br />&#160;&#160;static member Op_D_DV_DV : a:D * b:DV * ff:(float32 * float32 [] -&gt; float32 []) * fd:(D * DV -&gt; DV) * df_da:(DV * D * D -&gt; DV) * df_db:(DV * DV * DV -&gt; DV) * df_dab:(DV * D * D * DV * DV -&gt; DV) * r_d_d:(D * DV -&gt; TraceOp) * r_d_c:(D * DV -&gt; TraceOp) * r_c_d:(D * DV -&gt; TraceOp) -&gt; DV<br />&#160;&#160;static member Pow : a:int * b:DV -&gt; DV<br />&#160;&#160;static member Pow : a:DV * b:int -&gt; DV<br />&#160;&#160;static member Pow : a:float32 * b:DV -&gt; DV<br />&#160;&#160;static member Pow : a:DV * b:float32 -&gt; DV<br />&#160;&#160;static member Pow : a:D * b:DV -&gt; DV<br />&#160;&#160;static member Pow : a:DV * b:D -&gt; DV<br />&#160;&#160;static member Pow : a:DV * b:DV -&gt; DV<br />&#160;&#160;static member ReLU : a:DV -&gt; DV<br />&#160;&#160;static member ReshapeToDM : m:int * a:DV -&gt; DM<br />&#160;&#160;static member Round : a:DV -&gt; DV<br />&#160;&#160;static member Sigmoid : a:DV -&gt; DV<br />&#160;&#160;static member Sign : a:DV -&gt; DV<br />&#160;&#160;static member Sin : a:DV -&gt; DV<br />&#160;&#160;static member Sinh : a:DV -&gt; DV<br />&#160;&#160;static member SoftMax : a:DV -&gt; DV<br />&#160;&#160;static member SoftPlus : a:DV -&gt; DV<br />&#160;&#160;static member SoftSign : a:DV -&gt; DV<br />&#160;&#160;static member Split : d:DV * n:seq&lt;int&gt; -&gt; seq&lt;DV&gt;<br />&#160;&#160;static member Sqrt : a:DV -&gt; DV<br />&#160;&#160;static member StandardDev : a:DV -&gt; D<br />&#160;&#160;static member Standardize : a:DV -&gt; DV<br />&#160;&#160;static member Sum : a:DV -&gt; D<br />&#160;&#160;static member Tan : a:DV -&gt; DV<br />&#160;&#160;static member Tanh : a:DV -&gt; DV<br />&#160;&#160;static member Variance : a:DV -&gt; D<br />&#160;&#160;static member ZeroN : n:int -&gt; DV<br />&#160;&#160;static member Zero : DV<br />&#160;&#160;static member ( + ) : a:int * b:DV -&gt; DV<br />&#160;&#160;static member ( + ) : a:DV * b:int -&gt; DV<br />&#160;&#160;static member ( + ) : a:float32 * b:DV -&gt; DV<br />&#160;&#160;static member ( + ) : a:DV * b:float32 -&gt; DV<br />&#160;&#160;static member ( + ) : a:D * b:DV -&gt; DV<br />&#160;&#160;static member ( + ) : a:DV * b:D -&gt; DV<br />&#160;&#160;static member ( + ) : a:DV * b:DV -&gt; DV<br />&#160;&#160;static member ( &amp;* ) : a:DV * b:DV -&gt; DM<br />&#160;&#160;static member ( / ) : a:int * b:DV -&gt; DV<br />&#160;&#160;static member ( / ) : a:DV * b:int -&gt; DV<br />&#160;&#160;static member ( / ) : a:float32 * b:DV -&gt; DV<br />&#160;&#160;static member ( / ) : a:DV * b:float32 -&gt; DV<br />&#160;&#160;static member ( / ) : a:D * b:DV -&gt; DV<br />&#160;&#160;static member ( / ) : a:DV * b:D -&gt; DV<br />&#160;&#160;static member ( ./ ) : a:DV * b:DV -&gt; DV<br />&#160;&#160;static member ( .* ) : a:DV * b:DV -&gt; DV<br />&#160;&#160;static member op_Explicit : d:float32 [] -&gt; DV<br />&#160;&#160;static member op_Explicit : d:DV -&gt; float32 []<br />&#160;&#160;static member ( * ) : a:int * b:DV -&gt; DV<br />&#160;&#160;static member ( * ) : a:DV * b:int -&gt; DV<br />&#160;&#160;static member ( * ) : a:float32 * b:DV -&gt; DV<br />&#160;&#160;static member ( * ) : a:DV * b:float32 -&gt; DV<br />&#160;&#160;static member ( * ) : a:D * b:DV -&gt; DV<br />&#160;&#160;static member ( * ) : a:DV * b:D -&gt; DV<br />&#160;&#160;static member ( * ) : a:DV * b:DV -&gt; D<br />&#160;&#160;static member ( - ) : a:int * b:DV -&gt; DV<br />&#160;&#160;static member ( - ) : a:DV * b:int -&gt; DV<br />&#160;&#160;static member ( - ) : a:float32 * b:DV -&gt; DV<br />&#160;&#160;static member ( - ) : a:DV * b:float32 -&gt; DV<br />&#160;&#160;static member ( - ) : a:D * b:DV -&gt; DV<br />&#160;&#160;static member ( - ) : a:DV * b:D -&gt; DV<br />&#160;&#160;static member ( - ) : a:DV * b:DV -&gt; DV<br />&#160;&#160;static member ( ~- ) : a:DV -&gt; DV<br /><br />Full name: DiffSharp.AD.Float32.DV</div>
+<div class="tip" id="fs29">val visualizeAsDM : m:int -&gt; v:DV -&gt; string<br /><br />Full name: DiffSharp.AD.Float32.DV.visualizeAsDM</div>
+<div class="tip" id="fs30">val printfn : format:Printf.TextWriterFormat&lt;&#39;T&gt; -&gt; &#39;T<br /><br />Full name: Microsoft.FSharp.Core.ExtraTopLevelOperators.printfn</div>
+<div class="tip" id="fs31">property Dataset.Y: DM</div>
+<div class="tip" id="fs32">val n : FeedForward<br /><br />Full name: Regression.n</div>
+<div class="tip" id="fs33">Multiple items<br />type FeedForward =<br />&#160;&#160;inherit Layer<br />&#160;&#160;new : unit -&gt; FeedForward<br />&#160;&#160;member Add : f:(DM -&gt; DM) -&gt; unit<br />&#160;&#160;member Add : l:Layer -&gt; unit<br />&#160;&#160;override Decode : w:DV -&gt; unit<br />&#160;&#160;override Encode : unit -&gt; DV<br />&#160;&#160;override Init : unit -&gt; unit<br />&#160;&#160;member Insert : i:int * f:(DM -&gt; DM) -&gt; unit<br />&#160;&#160;member Insert : i:int * l:Layer -&gt; unit<br />&#160;&#160;member Remove : i:int -&gt; unit<br />&#160;&#160;...<br /><br />Full name: Hype.Neural.FeedForward<br /><br />--------------------<br />new : unit -&gt; FeedForward</div>
+<div class="tip" id="fs34">member FeedForward.Add : f:(DM -&gt; DM) -&gt; unit<br />member FeedForward.Add : l:Layer -&gt; unit</div>
+<div class="tip" id="fs35">Multiple items<br />type Linear =<br />&#160;&#160;inherit Layer<br />&#160;&#160;new : inputs:int * outputs:int -&gt; Linear<br />&#160;&#160;new : inputs:int * outputs:int * initializer:Initializer -&gt; Linear<br />&#160;&#160;override Decode : w:DV -&gt; unit<br />&#160;&#160;override Encode : unit -&gt; DV<br />&#160;&#160;override Init : unit -&gt; unit<br />&#160;&#160;override Reset : unit -&gt; unit<br />&#160;&#160;override Run : x:DM -&gt; DM<br />&#160;&#160;override ToString : unit -&gt; string<br />&#160;&#160;override ToStringFull : unit -&gt; string<br />&#160;&#160;...<br /><br />Full name: Hype.Neural.Linear<br /><br />--------------------<br />new : inputs:int * outputs:int -&gt; Linear<br />new : inputs:int * outputs:int * initializer:Initializer -&gt; Linear</div>
+<div class="tip" id="fs36">val sigmoid : x:&#39;a -&gt; &#39;a (requires member Sigmoid)<br /><br />Full name: DiffSharp.Util.sigmoid</div>
+<div class="tip" id="fs37">val l : Linear<br /><br />Full name: Regression.l</div>
+<div class="tip" id="fs38">member Linear.VisualizeWRowsAsImageGrid : imagerows:int -&gt; string</div>
+<div class="tip" id="fs39">val p : Params<br /><br />Full name: Regression.p</div>
+<div class="tip" id="fs40">Multiple items<br />module Params<br /><br />from Hype<br /><br />--------------------<br />type Params =<br />&#160;&#160;{Epochs: int;<br />&#160;&#160;&#160;Method: Method;<br />&#160;&#160;&#160;LearningRate: LearningRate;<br />&#160;&#160;&#160;Momentum: Momentum;<br />&#160;&#160;&#160;Loss: Loss;<br />&#160;&#160;&#160;Regularization: Regularization;<br />&#160;&#160;&#160;GradientClipping: GradientClipping;<br />&#160;&#160;&#160;Batch: Batch;<br />&#160;&#160;&#160;EarlyStopping: EarlyStopping;<br />&#160;&#160;&#160;ImprovementThreshold: D;<br />&#160;&#160;&#160;...}<br /><br />Full name: Hype.Params</div>
+<div class="tip" id="fs41">val Default : Params<br /><br />Full name: Hype.Params.Default</div>
+<div class="tip" id="fs42">type Batch =<br />&#160;&#160;| Full<br />&#160;&#160;| Minibatch of int<br />&#160;&#160;| Stochastic<br />&#160;&#160;override ToString : unit -&gt; string<br />&#160;&#160;member Func : (Dataset -&gt; int -&gt; Dataset)<br /><br />Full name: Hype.Batch</div>
+<div class="tip" id="fs43">union case Batch.Minibatch: int -&gt; Batch</div>
+<div class="tip" id="fs44">type EarlyStopping =<br />&#160;&#160;| Early of int * int<br />&#160;&#160;| NoEarly<br />&#160;&#160;override ToString : unit -&gt; string<br />&#160;&#160;static member DefaultEarly : EarlyStopping<br /><br />Full name: Hype.EarlyStopping</div>
+<div class="tip" id="fs45">property EarlyStopping.DefaultEarly: EarlyStopping</div>
+<div class="tip" id="fs46">member Layer.Train : d:Dataset -&gt; D * D []<br />member Layer.Train : d:Dataset * par:Params -&gt; D * D []<br />member Layer.Train : d:Dataset * v:Dataset -&gt; D * D []<br />member Layer.Train : d:Dataset * v:Dataset * par:Params -&gt; D * D []</div>
+<div class="tip" id="fs47">val cc : LogisticClassifier<br /><br />Full name: Regression.cc</div>
+<div class="tip" id="fs48">Multiple items<br />type LogisticClassifier =<br />&#160;&#160;inherit Classifier<br />&#160;&#160;new : l:Layer -&gt; LogisticClassifier<br />&#160;&#160;new : f:(DM -&gt; DM) -&gt; LogisticClassifier<br />&#160;&#160;override Classify : x:DV -&gt; int<br />&#160;&#160;override Classify : x:DM -&gt; int []<br /><br />Full name: Hype.LogisticClassifier<br /><br />--------------------<br />new : f:(DM -&gt; DM) -&gt; LogisticClassifier<br />new : l:Layer -&gt; LogisticClassifier</div>
+<div class="tip" id="fs49">val pred : int []<br /><br />Full name: Regression.pred</div>
+<div class="tip" id="fs50">override LogisticClassifier.Classify : x:DV -&gt; int<br />override LogisticClassifier.Classify : x:DM -&gt; int []</div>
+<div class="tip" id="fs51">val real : int []<br /><br />Full name: Regression.real</div>
+<div class="tip" id="fs52">val toDV : m:DM -&gt; DV<br /><br />Full name: DiffSharp.AD.Float32.DM.toDV</div>
+<div class="tip" id="fs53">val toArray : v:DV -&gt; D []<br /><br />Full name: DiffSharp.AD.Float32.DV.toArray</div>
+<div class="tip" id="fs54">Multiple items<br />module Array<br /><br />from DiffSharp.Util<br /><br />--------------------<br />module Array<br /><br />from Microsoft.FSharp.Collections</div>
+<div class="tip" id="fs55">val map : mapping:(&#39;T -&gt; &#39;U) -&gt; array:&#39;T [] -&gt; &#39;U []<br /><br />Full name: Microsoft.FSharp.Collections.Array.map</div>
+<div class="tip" id="fs56">Multiple items<br />val float32 : value:&#39;T -&gt; float32 (requires member op_Explicit)<br /><br />Full name: Microsoft.FSharp.Core.Operators.float32<br /><br />--------------------<br />type float32 = System.Single<br /><br />Full name: Microsoft.FSharp.Core.float32<br /><br />--------------------<br />type float32&lt;&#39;Measure&gt; = float32<br /><br />Full name: Microsoft.FSharp.Core.float32&lt;_&gt;</div>
+<div class="tip" id="fs57">Multiple items<br />val int : value:&#39;T -&gt; int (requires member op_Explicit)<br /><br />Full name: Microsoft.FSharp.Core.Operators.int<br /><br />--------------------<br />type int = int32<br /><br />Full name: Microsoft.FSharp.Core.int<br /><br />--------------------<br />type int&lt;&#39;Measure&gt; = int<br /><br />Full name: Microsoft.FSharp.Core.int&lt;_&gt;</div>
+<div class="tip" id="fs58">val error : float32<br /><br />Full name: Regression.error</div>
+<div class="tip" id="fs59">member Classifier.ClassificationError : d:Dataset -&gt; float32<br />member Classifier.ClassificationError : x:DM * y:int [] -&gt; float32</div>
+<div class="tip" id="fs60">val cls : int<br /><br />Full name: Regression.cls</div>
+<div class="tip" id="fs61">val clss : int []<br /><br />Full name: Regression.clss</div>
+
+        </div>
+        <div class="col-sm-3">
+          <a href="index.html"><img src="img/hype.png" style="width:200px"/></a><br>
+          <ul class="nav nav-pills nav-stacked">
+            <li><a href="index.html">Home</a></li>
+          </ul>          
+          <div class="nav-label">Basics</div>
+          <ul class="nav nav-pills nav-stacked">
+            <li><a href="optimization.html">Optimization</a></li>
+            <li><a href="training.html">Training</a></li>
+          </ul>
+          <div class="nav-label">Examples</div>
+          <ul class="nav nav-pills nav-stacked">
+            <li><a href="regression.html">Regression</a></li>
+            <li><a href="feedforwardnets.html">Neural Networks</a></li>
+            <li><a href="recurrentnets.html">Recurrent Neural Nets</a></li>
+            <li><a href="hmc.html">Hamiltonian MCMC</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  <!-- Start of StatCounter Code for Default Guide -->
+  <script type="text/javascript">
+  var sc_project=10701961; 
+  var sc_invisible=1; 
+  var sc_security="a67091ad"; 
+  var scJsHost = (("https:" == document.location.protocol) ?
+  "https://secure." : "http://www.");
+  document.write("<sc"+"ript type='text/javascript' src='" +
+  scJsHost+
+  "statcounter.com/counter/counter.js'></"+"script>");
+  </script>
+  <noscript><div class="statcounter"><a title="shopify
+  analytics ecommerce" href="http://statcounter.com/shopify/"
+  target="_blank"><img class="statcounter"
+  src="http://c.statcounter.com/10701961/0/a67091ad/1/"
+  alt="shopify analytics ecommerce"></a></div></noscript>
+  <!-- End of StatCounter Code for Default Guide -->    
+  </body>
+</html>

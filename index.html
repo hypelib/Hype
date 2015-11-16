@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Hype: Compositional Machine Learning and Hyperparameter Optimization
+</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Hype">
+    <meta name="author" content="Atılım Güneş Baydin; Barak A. Pearlmutter">
+
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">
+        google.load("visualization", "1.1", { packages: ["corechart", "annotationchart", "calendar", "linechart", "geochart", "map", "sankey", "table", "treemap"] })
+    </script>
+
+    <link type="text/css" rel="stylesheet" href="misc/style.css" />
+    <script type="text/javascript" src="misc/tips.js"></script>
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-48900508-5', 'auto');
+      ga('send', 'pageview');
+
+    </script>    
+  </head>
+  <body>
+    <nav class="navbar navbar-inverse">
+      <div class="container">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="index.html"><span class="hype">Hype</span></a>
+        </div>
+        <div>
+          <ul class="nav navbar-nav">
+            <li><a href="https://github.com/hypelib/Hype">GitHub</a></li>
+            <li><a href="https://github.com/hypelib/Hype/releases">Release notes</a></li>
+            <li><a href="reference/index.html">API reference</a></li>
+            <li><a href="download.html">Download</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    <div class="container">
+      <div class="row">
+        <div class="col-sm-9">
+          <h1>Hype: Compositional Machine Learning and Hyperparameter Optimization</h1>
+
+<p>Hype is a proof-of-concept deep learning library, where you can perform optimization on <a href="http://mathworld.wolfram.com/Composition.html">compositional</a> machine learning systems of many components, even when such components themselves internally perform optimization.</p>
+
+<p>This is enabled by nested automatic differentiation (AD) giving you access to the automatic exact derivative of any floating-point value in your code with respect to any other. Underlying computations are run by a BLAS/LAPACK backend (OpenBLAS by default).</p>
+
+<h3>Automatic derivatives</h3>
+
+<p>You do not need to worry about supplying gradients (or Hessians) of your models, which are computed exactly and efficiently by AD. The underlying AD functionality is provided by <a href="http://diffsharp.github.io/DiffSharp/index.html">DiffSharp</a>.</p>
+
+<p>"Reverse mode" AD is a generalized form of "backpropagation" and is distinct from numerical or symbolic differentiation.</p>
+
+<p>In addition to reverse AD, Hype makes use of forward AD and nested combinations of forward and reverse AD. The core <a href="http://diffsharp.github.io/DiffSharp/api-overview.html">differentiation API</a> provides gradients, Hessians, Jacobians, directional derivatives, and matrix-free exact Hessian- and Jacobian-vector products.</p>
+
+<h3>Hypergradients</h3>
+
+<p>You can get exact gradients of the training or validation loss with respect to hyperparameters. These <strong>hypergradients</strong> allow you to do gradient-based optimization of gradient-based optimization, meaning that you can do things like optimizing learning rate and momentum schedules, weight initialization parameters, or step sizes and mass matrices in Hamiltonian Monte Carlo models.</p>
+
+<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l"> 1: </span>
+<span class="l"> 2: </span>
+<span class="l"> 3: </span>
+<span class="l"> 4: </span>
+<span class="l"> 5: </span>
+<span class="l"> 6: </span>
+<span class="l"> 7: </span>
+<span class="l"> 8: </span>
+<span class="l"> 9: </span>
+<span class="l">10: </span>
+<span class="l">11: </span>
+<span class="l">12: </span>
+<span class="l">13: </span>
+<span class="l">14: </span>
+<span class="l">15: </span>
+<span class="l">16: </span>
+<span class="l">17: </span>
+<span class="l">18: </span>
+<span class="l">19: </span>
+</pre></td>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">open</span> <span onmouseout="hideTip(event, 'fs4', 4)" onmouseover="showTip(event, 'fs4', 4)" class="i">Hype</span>
+<span class="k">open</span> <span onmouseout="hideTip(event, 'fs4', 5)" onmouseover="showTip(event, 'fs4', 5)" class="i">Hype</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs5', 6)" onmouseover="showTip(event, 'fs5', 6)" class="i">Neural</span>
+
+<span class="c">// Train a network with stochastic gradient descent and a learning rate schedule</span>
+<span class="k">let</span> <span onmouseout="hideTip(event, 'fs6', 7)" onmouseover="showTip(event, 'fs6', 7)" class="f">train</span> (<span onmouseout="hideTip(event, 'fs7', 8)" onmouseover="showTip(event, 'fs7', 8)" class="i">x</span><span class="o">:</span><span onmouseout="hideTip(event, 'fs8', 9)" onmouseover="showTip(event, 'fs8', 9)" class="t">DV</span>) <span class="o">=</span> 
+    <span class="k">let</span> <span onmouseout="hideTip(event, 'fs9', 10)" onmouseover="showTip(event, 'fs9', 10)" class="i">n</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs10', 11)" onmouseover="showTip(event, 'fs10', 11)" class="t">FeedForward</span>()
+    <span onmouseout="hideTip(event, 'fs9', 12)" onmouseover="showTip(event, 'fs9', 12)" class="i">n</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs11', 13)" onmouseover="showTip(event, 'fs11', 13)" class="f">Add</span>(<span onmouseout="hideTip(event, 'fs12', 14)" onmouseover="showTip(event, 'fs12', 14)" class="t">Linear</span>(<span class="n">784</span>, <span class="n">300</span>))
+    <span onmouseout="hideTip(event, 'fs9', 15)" onmouseover="showTip(event, 'fs9', 15)" class="i">n</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs11', 16)" onmouseover="showTip(event, 'fs11', 16)" class="f">Add</span>(<span onmouseout="hideTip(event, 'fs13', 17)" onmouseover="showTip(event, 'fs13', 17)" class="f">tanh</span>)
+    <span onmouseout="hideTip(event, 'fs9', 18)" onmouseover="showTip(event, 'fs9', 18)" class="i">n</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs11', 19)" onmouseover="showTip(event, 'fs11', 19)" class="f">Add</span>(<span onmouseout="hideTip(event, 'fs12', 20)" onmouseover="showTip(event, 'fs12', 20)" class="t">Linear</span>(<span class="n">300</span>, <span class="n">10</span>))
+    <span class="k">let</span> <span onmouseout="hideTip(event, 'fs14', 21)" onmouseover="showTip(event, 'fs14', 21)" class="i">loss</span>, _ <span class="o">=</span> <span onmouseout="hideTip(event, 'fs15', 22)" onmouseover="showTip(event, 'fs15', 22)" class="t">Layer</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs16', 23)" onmouseover="showTip(event, 'fs16', 23)" class="f">Train</span>(<span onmouseout="hideTip(event, 'fs9', 24)" onmouseover="showTip(event, 'fs9', 24)" class="i">n</span>, <span class="i">data</span>, {<span onmouseout="hideTip(event, 'fs17', 25)" onmouseover="showTip(event, 'fs17', 25)" class="t">Params</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs18', 26)" onmouseover="showTip(event, 'fs18', 26)" class="i">Default</span> <span class="k">with</span> 
+                                        <span onmouseout="hideTip(event, 'fs19', 27)" onmouseover="showTip(event, 'fs19', 27)" class="i">LearningRate</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs20', 28)" onmouseover="showTip(event, 'fs20', 28)" class="p">Schedule</span> <span onmouseout="hideTip(event, 'fs7', 29)" onmouseover="showTip(event, 'fs7', 29)" class="i">x</span>
+                                        <span onmouseout="hideTip(event, 'fs21', 30)" onmouseover="showTip(event, 'fs21', 30)" class="i">Momentum</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs21', 31)" onmouseover="showTip(event, 'fs21', 31)" class="t">Momentum</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs22', 32)" onmouseover="showTip(event, 'fs22', 32)" class="i">DefaultNesterov</span>
+                                        <span onmouseout="hideTip(event, 'fs23', 33)" onmouseover="showTip(event, 'fs23', 33)" class="i">Batch</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs24', 34)" onmouseover="showTip(event, 'fs24', 34)" class="p">Minibatch</span> <span class="n">100</span>
+                                        <span onmouseout="hideTip(event, 'fs25', 35)" onmouseover="showTip(event, 'fs25', 35)" class="i">Loss</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs26', 36)" onmouseover="showTip(event, 'fs26', 36)" class="p">CrossEntropyOnLinear</span>})
+    <span onmouseout="hideTip(event, 'fs14', 37)" onmouseover="showTip(event, 'fs14', 37)" class="i">loss</span> <span class="c">// Return the loss at the end of training</span>
+
+<span class="c">// Train the training, i.e., optimize the learning schedule vector by using its hypergradient</span>
+<span class="k">let</span> <span onmouseout="hideTip(event, 'fs27', 38)" onmouseover="showTip(event, 'fs27', 38)" class="i">hypertrain</span> <span class="o">=</span> 
+    <span onmouseout="hideTip(event, 'fs28', 39)" onmouseover="showTip(event, 'fs28', 39)" class="t">Optimize</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs29', 40)" onmouseover="showTip(event, 'fs29', 40)" class="f">Minimize</span>(<span onmouseout="hideTip(event, 'fs6', 41)" onmouseover="showTip(event, 'fs6', 41)" class="f">train</span>, <span onmouseout="hideTip(event, 'fs8', 42)" onmouseover="showTip(event, 'fs8', 42)" class="t">DV</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs30', 43)" onmouseover="showTip(event, 'fs30', 43)" class="f">create</span> <span class="n">200</span> (<span onmouseout="hideTip(event, 'fs31', 44)" onmouseover="showTip(event, 'fs31', 44)" class="p">D</span> <span class="n">1.f</span>), {<span onmouseout="hideTip(event, 'fs17', 45)" onmouseover="showTip(event, 'fs17', 45)" class="t">Params</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs18', 46)" onmouseover="showTip(event, 'fs18', 46)" class="i">Default</span> <span class="k">with</span> <span class="i">Epochs</span> <span class="o">=</span> <span class="n">50</span>})
+</code></pre></td>
+</tr>
+</table>
+
+<p>You can also take derivatives with respect to training data, to analyze training sensitivities.</p>
+
+<h3>Compositionality</h3>
+
+<p>Nested AD handles higher-order derivatives up to any level, including in complex cases such as</p>
+
+<p><span class="math">\[    \mathbf{min} \left(x \; \mapsto \; f(x) + \mathbf{min} \left( y \; \mapsto \; g(x,\,y) \right) \right)\, ,\]</span></p>
+
+<p>where <span class="math">\(\mathbf{min}\)</span> uses gradient-based optimization. (Note that the inner function has a reference to the argument of the outer function.) This allows you to create complex systems where many components may internally perform optimization.</p>
+
+<p>For example, you can optimize the rules of a multi-player game where the players themselves optimize their own strategy using a simple model of the opponent which they optimize according to their opponent's observed behaviour.</p>
+
+<p>Or you can perform optimization of procedures that are internally using differentiation for purposes other than optimization, such as adaptive control or simulations.</p>
+
+<h3>Complex objective functions</h3>
+
+<p>You can use derivatives in the definition of objective functions for training your models. For example, your objective function can take input sensitivities into account, for training models that are invariant under a set input transformations.</p>
+
+<h2>Roadmap</h2>
+
+<div class="row">
+<div class="col-sm-6">
+<div class="alert alert-info">
+  <strong>In the current release</strong> 
+
+<ul>
+<li>OpenBLAS backend by default</li>
+<li>Regression, feedforward neural networks</li>
+<li>Recurrent neural networks, LSTMs, GRUs</li>
+<li>Hamiltonian Monte Carlo
+</div>
+</div></li>
+</ul>
+
+<div class="col-sm-6">
+<div class="alert alert-info">
+  <strong>Upcoming features</strong> 
+
+<ul>
+<li>GPU/CUDA backend</li>
+<li>Probabilistic inference</li>
+<li>Convolutional neural networks
+</div>
+</div>
+</div></li>
+</ul>
+
+<h2>About</h2>
+
+<p>Hype is developed by <a href="http://www.cs.nuim.ie/~gunes/">Atılım Güneş Baydin</a> and <a href="http://bcl.hamilton.ie/~barak/">Barak A. Pearlmutter</a> at the <a href="http://www.bcl.hamilton.ie/">Brain and Computation Lab</a>, Hamilton Institute, National University of Ireland Maynooth.</p>
+
+<h2>License</h2>
+
+<p>Hype is released under the MIT license.</p>
+
+          <div class="tip" id="fs1">namespace DiffSharp</div>
+<div class="tip" id="fs2">namespace DiffSharp.AD</div>
+<div class="tip" id="fs3">module Float32<br /><br />from DiffSharp.AD</div>
+<div class="tip" id="fs4">namespace Hype</div>
+<div class="tip" id="fs5">namespace Hype.Neural</div>
+<div class="tip" id="fs6">val train : x:DV -&gt; D<br /><br />Full name: Index.train</div>
+<div class="tip" id="fs7">val x : DV</div>
+<div class="tip" id="fs8">Multiple items<br />union case DV.DV: float32 [] -&gt; DV<br /><br />--------------------<br />module DV<br /><br />from DiffSharp.AD.Float32<br /><br />--------------------<br />type DV =<br />&#160;&#160;| DV of float32 []<br />&#160;&#160;| DVF of DV * DV * uint32<br />&#160;&#160;| DVR of DV * DV ref * TraceOp * uint32 ref * uint32<br />&#160;&#160;member Copy : unit -&gt; DV<br />&#160;&#160;member GetForward : t:DV * i:uint32 -&gt; DV<br />&#160;&#160;member GetReverse : i:uint32 -&gt; DV<br />&#160;&#160;member GetSlice : lower:int option * upper:int option -&gt; DV<br />&#160;&#160;member ToArray : unit -&gt; D []<br />&#160;&#160;member ToColDM : unit -&gt; DM<br />&#160;&#160;member ToMathematicaString : unit -&gt; string<br />&#160;&#160;member ToMatlabString : unit -&gt; string<br />&#160;&#160;member ToRowDM : unit -&gt; DM<br />&#160;&#160;override ToString : unit -&gt; string<br />&#160;&#160;member Visualize : unit -&gt; string<br />&#160;&#160;member A : DV<br />&#160;&#160;member F : uint32<br />&#160;&#160;member Item : i:int -&gt; D with get<br />&#160;&#160;member Length : int<br />&#160;&#160;member P : DV<br />&#160;&#160;member PD : DV<br />&#160;&#160;member T : DV<br />&#160;&#160;member A : DV with set<br />&#160;&#160;member F : uint32 with set<br />&#160;&#160;static member Abs : a:DV -&gt; DV<br />&#160;&#160;static member Acos : a:DV -&gt; DV<br />&#160;&#160;static member AddItem : a:DV * i:int * b:D -&gt; DV<br />&#160;&#160;static member AddSubVector : a:DV * i:int * b:DV -&gt; DV<br />&#160;&#160;static member Append : a:DV * b:DV -&gt; DV<br />&#160;&#160;static member Asin : a:DV -&gt; DV<br />&#160;&#160;static member Atan : a:DV -&gt; DV<br />&#160;&#160;static member Atan2 : a:int * b:DV -&gt; DV<br />&#160;&#160;static member Atan2 : a:DV * b:int -&gt; DV<br />&#160;&#160;static member Atan2 : a:float32 * b:DV -&gt; DV<br />&#160;&#160;static member Atan2 : a:DV * b:float32 -&gt; DV<br />&#160;&#160;static member Atan2 : a:D * b:DV -&gt; DV<br />&#160;&#160;static member Atan2 : a:DV * b:D -&gt; DV<br />&#160;&#160;static member Atan2 : a:DV * b:DV -&gt; DV<br />&#160;&#160;static member Ceiling : a:DV -&gt; DV<br />&#160;&#160;static member Cos : a:DV -&gt; DV<br />&#160;&#160;static member Cosh : a:DV -&gt; DV<br />&#160;&#160;static member Exp : a:DV -&gt; DV<br />&#160;&#160;static member Floor : a:DV -&gt; DV<br />&#160;&#160;static member L1Norm : a:DV -&gt; D<br />&#160;&#160;static member L2Norm : a:DV -&gt; D<br />&#160;&#160;static member L2NormSq : a:DV -&gt; D<br />&#160;&#160;static member Log : a:DV -&gt; DV<br />&#160;&#160;static member Log10 : a:DV -&gt; DV<br />&#160;&#160;static member LogSumExp : a:DV -&gt; D<br />&#160;&#160;static member Max : a:DV -&gt; D<br />&#160;&#160;static member Max : a:D * b:DV -&gt; DV<br />&#160;&#160;static member Max : a:DV * b:D -&gt; DV<br />&#160;&#160;static member Max : a:DV * b:DV -&gt; DV<br />&#160;&#160;static member MaxIndex : a:DV -&gt; int<br />&#160;&#160;static member Mean : a:DV -&gt; D<br />&#160;&#160;static member Min : a:DV -&gt; D<br />&#160;&#160;static member Min : a:D * b:DV -&gt; DV<br />&#160;&#160;static member Min : a:DV * b:D -&gt; DV<br />&#160;&#160;static member Min : a:DV * b:DV -&gt; DV<br />&#160;&#160;static member MinIndex : a:DV -&gt; int<br />&#160;&#160;static member Normalize : a:DV -&gt; DV<br />&#160;&#160;static member OfArray : a:D [] -&gt; DV<br />&#160;&#160;static member Op_DV_D : a:DV * ff:(float32 [] -&gt; float32) * fd:(DV -&gt; D) * df:(D * DV * DV -&gt; D) * r:(DV -&gt; TraceOp) -&gt; D<br />&#160;&#160;static member Op_DV_DM : a:DV * ff:(float32 [] -&gt; float32 [,]) * fd:(DV -&gt; DM) * df:(DM * DV * DV -&gt; DM) * r:(DV -&gt; TraceOp) -&gt; DM<br />&#160;&#160;static member Op_DV_DV : a:DV * ff:(float32 [] -&gt; float32 []) * fd:(DV -&gt; DV) * df:(DV * DV * DV -&gt; DV) * r:(DV -&gt; TraceOp) -&gt; DV<br />&#160;&#160;static member Op_DV_DV_D : a:DV * b:DV * ff:(float32 [] * float32 [] -&gt; float32) * fd:(DV * DV -&gt; D) * df_da:(D * DV * DV -&gt; D) * df_db:(D * DV * DV -&gt; D) * df_dab:(D * DV * DV * DV * DV -&gt; D) * r_d_d:(DV * DV -&gt; TraceOp) * r_d_c:(DV * DV -&gt; TraceOp) * r_c_d:(DV * DV -&gt; TraceOp) -&gt; D<br />&#160;&#160;static member Op_DV_DV_DM : a:DV * b:DV * ff:(float32 [] * float32 [] -&gt; float32 [,]) * fd:(DV * DV -&gt; DM) * df_da:(DM * DV * DV -&gt; DM) * df_db:(DM * DV * DV -&gt; DM) * df_dab:(DM * DV * DV * DV * DV -&gt; DM) * r_d_d:(DV * DV -&gt; TraceOp) * r_d_c:(DV * DV -&gt; TraceOp) * r_c_d:(DV * DV -&gt; TraceOp) -&gt; DM<br />&#160;&#160;static member Op_DV_DV_DV : a:DV * b:DV * ff:(float32 [] * float32 [] -&gt; float32 []) * fd:(DV * DV -&gt; DV) * df_da:(DV * DV * DV -&gt; DV) * df_db:(DV * DV * DV -&gt; DV) * df_dab:(DV * DV * DV * DV * DV -&gt; DV) * r_d_d:(DV * DV -&gt; TraceOp) * r_d_c:(DV * DV -&gt; TraceOp) * r_c_d:(DV * DV -&gt; TraceOp) -&gt; DV<br />&#160;&#160;static member Op_DV_D_DV : a:DV * b:D * ff:(float32 [] * float32 -&gt; float32 []) * fd:(DV * D -&gt; DV) * df_da:(DV * DV * DV -&gt; DV) * df_db:(DV * D * D -&gt; DV) * df_dab:(DV * DV * DV * D * D -&gt; DV) * r_d_d:(DV * D -&gt; TraceOp) * r_d_c:(DV * D -&gt; TraceOp) * r_c_d:(DV * D -&gt; TraceOp) -&gt; DV<br />&#160;&#160;static member Op_D_DV_DV : a:D * b:DV * ff:(float32 * float32 [] -&gt; float32 []) * fd:(D * DV -&gt; DV) * df_da:(DV * D * D -&gt; DV) * df_db:(DV * DV * DV -&gt; DV) * df_dab:(DV * D * D * DV * DV -&gt; DV) * r_d_d:(D * DV -&gt; TraceOp) * r_d_c:(D * DV -&gt; TraceOp) * r_c_d:(D * DV -&gt; TraceOp) -&gt; DV<br />&#160;&#160;static member Pow : a:int * b:DV -&gt; DV<br />&#160;&#160;static member Pow : a:DV * b:int -&gt; DV<br />&#160;&#160;static member Pow : a:float32 * b:DV -&gt; DV<br />&#160;&#160;static member Pow : a:DV * b:float32 -&gt; DV<br />&#160;&#160;static member Pow : a:D * b:DV -&gt; DV<br />&#160;&#160;static member Pow : a:DV * b:D -&gt; DV<br />&#160;&#160;static member Pow : a:DV * b:DV -&gt; DV<br />&#160;&#160;static member ReLU : a:DV -&gt; DV<br />&#160;&#160;static member ReshapeToDM : m:int * a:DV -&gt; DM<br />&#160;&#160;static member Round : a:DV -&gt; DV<br />&#160;&#160;static member Sigmoid : a:DV -&gt; DV<br />&#160;&#160;static member Sign : a:DV -&gt; DV<br />&#160;&#160;static member Sin : a:DV -&gt; DV<br />&#160;&#160;static member Sinh : a:DV -&gt; DV<br />&#160;&#160;static member SoftMax : a:DV -&gt; DV<br />&#160;&#160;static member SoftPlus : a:DV -&gt; DV<br />&#160;&#160;static member SoftSign : a:DV -&gt; DV<br />&#160;&#160;static member Split : d:DV * n:seq&lt;int&gt; -&gt; seq&lt;DV&gt;<br />&#160;&#160;static member Sqrt : a:DV -&gt; DV<br />&#160;&#160;static member StandardDev : a:DV -&gt; D<br />&#160;&#160;static member Standardize : a:DV -&gt; DV<br />&#160;&#160;static member Sum : a:DV -&gt; D<br />&#160;&#160;static member Tan : a:DV -&gt; DV<br />&#160;&#160;static member Tanh : a:DV -&gt; DV<br />&#160;&#160;static member Variance : a:DV -&gt; D<br />&#160;&#160;static member ZeroN : n:int -&gt; DV<br />&#160;&#160;static member Zero : DV<br />&#160;&#160;static member ( + ) : a:int * b:DV -&gt; DV<br />&#160;&#160;static member ( + ) : a:DV * b:int -&gt; DV<br />&#160;&#160;static member ( + ) : a:float32 * b:DV -&gt; DV<br />&#160;&#160;static member ( + ) : a:DV * b:float32 -&gt; DV<br />&#160;&#160;static member ( + ) : a:D * b:DV -&gt; DV<br />&#160;&#160;static member ( + ) : a:DV * b:D -&gt; DV<br />&#160;&#160;static member ( + ) : a:DV * b:DV -&gt; DV<br />&#160;&#160;static member ( &amp;* ) : a:DV * b:DV -&gt; DM<br />&#160;&#160;static member ( / ) : a:int * b:DV -&gt; DV<br />&#160;&#160;static member ( / ) : a:DV * b:int -&gt; DV<br />&#160;&#160;static member ( / ) : a:float32 * b:DV -&gt; DV<br />&#160;&#160;static member ( / ) : a:DV * b:float32 -&gt; DV<br />&#160;&#160;static member ( / ) : a:D * b:DV -&gt; DV<br />&#160;&#160;static member ( / ) : a:DV * b:D -&gt; DV<br />&#160;&#160;static member ( ./ ) : a:DV * b:DV -&gt; DV<br />&#160;&#160;static member ( .* ) : a:DV * b:DV -&gt; DV<br />&#160;&#160;static member op_Explicit : d:float32 [] -&gt; DV<br />&#160;&#160;static member op_Explicit : d:DV -&gt; float32 []<br />&#160;&#160;static member ( * ) : a:int * b:DV -&gt; DV<br />&#160;&#160;static member ( * ) : a:DV * b:int -&gt; DV<br />&#160;&#160;static member ( * ) : a:float32 * b:DV -&gt; DV<br />&#160;&#160;static member ( * ) : a:DV * b:float32 -&gt; DV<br />&#160;&#160;static member ( * ) : a:D * b:DV -&gt; DV<br />&#160;&#160;static member ( * ) : a:DV * b:D -&gt; DV<br />&#160;&#160;static member ( * ) : a:DV * b:DV -&gt; D<br />&#160;&#160;static member ( - ) : a:int * b:DV -&gt; DV<br />&#160;&#160;static member ( - ) : a:DV * b:int -&gt; DV<br />&#160;&#160;static member ( - ) : a:float32 * b:DV -&gt; DV<br />&#160;&#160;static member ( - ) : a:DV * b:float32 -&gt; DV<br />&#160;&#160;static member ( - ) : a:D * b:DV -&gt; DV<br />&#160;&#160;static member ( - ) : a:DV * b:D -&gt; DV<br />&#160;&#160;static member ( - ) : a:DV * b:DV -&gt; DV<br />&#160;&#160;static member ( ~- ) : a:DV -&gt; DV<br /><br />Full name: DiffSharp.AD.Float32.DV</div>
+<div class="tip" id="fs9">val n : FeedForward</div>
+<div class="tip" id="fs10">Multiple items<br />type FeedForward =<br />&#160;&#160;inherit Layer<br />&#160;&#160;new : unit -&gt; FeedForward<br />&#160;&#160;member Add : f:(DM -&gt; DM) -&gt; unit<br />&#160;&#160;member Add : l:Layer -&gt; unit<br />&#160;&#160;override Decode : w:DV -&gt; unit<br />&#160;&#160;override Encode : unit -&gt; DV<br />&#160;&#160;override Init : unit -&gt; unit<br />&#160;&#160;member Insert : i:int * f:(DM -&gt; DM) -&gt; unit<br />&#160;&#160;member Insert : i:int * l:Layer -&gt; unit<br />&#160;&#160;member Remove : i:int -&gt; unit<br />&#160;&#160;...<br /><br />Full name: Hype.Neural.FeedForward<br /><br />--------------------<br />new : unit -&gt; FeedForward</div>
+<div class="tip" id="fs11">member FeedForward.Add : f:(DM -&gt; DM) -&gt; unit<br />member FeedForward.Add : l:Layer -&gt; unit</div>
+<div class="tip" id="fs12">Multiple items<br />type Linear =<br />&#160;&#160;inherit Layer<br />&#160;&#160;new : inputs:int * outputs:int -&gt; Linear<br />&#160;&#160;new : inputs:int * outputs:int * initializer:Initializer -&gt; Linear<br />&#160;&#160;override Decode : w:DV -&gt; unit<br />&#160;&#160;override Encode : unit -&gt; DV<br />&#160;&#160;override Init : unit -&gt; unit<br />&#160;&#160;override Reset : unit -&gt; unit<br />&#160;&#160;override Run : x:DM -&gt; DM<br />&#160;&#160;override ToString : unit -&gt; string<br />&#160;&#160;override ToStringFull : unit -&gt; string<br />&#160;&#160;...<br /><br />Full name: Hype.Neural.Linear<br /><br />--------------------<br />new : inputs:int * outputs:int -&gt; Linear<br />new : inputs:int * outputs:int * initializer:Initializer -&gt; Linear</div>
+<div class="tip" id="fs13">val tanh : value:&#39;T -&gt; &#39;T (requires member Tanh)<br /><br />Full name: Microsoft.FSharp.Core.Operators.tanh</div>
+<div class="tip" id="fs14">val loss : D</div>
+<div class="tip" id="fs15">Multiple items<br />type Layer =<br />&#160;&#160;new : unit -&gt; Layer<br />&#160;&#160;abstract member Decode : DV -&gt; unit<br />&#160;&#160;abstract member Encode : unit -&gt; DV<br />&#160;&#160;abstract member Init : unit -&gt; unit<br />&#160;&#160;abstract member Reset : unit -&gt; unit<br />&#160;&#160;abstract member Run : DM -&gt; DM<br />&#160;&#160;abstract member ToStringFull : unit -&gt; string<br />&#160;&#160;abstract member Visualize : unit -&gt; string<br />&#160;&#160;abstract member EncodeLength : int<br />&#160;&#160;member Train : d:Dataset -&gt; D * D []<br />&#160;&#160;...<br /><br />Full name: Hype.Neural.Layer<br /><br />--------------------<br />new : unit -&gt; Layer</div>
+<div class="tip" id="fs16">static member Layer.Train : l:Layer * d:Dataset -&gt; D * D []<br />static member Layer.Train : l:Layer * d:Dataset * v:Dataset -&gt; D * D []<br />static member Layer.Train : l:Layer * d:Dataset * par:Params -&gt; D * D []<br />static member Layer.Train : l:Layer * d:Dataset * v:Dataset * par:Params -&gt; D * D []</div>
+<div class="tip" id="fs17">Multiple items<br />module Params<br /><br />from Hype<br /><br />--------------------<br />type Params =<br />&#160;&#160;{Epochs: int;<br />&#160;&#160;&#160;Method: Method;<br />&#160;&#160;&#160;LearningRate: LearningRate;<br />&#160;&#160;&#160;Momentum: Momentum;<br />&#160;&#160;&#160;Loss: Loss;<br />&#160;&#160;&#160;Regularization: Regularization;<br />&#160;&#160;&#160;GradientClipping: GradientClipping;<br />&#160;&#160;&#160;Batch: Batch;<br />&#160;&#160;&#160;EarlyStopping: EarlyStopping;<br />&#160;&#160;&#160;ImprovementThreshold: D;<br />&#160;&#160;&#160;...}<br /><br />Full name: Hype.Params</div>
+<div class="tip" id="fs18">val Default : Params<br /><br />Full name: Hype.Params.Default</div>
+<div class="tip" id="fs19">type LearningRate =<br />&#160;&#160;| Constant of D<br />&#160;&#160;| Decay of D * D<br />&#160;&#160;| ExpDecay of D * D<br />&#160;&#160;| Schedule of DV<br />&#160;&#160;| Backtrack of D * D * D<br />&#160;&#160;| StrongWolfe of D * D * D<br />&#160;&#160;| AdaGrad of D<br />&#160;&#160;| RMSProp of D * D<br />&#160;&#160;override ToString : unit -&gt; string<br />&#160;&#160;member Func : (int -&gt; DV -&gt; (DV -&gt; D) -&gt; D -&gt; DV -&gt; DV ref -&gt; DV -&gt; obj)<br />&#160;&#160;static member DefaultAdaGrad : LearningRate<br />&#160;&#160;static member DefaultBacktrack : LearningRate<br />&#160;&#160;static member DefaultConstant : LearningRate<br />&#160;&#160;static member DefaultDecay : LearningRate<br />&#160;&#160;static member DefaultExpDecay : LearningRate<br />&#160;&#160;static member DefaultRMSProp : LearningRate<br />&#160;&#160;static member DefaultStrongWolfe : LearningRate<br /><br />Full name: Hype.LearningRate</div>
+<div class="tip" id="fs20">union case LearningRate.Schedule: DV -&gt; LearningRate</div>
+<div class="tip" id="fs21">Multiple items<br />union case Momentum.Momentum: D -&gt; Momentum<br /><br />--------------------<br />type Momentum =<br />&#160;&#160;| Momentum of D<br />&#160;&#160;| Nesterov of D<br />&#160;&#160;| NoMomentum<br />&#160;&#160;override ToString : unit -&gt; string<br />&#160;&#160;member Func : (DV -&gt; DV -&gt; DV)<br />&#160;&#160;static member DefaultMomentum : Momentum<br />&#160;&#160;static member DefaultNesterov : Momentum<br /><br />Full name: Hype.Momentum</div>
+<div class="tip" id="fs22">property Momentum.DefaultNesterov: Momentum</div>
+<div class="tip" id="fs23">type Batch =<br />&#160;&#160;| Full<br />&#160;&#160;| Minibatch of int<br />&#160;&#160;| Stochastic<br />&#160;&#160;override ToString : unit -&gt; string<br />&#160;&#160;member Func : (Dataset -&gt; int -&gt; Dataset)<br /><br />Full name: Hype.Batch</div>
+<div class="tip" id="fs24">union case Batch.Minibatch: int -&gt; Batch</div>
+<div class="tip" id="fs25">type Loss =<br />&#160;&#160;| L1Loss<br />&#160;&#160;| L2Loss<br />&#160;&#160;| Quadratic<br />&#160;&#160;| CrossEntropyOnLinear<br />&#160;&#160;| CrossEntropyOnSoftmax<br />&#160;&#160;override ToString : unit -&gt; string<br />&#160;&#160;member Func : (Dataset -&gt; (DM -&gt; DM) -&gt; D)<br /><br />Full name: Hype.Loss</div>
+<div class="tip" id="fs26">union case Loss.CrossEntropyOnLinear: Loss</div>
+<div class="tip" id="fs27">val hypertrain : DV * D * DV [] * D []<br /><br />Full name: Index.hypertrain</div>
+<div class="tip" id="fs28">type Optimize =<br />&#160;&#160;static member Minimize : f:(DV -&gt; D) * w0:DV -&gt; DV * D * DV [] * D []<br />&#160;&#160;static member Minimize : f:(DV -&gt; D) * w0:DV * par:Params -&gt; DV * D * DV [] * D []<br />&#160;&#160;static member Train : f:(DV -&gt; DM -&gt; DM) * w0:DV * d:Dataset -&gt; DV * D * DV [] * D []<br />&#160;&#160;static member Train : f:(DV -&gt; DV -&gt; DV) * w0:DV * d:Dataset -&gt; DV * D * DV [] * D []<br />&#160;&#160;static member Train : f:(DV -&gt; DV -&gt; D) * w0:DV * d:Dataset -&gt; DV * D * DV [] * D []<br />&#160;&#160;static member Train : f:(DV -&gt; DM -&gt; DM) * w0:DV * d:Dataset * v:Dataset -&gt; DV * D * DV [] * D []<br />&#160;&#160;static member Train : f:(DV -&gt; DM -&gt; DM) * w0:DV * d:Dataset * par:Params -&gt; DV * D * DV [] * D []<br />&#160;&#160;static member Train : f:(DV -&gt; DV -&gt; DV) * w0:DV * d:Dataset * v:Dataset -&gt; DV * D * DV [] * D []<br />&#160;&#160;static member Train : f:(DV -&gt; DV -&gt; DV) * w0:DV * d:Dataset * par:Params -&gt; DV * D * DV [] * D []<br />&#160;&#160;static member Train : f:(DV -&gt; DV -&gt; D) * w0:DV * d:Dataset * v:Dataset -&gt; DV * D * DV [] * D []<br />&#160;&#160;...<br /><br />Full name: Hype.Optimize</div>
+<div class="tip" id="fs29">static member Optimize.Minimize : f:(DV -&gt; D) * w0:DV -&gt; DV * D * DV [] * D []<br />static member Optimize.Minimize : f:(DV -&gt; D) * w0:DV * par:Params -&gt; DV * D * DV [] * D []</div>
+<div class="tip" id="fs30">val create : n:int -&gt; v:&#39;a -&gt; DV<br /><br />Full name: DiffSharp.AD.Float32.DV.create</div>
+<div class="tip" id="fs31">union case D.D: float32 -&gt; D</div>
+
+        </div>
+        <div class="col-sm-3">
+          <a href="index.html"><img src="img/hype.png" style="width:200px"/></a><br>
+          <ul class="nav nav-pills nav-stacked">
+            <li><a href="index.html">Home</a></li>
+          </ul>          
+          <div class="nav-label">Basics</div>
+          <ul class="nav nav-pills nav-stacked">
+            <li><a href="optimization.html">Optimization</a></li>
+            <li><a href="training.html">Training</a></li>
+          </ul>
+          <div class="nav-label">Examples</div>
+          <ul class="nav nav-pills nav-stacked">
+            <li><a href="regression.html">Regression</a></li>
+            <li><a href="feedforwardnets.html">Neural Networks</a></li>
+            <li><a href="recurrentnets.html">Recurrent Neural Nets</a></li>
+            <li><a href="hmc.html">Hamiltonian MCMC</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  <!-- Start of StatCounter Code for Default Guide -->
+  <script type="text/javascript">
+  var sc_project=10701961; 
+  var sc_invisible=1; 
+  var sc_security="a67091ad"; 
+  var scJsHost = (("https:" == document.location.protocol) ?
+  "https://secure." : "http://www.");
+  document.write("<sc"+"ript type='text/javascript' src='" +
+  scJsHost+
+  "statcounter.com/counter/counter.js'></"+"script>");
+  </script>
+  <noscript><div class="statcounter"><a title="shopify
+  analytics ecommerce" href="http://statcounter.com/shopify/"
+  target="_blank"><img class="statcounter"
+  src="http://c.statcounter.com/10701961/0/a67091ad/1/"
+  alt="shopify analytics ecommerce"></a></div></noscript>
+  <!-- End of StatCounter Code for Default Guide -->    
+  </body>
+</html>

@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Recurrent neural networks
+</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Hype">
+    <meta name="author" content="Atılım Güneş Baydin; Barak A. Pearlmutter">
+
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">
+        google.load("visualization", "1.1", { packages: ["corechart", "annotationchart", "calendar", "linechart", "geochart", "map", "sankey", "table", "treemap"] })
+    </script>
+
+    <link type="text/css" rel="stylesheet" href="misc/style.css" />
+    <script type="text/javascript" src="misc/tips.js"></script>
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-48900508-5', 'auto');
+      ga('send', 'pageview');
+
+    </script>    
+  </head>
+  <body>
+    <nav class="navbar navbar-inverse">
+      <div class="container">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="index.html"><span class="hype">Hype</span></a>
+        </div>
+        <div>
+          <ul class="nav navbar-nav">
+            <li><a href="https://github.com/hypelib/Hype">GitHub</a></li>
+            <li><a href="https://github.com/hypelib/Hype/releases">Release notes</a></li>
+            <li><a href="reference/index.html">API reference</a></li>
+            <li><a href="download.html">Download</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    <div class="container">
+      <div class="row">
+        <div class="col-sm-9">
+          <h1>Recurrent neural networks</h1>
+
+<p>In this example we build a recurrent neural network (RNN) for a language modeling task and train it with a short passage of text for a quick demonstration. Hype currently has three RNN models implemented as <strong>Hype.Neural</strong> layers, which can be combined freely with other layer types, explained, for example, in the <a href="feedforwardnets.html">neural networks</a> page. <strong>Hype.Neural.Recurrent</strong> implements the "vanilla" RNN layer, <strong>Hype.Neural.LSTM</strong> implements the LSTM layer, and <strong>Hype.Neural.GRU</strong> implements the gated recurrent unit (GRU) layer.</p>
+
+<h3>Language modeling</h3>
+
+<p>RNNs are well suited for constructing <a href="https://en.wikipedia.org/wiki/Language_model">language models,</a> where we need to predict the probability of a word (or token) given the history of the tokens that came before it. Here, we will use an LSTM-based RNN to construct a word-level language model from a short passage of text, for a basic demonstration of usage. This model can be scaled to larger problems. State-of-the-art models of this type can require considerable computing resources and training time.</p>
+
+<p>The text is from the beginning of Virgil's Aeneid, Book I.</p>
+
+<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l">1: </span>
+</pre></td>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span onmouseout="hideTip(event, 'fs3', 3)" onmouseover="showTip(event, 'fs3', 3)" class="i">text</span> <span class="o">=</span> <span class="s">&quot;I sing of arms and the man, he who, exiled by fate, first came from the coast of Troy to Italy, and to Lavinian shores – hurled about endlessly by land and sea, by the will of the gods, by cruel Juno’s remorseless anger, long suffering also in war, until he founded a city and brought his gods to Latium: from that the Latin people came, the lords of Alba Longa, the walls of noble Rome. Muse, tell me the cause: how was she offended in her divinity, how was she grieved, the Queen of Heaven, to drive a man, noted for virtue, to endure such dangers, to face so many trials? Can there be such anger in the minds of the gods?&quot;</span>
+</code></pre></td>
+</tr>
+</table>
+
+<p>Hype provides a simple <strong>Hype.NLP.Language</strong> type for tokenizing text. You can look at the <a href="reference/index.html">API reference</a> and the <a href="https://github.com/hypelib/Hype/blob/master/src/Hype/NLP.fs">source code</a> for a better understanding of its usage.</p>
+
+<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l"> 1: </span>
+<span class="l"> 2: </span>
+<span class="l"> 3: </span>
+<span class="l"> 4: </span>
+<span class="l"> 5: </span>
+<span class="l"> 6: </span>
+<span class="l"> 7: </span>
+<span class="l"> 8: </span>
+<span class="l"> 9: </span>
+<span class="l">10: </span>
+</pre></td>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">open</span> <span onmouseout="hideTip(event, 'fs4', 4)" onmouseover="showTip(event, 'fs4', 4)" class="i">Hype</span>
+<span class="k">open</span> <span onmouseout="hideTip(event, 'fs4', 5)" onmouseover="showTip(event, 'fs4', 5)" class="i">Hype</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs5', 6)" onmouseover="showTip(event, 'fs5', 6)" class="i">Neural</span>
+<span class="k">open</span> <span onmouseout="hideTip(event, 'fs4', 7)" onmouseover="showTip(event, 'fs4', 7)" class="i">Hype</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs6', 8)" onmouseover="showTip(event, 'fs6', 8)" class="i">NLP</span>
+<span class="k">open</span> <span onmouseout="hideTip(event, 'fs7', 9)" onmouseover="showTip(event, 'fs7', 9)" class="i">DiffSharp</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs8', 10)" onmouseover="showTip(event, 'fs8', 10)" class="i">AD</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs9', 11)" onmouseover="showTip(event, 'fs9', 11)" class="i">Float32</span>
+<span class="k">open</span> <span onmouseout="hideTip(event, 'fs7', 12)" onmouseover="showTip(event, 'fs7', 12)" class="i">DiffSharp</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs10', 13)" onmouseover="showTip(event, 'fs10', 13)" class="i">Util</span>
+
+<span class="k">let</span> <span onmouseout="hideTip(event, 'fs11', 14)" onmouseover="showTip(event, 'fs11', 14)" class="i">lang</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs12', 15)" onmouseover="showTip(event, 'fs12', 15)" class="t">Language</span>(<span onmouseout="hideTip(event, 'fs3', 16)" onmouseover="showTip(event, 'fs3', 16)" class="i">text</span>)
+
+<span onmouseout="hideTip(event, 'fs11', 17)" onmouseover="showTip(event, 'fs11', 17)" class="i">lang</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs13', 18)" onmouseover="showTip(event, 'fs13', 18)" class="i">Tokens</span> <span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs14', 19)" onmouseover="showTip(event, 'fs14', 19)" class="f">printfn</span> <span class="s">&quot;</span><span class="pf">%A</span><span class="s">&quot;</span>
+<span onmouseout="hideTip(event, 'fs11', 20)" onmouseover="showTip(event, 'fs11', 20)" class="i">lang</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs15', 21)" onmouseover="showTip(event, 'fs15', 21)" class="i">Length</span> <span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs14', 22)" onmouseover="showTip(event, 'fs14', 22)" class="f">printfn</span> <span class="s">&quot;</span><span class="pf">%A</span><span class="s">&quot;</span>
+</code></pre></td>
+</tr>
+</table>
+
+<p>These are the tokens extracted from the text, including some of the punctuation marks. When we are sampling from the RNN language model, we will make use of the "." token for signaling the end of a sentence. The puncutation marks are configurable when you are constructing the <strong>Language</strong> instance. If they are not provided, a default set is used.</p>
+
+<pre>
+[|","; "."; ":"; "?"; "Alba"; "Can"; "Heaven"; "I"; "Italy"; "Juno’s"; "Latin";
+  "Latium"; "Lavinian"; "Longa"; "Muse"; "Queen"; "Rome"; "Troy"; "a"; "about";
+  "also"; "and"; "anger"; "arms"; "be"; "brought"; "by"; "came"; "cause"; "city";
+  "coast"; "cruel"; "dangers"; "divinity"; "drive"; "endlessly"; "endure";
+  "exiled"; "face"; "fate"; "first"; "for"; "founded"; "from"; "gods"; "grieved";
+  "he"; "her"; "his"; "how"; "hurled"; "in"; "land"; "long"; "lords"; "man";
+  "many"; "me"; "minds"; "noble"; "noted"; "of"; "offended"; "people";
+  "remorseless"; "sea"; "she"; "shores"; "sing"; "so"; "such"; "suffering";
+  "tell"; "that"; "the"; "there"; "to"; "trials"; "until"; "virtue"; "walls";
+  "war"; "was"; "who"; "will"; "–"|]
+
+<p>86
+</pre>
+There are 86 tokens in this language instance.</p>
+
+<p>Now let's transform the full text to a dataset, using the <strong>Language</strong> instance holding these tokens. The text will be encoded in a matrix where each column is a representation of each word as a <em>one-hot</em> vector.</p>
+
+<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l">1: </span>
+<span class="l">2: </span>
+</pre></td>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span onmouseout="hideTip(event, 'fs16', 23)" onmouseover="showTip(event, 'fs16', 23)" class="i">text&#39;</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs11', 24)" onmouseover="showTip(event, 'fs11', 24)" class="i">lang</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs17', 25)" onmouseover="showTip(event, 'fs17', 25)" class="f">EncodeOneHot</span>(<span onmouseout="hideTip(event, 'fs3', 26)" onmouseover="showTip(event, 'fs3', 26)" class="i">text</span>)
+<span onmouseout="hideTip(event, 'fs16', 27)" onmouseover="showTip(event, 'fs16', 27)" class="i">text&#39;</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs18', 28)" onmouseover="showTip(event, 'fs18', 28)" class="f">Visualize</span>() <span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs14', 29)" onmouseover="showTip(event, 'fs14', 29)" class="f">printfn</span> <span class="s">&quot;</span><span class="pf">%s</span><span class="s">&quot;</span>
+</code></pre></td>
+</tr>
+</table>
+
+<pre>
+DM : 86 x 145
+</pre>
+
+<p>Out of these 145 words, we will construct a dataset where the inputs are the first 144 words and the target outputs are the 144 words starting with a one word shift. This means that, for each word, we want the output (the prediction) to be the following word in our text passage.</p>
+
+<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l">1: </span>
+<span class="l">2: </span>
+</pre></td>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span onmouseout="hideTip(event, 'fs19', 30)" onmouseover="showTip(event, 'fs19', 30)" class="i">data</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs20', 31)" onmouseover="showTip(event, 'fs20', 31)" class="t">Dataset</span>(<span onmouseout="hideTip(event, 'fs16', 32)" onmouseover="showTip(event, 'fs16', 32)" class="i">text&#39;</span><span class="o">.</span>[<span class="o">*</span>, <span class="n">0..</span>(<span onmouseout="hideTip(event, 'fs16', 33)" onmouseover="showTip(event, 'fs16', 33)" class="i">text&#39;</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs21', 34)" onmouseover="showTip(event, 'fs21', 34)" class="i">Cols</span> <span class="o">-</span> <span class="n">2</span>)],
+                   <span onmouseout="hideTip(event, 'fs16', 35)" onmouseover="showTip(event, 'fs16', 35)" class="i">text&#39;</span><span class="o">.</span>[<span class="o">*</span>, <span class="n">1..</span>(<span onmouseout="hideTip(event, 'fs16', 36)" onmouseover="showTip(event, 'fs16', 36)" class="i">text&#39;</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs21', 37)" onmouseover="showTip(event, 'fs21', 37)" class="i">Cols</span> <span class="o">-</span> <span class="n">1</span>)])
+</code></pre></td>
+</tr>
+</table>
+
+<pre>
+val data : Dataset = Hype.Dataset
+   X: 86 x 144
+   Y: 86 x 144
+</pre>
+
+<p>RNNs, and especially the LSTM variety that we will use, can make predictions that take long-term dependencies and contextual information into account. When the language model is trained with a large enough text corpus and the network has enough capacity, state-of-the-art RNN language models are able to learn complex grammatical relations.</p>
+
+<p>For our quick demonstration, we use a linear word embedding layer of 20 units, an LSTM of 100 units and a final linear layer of 86 units (the size of our vocabulary) followed by <strong>softmax</strong> activation.</p>
+
+<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l">1: </span>
+<span class="l">2: </span>
+<span class="l">3: </span>
+<span class="l">4: </span>
+<span class="l">5: </span>
+<span class="l">6: </span>
+<span class="l">7: </span>
+</pre></td>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span onmouseout="hideTip(event, 'fs22', 38)" onmouseover="showTip(event, 'fs22', 38)" class="i">dim</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs11', 39)" onmouseover="showTip(event, 'fs11', 39)" class="i">lang</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs15', 40)" onmouseover="showTip(event, 'fs15', 40)" class="i">Length</span> <span class="c">// Vocabulary size, here 86</span>
+
+<span class="k">let</span> <span onmouseout="hideTip(event, 'fs23', 41)" onmouseover="showTip(event, 'fs23', 41)" class="i">n</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs24', 42)" onmouseover="showTip(event, 'fs24', 42)" class="t">FeedForward</span>()
+<span onmouseout="hideTip(event, 'fs23', 43)" onmouseover="showTip(event, 'fs23', 43)" class="i">n</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs25', 44)" onmouseover="showTip(event, 'fs25', 44)" class="f">Add</span>(<span onmouseout="hideTip(event, 'fs26', 45)" onmouseover="showTip(event, 'fs26', 45)" class="t">Linear</span>(<span onmouseout="hideTip(event, 'fs22', 46)" onmouseover="showTip(event, 'fs22', 46)" class="i">dim</span>, <span class="n">20</span>))
+<span onmouseout="hideTip(event, 'fs23', 47)" onmouseover="showTip(event, 'fs23', 47)" class="i">n</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs25', 48)" onmouseover="showTip(event, 'fs25', 48)" class="f">Add</span>(<span onmouseout="hideTip(event, 'fs27', 49)" onmouseover="showTip(event, 'fs27', 49)" class="t">LSTM</span>(<span class="n">20</span>, <span class="n">100</span>))
+<span onmouseout="hideTip(event, 'fs23', 50)" onmouseover="showTip(event, 'fs23', 50)" class="i">n</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs25', 51)" onmouseover="showTip(event, 'fs25', 51)" class="f">Add</span>(<span onmouseout="hideTip(event, 'fs26', 52)" onmouseover="showTip(event, 'fs26', 52)" class="t">Linear</span>(<span class="n">100</span>, <span onmouseout="hideTip(event, 'fs22', 53)" onmouseover="showTip(event, 'fs22', 53)" class="i">dim</span>))
+<span onmouseout="hideTip(event, 'fs23', 54)" onmouseover="showTip(event, 'fs23', 54)" class="i">n</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs25', 55)" onmouseover="showTip(event, 'fs25', 55)" class="f">Add</span>(<span onmouseout="hideTip(event, 'fs28', 56)" onmouseover="showTip(event, 'fs28', 56)" class="t">DM</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs29', 57)" onmouseover="showTip(event, 'fs29', 57)" class="f">mapCols</span> <span onmouseout="hideTip(event, 'fs30', 58)" onmouseover="showTip(event, 'fs30', 58)" class="f">softmax</span>)
+</code></pre></td>
+</tr>
+</table>
+
+<p>You can also easily stack multiple RNNs on top of each other.</p>
+
+<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l">1: </span>
+<span class="l">2: </span>
+<span class="l">3: </span>
+<span class="l">4: </span>
+<span class="l">5: </span>
+<span class="l">6: </span>
+</pre></td>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span onmouseout="hideTip(event, 'fs23', 59)" onmouseover="showTip(event, 'fs23', 59)" class="i">n</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs24', 60)" onmouseover="showTip(event, 'fs24', 60)" class="t">FeedForward</span>()
+<span onmouseout="hideTip(event, 'fs23', 61)" onmouseover="showTip(event, 'fs23', 61)" class="i">n</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs25', 62)" onmouseover="showTip(event, 'fs25', 62)" class="f">Add</span>(<span onmouseout="hideTip(event, 'fs26', 63)" onmouseover="showTip(event, 'fs26', 63)" class="t">Linear</span>(<span onmouseout="hideTip(event, 'fs22', 64)" onmouseover="showTip(event, 'fs22', 64)" class="i">dim</span>, <span class="n">20</span>))
+<span onmouseout="hideTip(event, 'fs23', 65)" onmouseover="showTip(event, 'fs23', 65)" class="i">n</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs25', 66)" onmouseover="showTip(event, 'fs25', 66)" class="f">Add</span>(<span onmouseout="hideTip(event, 'fs27', 67)" onmouseover="showTip(event, 'fs27', 67)" class="t">LSTM</span>(<span class="n">20</span>, <span class="n">100</span>))
+<span onmouseout="hideTip(event, 'fs23', 68)" onmouseover="showTip(event, 'fs23', 68)" class="i">n</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs25', 69)" onmouseover="showTip(event, 'fs25', 69)" class="f">Add</span>(<span onmouseout="hideTip(event, 'fs27', 70)" onmouseover="showTip(event, 'fs27', 70)" class="t">LSTM</span>(<span class="n">100</span>, <span class="n">100</span>))
+<span onmouseout="hideTip(event, 'fs23', 71)" onmouseover="showTip(event, 'fs23', 71)" class="i">n</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs25', 72)" onmouseover="showTip(event, 'fs25', 72)" class="f">Add</span>(<span onmouseout="hideTip(event, 'fs26', 73)" onmouseover="showTip(event, 'fs26', 73)" class="t">Linear</span>(<span class="n">100</span>, <span onmouseout="hideTip(event, 'fs22', 74)" onmouseover="showTip(event, 'fs22', 74)" class="i">dim</span>))
+<span onmouseout="hideTip(event, 'fs23', 75)" onmouseover="showTip(event, 'fs23', 75)" class="i">n</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs25', 76)" onmouseover="showTip(event, 'fs25', 76)" class="f">Add</span>(<span onmouseout="hideTip(event, 'fs28', 77)" onmouseover="showTip(event, 'fs28', 77)" class="t">DM</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs29', 78)" onmouseover="showTip(event, 'fs29', 78)" class="f">mapCols</span> <span onmouseout="hideTip(event, 'fs30', 79)" onmouseover="showTip(event, 'fs30', 79)" class="f">softmax</span>)
+</code></pre></td>
+</tr>
+</table>
+
+<p>We will observe the the performance of our RNN during training by sampling random sentences from the language model.</p>
+
+<p>Remember that the final output of the network, through the softmax activation, is a vector of word probabilities. When we are sampling, we start with a word, supply this to the network, and use the resulting probabilities at the output to sample from the vocabulary where words with higher probability are more likely to be selected. We then continue by giving the network the last sampled word and repeating this until we hit an "end of sentence" token (we use "." here) or reach a limit of maximum sentence length.</p>
+
+<p>This is how we would sample a sentence starting with a specific word.</p>
+
+<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l">1: </span>
+<span class="l">2: </span>
+<span class="l">3: </span>
+<span class="l">4: </span>
+</pre></td>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs23', 80)" onmouseover="showTip(event, 'fs23', 80)" class="i">n</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs31', 81)" onmouseover="showTip(event, 'fs31', 81)" class="f">Reset</span>()
+<span class="k">for</span> <span onmouseout="hideTip(event, 'fs32', 82)" onmouseover="showTip(event, 'fs32', 82)" class="i">i</span> <span class="o">=</span> <span class="n">0</span> <span class="k">to</span> <span class="n">5</span> <span class="k">do</span>
+    <span onmouseout="hideTip(event, 'fs11', 83)" onmouseover="showTip(event, 'fs11', 83)" class="i">lang</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs33', 84)" onmouseover="showTip(event, 'fs33', 84)" class="f">Sample</span>(<span onmouseout="hideTip(event, 'fs23', 85)" onmouseover="showTip(event, 'fs23', 85)" class="i">n</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs34', 86)" onmouseover="showTip(event, 'fs34', 86)" class="f">Run</span>, <span class="s">&quot;I&quot;</span>, [|<span class="s">&quot;.&quot;</span>|], <span class="n">30</span>) <span class="c">// Use &quot;.&quot; as the stop token, limit maximum sentence length to 30.</span>
+    <span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs14', 87)" onmouseover="showTip(event, 'fs14', 87)" class="f">printfn</span> <span class="s">&quot;</span><span class="pf">%s</span><span class="s">&quot;</span>
+</code></pre></td>
+</tr>
+</table>
+
+<p>Because the model is not trained, we get sequences of random words from the vocabulary.</p>
+
+<pre>
+I be: she dangers Latium endlessly gods remorseless divinity tell and his offended lords trials? about war trials and anger shores so anger Alba a Alba sing her
+I? came exiled – suffering shores anger came Latium people sing sing remorseless who brought war walls endlessly anger me founded his.
+I – will long of in offended cruel until Queen Italy who anger lords Queen in Longa Muse who people about suffering Italy also grieved cruel hurled who me about
+I endlessly city first by face, a Heaven me hurled sea such long noted she noted many sea city anger I noted remorseless cause Queen to remorseless Italy coast
+I sea noted noble me minds long sing cause people in walls Italy by Longa first, for grieved sea many walls Troy came was endlessly of in Latium Latium
+I and Latin of many suffering Alba Latium war.
+</pre>
+
+<p>We set a training cycle where we run one epoch of training followed by sampling one sentence starting with the word "I". In each epoch, we run through the whole training dataset. With a larger training corpus, we could also run the training with minibatches by stating this in the parameter set (commented out below).</p>
+
+<p>Like the sample sentences above, at the beginning of training, we see mostly random orderings of words. As the training progresses, the cross-entropy loss for our dataset is decreasing and the sentences start exhibiting meaningful word patterns.</p>
+
+<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l"> 1: </span>
+<span class="l"> 2: </span>
+<span class="l"> 3: </span>
+<span class="l"> 4: </span>
+<span class="l"> 5: </span>
+<span class="l"> 6: </span>
+<span class="l"> 7: </span>
+<span class="l"> 8: </span>
+<span class="l"> 9: </span>
+<span class="l">10: </span>
+</pre></td>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">for</span> <span onmouseout="hideTip(event, 'fs32', 88)" onmouseover="showTip(event, 'fs32', 88)" class="i">i</span> <span class="o">=</span> <span class="n">0</span> <span class="k">to</span> <span class="n">1000</span> <span class="k">do</span>
+    <span class="k">let</span> <span onmouseout="hideTip(event, 'fs35', 89)" onmouseover="showTip(event, 'fs35', 89)" class="i">par</span> <span class="o">=</span> {<span onmouseout="hideTip(event, 'fs36', 90)" onmouseover="showTip(event, 'fs36', 90)" class="t">Params</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs37', 91)" onmouseover="showTip(event, 'fs37', 91)" class="i">Default</span> <span class="k">with</span>
+                <span class="c">//Batch = Minibatch 10</span>
+                <span onmouseout="hideTip(event, 'fs38', 92)" onmouseover="showTip(event, 'fs38', 92)" class="i">LearningRate</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs38', 93)" onmouseover="showTip(event, 'fs38', 93)" class="t">LearningRate</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs39', 94)" onmouseover="showTip(event, 'fs39', 94)" class="p">RMSProp</span>(<span onmouseout="hideTip(event, 'fs40', 95)" onmouseover="showTip(event, 'fs40', 95)" class="p">D</span> <span class="n">0.01f</span>, <span onmouseout="hideTip(event, 'fs40', 96)" onmouseover="showTip(event, 'fs40', 96)" class="p">D</span> <span class="n">0.9f</span>)
+                <span onmouseout="hideTip(event, 'fs41', 97)" onmouseover="showTip(event, 'fs41', 97)" class="i">Loss</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs42', 98)" onmouseover="showTip(event, 'fs42', 98)" class="p">CrossEntropyOnSoftmax</span>
+                <span class="i">Epochs</span> <span class="o">=</span> <span class="n">1</span>
+                <span class="i">Silent</span> <span class="o">=</span> <span class="k">true</span>       <span class="c">// Suppress the regular printing of training progress</span>
+                <span class="i">ReturnBest</span> <span class="o">=</span> <span class="k">false</span>} 
+    <span class="k">let</span> <span onmouseout="hideTip(event, 'fs43', 99)" onmouseover="showTip(event, 'fs43', 99)" class="i">loss</span>, _ <span class="o">=</span> <span onmouseout="hideTip(event, 'fs44', 100)" onmouseover="showTip(event, 'fs44', 100)" class="t">Layer</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs45', 101)" onmouseover="showTip(event, 'fs45', 101)" class="f">Train</span>(<span onmouseout="hideTip(event, 'fs23', 102)" onmouseover="showTip(event, 'fs23', 102)" class="i">n</span>, <span onmouseout="hideTip(event, 'fs19', 103)" onmouseover="showTip(event, 'fs19', 103)" class="i">data</span>, <span onmouseout="hideTip(event, 'fs35', 104)" onmouseover="showTip(event, 'fs35', 104)" class="i">par</span>)
+    <span onmouseout="hideTip(event, 'fs14', 105)" onmouseover="showTip(event, 'fs14', 105)" class="f">printfn</span> <span class="s">&quot;Epoch: </span><span class="pf">%*i</span><span class="s"> | Loss: </span><span class="pf">%O</span><span class="s"> | Sample: </span><span class="pf">%s</span><span class="s">&quot;</span> <span class="n">3</span> <span onmouseout="hideTip(event, 'fs32', 106)" onmouseover="showTip(event, 'fs32', 106)" class="i">i</span> <span onmouseout="hideTip(event, 'fs43', 107)" onmouseover="showTip(event, 'fs43', 107)" class="i">loss</span> (<span onmouseout="hideTip(event, 'fs11', 108)" onmouseover="showTip(event, 'fs11', 108)" class="i">lang</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs33', 109)" onmouseover="showTip(event, 'fs33', 109)" class="f">Sample</span>(<span onmouseout="hideTip(event, 'fs23', 110)" onmouseover="showTip(event, 'fs23', 110)" class="i">n</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs34', 111)" onmouseover="showTip(event, 'fs34', 111)" class="f">Run</span>, <span class="s">&quot;I&quot;</span>, [|<span class="s">&quot;.&quot;</span>|], <span class="n">30</span>))
+</code></pre></td>
+</tr>
+</table>
+
+<p>Here is a selection of sentences demonstrating the progress of training.</p>
+
+<pre>
+Epoch:   0 | Loss: D  4.478101e+000 | Sample: I Queen drive she Alba endlessly Queen the by how tell his from grieved war her there drive people – lords coast he.
+Epoch:  10 | Loss: D  4.102071e+000 | Sample: I people to,, Rome how the he of – sing fate, Muse, by,, Muse the of man Queen Latin and in her cause:
+Epoch:  30 | Loss: D  3.438288e+000 | Sample: I walls long to first dangers she her, to founded to virtue sea first Can dangers a founded about Can Queen lords from sea by remorseless founded endlessly Latium
+Epoch:  40 | Loss: D  2.007577e+000 | Sample: I Alba gods Alba Rome, the walls Alba Muse Rome anger me the the of the gods to who man me first founded offended endlessly until also grieved long
+Epoch:  50 | Loss: D  9.753818e-001 | Sample: I sing people cruel: me the of Rome.
+Epoch:  60 | Loss: D  3.944587e-001 | Sample: I sing sing Troy to so hurled endlessly by land sea, by to – hurled about by the of arms, by Juno’s such anger long also in her
+Epoch:  70 | Loss: D  2.131431e-001 | Sample: I sing of and the of Longa, by Juno’s anger was in her of Heaven, to a city brought his gods to a gods to Lavinian hurled to
+Epoch:  80 | Loss: D  1.895453e-001 | Sample: I sing, by will the of Rome.
+Epoch:  90 | Loss: D  1.799535e-001 | Sample: I sing? there Muse the of the of the of arms by the: how she offended in the of? a, he shores hurled by land to
+Epoch: 100 | Loss: D  1.733837e-001 | Sample: I sing arms the of Alba gods who, by Juno’s Rome such anger the of the of arms and, by, by from the coast Rome.
+Epoch: 110 | Loss: D  1.682917e-001 | Sample: I sing Troy by, by from the of arms and, by, by from came, by Juno’s anger long in the of the of arms cruel Muse
+Epoch: 120 | Loss: D  1.639529e-001 | Sample: I sing arms the of Rome.
+Epoch: 130 | Loss: D  1.600647e-001 | Sample: I sing arms and, by Juno’s remorseless there and the of the of arms and, by Alba coast Troy to a – his gods by of the of
+Epoch: 140 | Loss: D  1.564835e-001 | Sample: I sing arms by the of Rome.
+Epoch: 150 | Loss: D  1.531392e-001 | Sample: I sing arms cruel, exiled by coast, he a city in the of the of arms.
+Epoch: 160 | Loss: D  1.499920e-001 | Sample: I sing arms cruel man, by the trials arms to shores hurled endlessly by the of gods Italy, me the of Rome.
+Epoch: 200 | Loss: D  1.390327e-001 | Sample: I sing arms and, by Juno’s such of the of the of arms Italy, by from the sing arms walls of the of Rome.
+Epoch: 230 | Loss: D  1.322940e-001 | Sample: I sing arms the man he, tell from the of arms Italy, by fate, by the of Troy Italy, by fate first from the of the
+Epoch: 260 | Loss: D  1.264137e-001 | Sample: I sing brought Muse Muse the of Heaven, by shores remorseless there he in the of arms cruel, by fate, he from the gods to Italy,
+Epoch: 420 | Loss: D  1.131158e-001 | Sample: I sing of arms the of Heaven, by Juno’s remorseless hurled such in the of arms.
+Epoch: 680 | Loss: D  9.938217e-002 | Sample: I of arms the man he, exiled fate, he virtue, to a? Can be such in the of the of of the of arms.
+Epoch: 923 | Loss: D  9.283429e-002 | Sample: I sing of arms and the man he, by fate came from the of to Italy, by the, by Juno’s anger of Rome.
+</pre>
+
+          <div class="tip" id="fs1">val fsi : Compiler.Interactive.InteractiveSession<br /><br />Full name: Microsoft.FSharp.Compiler.Interactive.Settings.fsi</div>
+<div class="tip" id="fs2">property Compiler.Interactive.InteractiveSession.ShowDeclarationValues: bool</div>
+<div class="tip" id="fs3">val text : string<br /><br />Full name: RecurrentNets.text</div>
+<div class="tip" id="fs4">namespace Hype</div>
+<div class="tip" id="fs5">namespace Hype.Neural</div>
+<div class="tip" id="fs6">namespace Hype.NLP</div>
+<div class="tip" id="fs7">namespace DiffSharp</div>
+<div class="tip" id="fs8">namespace DiffSharp.AD</div>
+<div class="tip" id="fs9">module Float32<br /><br />from DiffSharp.AD</div>
+<div class="tip" id="fs10">module Util<br /><br />from DiffSharp</div>
+<div class="tip" id="fs11">val lang : Language<br /><br />Full name: RecurrentNets.lang</div>
+<div class="tip" id="fs12">Multiple items<br />type Language =<br />&#160;&#160;new : text:string -&gt; Language<br />&#160;&#160;new : text:string * punctuation:string [] -&gt; Language<br />&#160;&#160;new : tokens:string [] * punctuation:string [] -&gt; Language<br />&#160;&#160;member DecodeOneHot : x:DM -&gt; string []<br />&#160;&#160;member EncodeOneHot : x:string [] -&gt; DM<br />&#160;&#160;member EncodeOneHot : x:string -&gt; DM<br />&#160;&#160;member Sample : probs:DV -&gt; string<br />&#160;&#160;member Sample : probs:DM -&gt; string []<br />&#160;&#160;member Sample : model:(DM -&gt; DM) * start:string * stop:string [] * maxlen:int -&gt; string<br />&#160;&#160;member Length : int<br />&#160;&#160;...<br /><br />Full name: Hype.NLP.Language<br /><br />--------------------<br />new : text:string -&gt; Language<br />new : tokens:string [] * punctuation:string [] -&gt; Language<br />new : text:string * punctuation:string [] -&gt; Language</div>
+<div class="tip" id="fs13">property Language.Tokens: string []</div>
+<div class="tip" id="fs14">val printfn : format:Printf.TextWriterFormat&lt;&#39;T&gt; -&gt; &#39;T<br /><br />Full name: Microsoft.FSharp.Core.ExtraTopLevelOperators.printfn</div>
+<div class="tip" id="fs15">property Language.Length: int</div>
+<div class="tip" id="fs16">val text&#39; : DM<br /><br />Full name: RecurrentNets.text&#39;</div>
+<div class="tip" id="fs17">member Language.EncodeOneHot : x:string [] -&gt; DM<br />member Language.EncodeOneHot : x:string -&gt; DM</div>
+<div class="tip" id="fs18">member DM.Visualize : unit -&gt; string</div>
+<div class="tip" id="fs19">val data : Dataset<br /><br />Full name: RecurrentNets.data</div>
+<div class="tip" id="fs20">Multiple items<br />type Dataset =<br />&#160;&#160;new : s:seq&lt;DV * DV&gt; -&gt; Dataset<br />&#160;&#160;new : xi:seq&lt;int&gt; * y:DM -&gt; Dataset<br />&#160;&#160;new : x:DM * yi:seq&lt;int&gt; -&gt; Dataset<br />&#160;&#160;new : xi:seq&lt;int&gt; * yi:seq&lt;int&gt; -&gt; Dataset<br />&#160;&#160;new : x:DM * y:DM -&gt; Dataset<br />&#160;&#160;new : xi:seq&lt;int&gt; * onehotdimsx:int * y:DM -&gt; Dataset<br />&#160;&#160;new : x:DM * yi:seq&lt;int&gt; * onehotdimsy:int -&gt; Dataset<br />&#160;&#160;new : xi:seq&lt;int&gt; * onehotdimsx:int * yi:seq&lt;int&gt; * onehotdimsy:int -&gt; Dataset<br />&#160;&#160;private new : x:DM * y:DM * xi:seq&lt;int&gt; * yi:seq&lt;int&gt; -&gt; Dataset<br />&#160;&#160;member AppendBiasRowX : unit -&gt; Dataset<br />&#160;&#160;...<br /><br />Full name: Hype.Dataset<br /><br />--------------------<br />new : s:seq&lt;DV * DV&gt; -&gt; Dataset<br />new : x:DM * y:DM -&gt; Dataset<br />new : xi:seq&lt;int&gt; * yi:seq&lt;int&gt; -&gt; Dataset<br />new : x:DM * yi:seq&lt;int&gt; -&gt; Dataset<br />new : xi:seq&lt;int&gt; * y:DM -&gt; Dataset<br />new : x:DM * yi:seq&lt;int&gt; * onehotdimsy:int -&gt; Dataset<br />new : xi:seq&lt;int&gt; * onehotdimsx:int * y:DM -&gt; Dataset<br />new : xi:seq&lt;int&gt; * onehotdimsx:int * yi:seq&lt;int&gt; * onehotdimsy:int -&gt; Dataset</div>
+<div class="tip" id="fs21">property DM.Cols: int</div>
+<div class="tip" id="fs22">val dim : int<br /><br />Full name: RecurrentNets.dim</div>
+<div class="tip" id="fs23">val n : FeedForward<br /><br />Full name: RecurrentNets.n</div>
+<div class="tip" id="fs24">Multiple items<br />type FeedForward =<br />&#160;&#160;inherit Layer<br />&#160;&#160;new : unit -&gt; FeedForward<br />&#160;&#160;member Add : f:(DM -&gt; DM) -&gt; unit<br />&#160;&#160;member Add : l:Layer -&gt; unit<br />&#160;&#160;override Decode : w:DV -&gt; unit<br />&#160;&#160;override Encode : unit -&gt; DV<br />&#160;&#160;override Init : unit -&gt; unit<br />&#160;&#160;member Insert : i:int * f:(DM -&gt; DM) -&gt; unit<br />&#160;&#160;member Insert : i:int * l:Layer -&gt; unit<br />&#160;&#160;member Remove : i:int -&gt; unit<br />&#160;&#160;...<br /><br />Full name: Hype.Neural.FeedForward<br /><br />--------------------<br />new : unit -&gt; FeedForward</div>
+<div class="tip" id="fs25">member FeedForward.Add : f:(DM -&gt; DM) -&gt; unit<br />member FeedForward.Add : l:Layer -&gt; unit</div>
+<div class="tip" id="fs26">Multiple items<br />type Linear =<br />&#160;&#160;inherit Layer<br />&#160;&#160;new : inputs:int * outputs:int -&gt; Linear<br />&#160;&#160;new : inputs:int * outputs:int * initializer:Initializer -&gt; Linear<br />&#160;&#160;override Decode : w:DV -&gt; unit<br />&#160;&#160;override Encode : unit -&gt; DV<br />&#160;&#160;override Init : unit -&gt; unit<br />&#160;&#160;override Reset : unit -&gt; unit<br />&#160;&#160;override Run : x:DM -&gt; DM<br />&#160;&#160;override ToString : unit -&gt; string<br />&#160;&#160;override ToStringFull : unit -&gt; string<br />&#160;&#160;...<br /><br />Full name: Hype.Neural.Linear<br /><br />--------------------<br />new : inputs:int * outputs:int -&gt; Linear<br />new : inputs:int * outputs:int * initializer:Initializer -&gt; Linear</div>
+<div class="tip" id="fs27">Multiple items<br />type LSTM =<br />&#160;&#160;inherit Layer<br />&#160;&#160;new : inputs:int * memcells:int -&gt; LSTM<br />&#160;&#160;override Decode : w:DV -&gt; unit<br />&#160;&#160;override Encode : unit -&gt; DV<br />&#160;&#160;override Init : unit -&gt; unit<br />&#160;&#160;override Reset : unit -&gt; unit<br />&#160;&#160;override Run : x:DM -&gt; DM<br />&#160;&#160;override ToString : unit -&gt; string<br />&#160;&#160;override ToStringFull : unit -&gt; string<br />&#160;&#160;override Visualize : unit -&gt; string<br />&#160;&#160;...<br /><br />Full name: Hype.Neural.LSTM<br /><br />--------------------<br />new : inputs:int * memcells:int -&gt; LSTM</div>
+<div class="tip" id="fs28">Multiple items<br />union case DM.DM: float32 [,] -&gt; DM<br /><br />--------------------<br />module DM<br /><br />from DiffSharp.AD.Float32<br /><br />--------------------<br />type DM =<br />&#160;&#160;| DM of float32 [,]<br />&#160;&#160;| DMF of DM * DM * uint32<br />&#160;&#160;| DMR of DM * DM ref * TraceOp * uint32 ref * uint32<br />&#160;&#160;member Copy : unit -&gt; DM<br />&#160;&#160;member GetCols : unit -&gt; seq&lt;DV&gt;<br />&#160;&#160;member GetForward : t:DM * i:uint32 -&gt; DM<br />&#160;&#160;member GetReverse : i:uint32 -&gt; DM<br />&#160;&#160;member GetRows : unit -&gt; seq&lt;DV&gt;<br />&#160;&#160;member GetSlice : rowStart:int option * rowFinish:int option * col:int -&gt; DV<br />&#160;&#160;member GetSlice : row:int * colStart:int option * colFinish:int option -&gt; DV<br />&#160;&#160;member GetSlice : rowStart:int option * rowFinish:int option * colStart:int option * colFinish:int option -&gt; DM<br />&#160;&#160;member ToMathematicaString : unit -&gt; string<br />&#160;&#160;member ToMatlabString : unit -&gt; string<br />&#160;&#160;override ToString : unit -&gt; string<br />&#160;&#160;member Visualize : unit -&gt; string<br />&#160;&#160;member A : DM<br />&#160;&#160;member Cols : int<br />&#160;&#160;member F : uint32<br />&#160;&#160;member Item : i:int * j:int -&gt; D with get<br />&#160;&#160;member Length : int<br />&#160;&#160;member P : DM<br />&#160;&#160;member PD : DM<br />&#160;&#160;member Rows : int<br />&#160;&#160;member T : DM<br />&#160;&#160;member A : DM with set<br />&#160;&#160;member F : uint32 with set<br />&#160;&#160;static member Abs : a:DM -&gt; DM<br />&#160;&#160;static member Acos : a:DM -&gt; DM<br />&#160;&#160;static member AddDiagonal : a:DM * b:DV -&gt; DM<br />&#160;&#160;static member AddItem : a:DM * i:int * j:int * b:D -&gt; DM<br />&#160;&#160;static member AddSubMatrix : a:DM * i:int * j:int * b:DM -&gt; DM<br />&#160;&#160;static member Asin : a:DM -&gt; DM<br />&#160;&#160;static member Atan : a:DM -&gt; DM<br />&#160;&#160;static member Atan2 : a:int * b:DM -&gt; DM<br />&#160;&#160;static member Atan2 : a:DM * b:int -&gt; DM<br />&#160;&#160;static member Atan2 : a:float32 * b:DM -&gt; DM<br />&#160;&#160;static member Atan2 : a:DM * b:float32 -&gt; DM<br />&#160;&#160;static member Atan2 : a:D * b:DM -&gt; DM<br />&#160;&#160;static member Atan2 : a:DM * b:D -&gt; DM<br />&#160;&#160;static member Atan2 : a:DM * b:DM -&gt; DM<br />&#160;&#160;static member Ceiling : a:DM -&gt; DM<br />&#160;&#160;static member Cos : a:DM -&gt; DM<br />&#160;&#160;static member Cosh : a:DM -&gt; DM<br />&#160;&#160;static member Det : a:DM -&gt; D<br />&#160;&#160;static member Diagonal : a:DM -&gt; DV<br />&#160;&#160;static member Exp : a:DM -&gt; DM<br />&#160;&#160;static member Floor : a:DM -&gt; DM<br />&#160;&#160;static member Inverse : a:DM -&gt; DM<br />&#160;&#160;static member Log : a:DM -&gt; DM<br />&#160;&#160;static member Log10 : a:DM -&gt; DM<br />&#160;&#160;static member Max : a:DM -&gt; D<br />&#160;&#160;static member Max : a:D * b:DM -&gt; DM<br />&#160;&#160;static member Max : a:DM * b:D -&gt; DM<br />&#160;&#160;static member Max : a:DM * b:DM -&gt; DM<br />&#160;&#160;static member MaxIndex : a:DM -&gt; int * int<br />&#160;&#160;static member Mean : a:DM -&gt; D<br />&#160;&#160;static member Min : a:DM -&gt; D<br />&#160;&#160;static member Min : a:D * b:DM -&gt; DM<br />&#160;&#160;static member Min : a:DM * b:D -&gt; DM<br />&#160;&#160;static member Min : a:DM * b:DM -&gt; DM<br />&#160;&#160;static member MinIndex : a:DM -&gt; int * int<br />&#160;&#160;static member Normalize : a:DM -&gt; DM<br />&#160;&#160;static member OfArray : m:int * a:D [] -&gt; DM<br />&#160;&#160;static member OfArray2D : a:D [,] -&gt; DM<br />&#160;&#160;static member OfCols : n:int * a:DV -&gt; DM<br />&#160;&#160;static member OfRows : s:seq&lt;DV&gt; -&gt; DM<br />&#160;&#160;static member OfRows : m:int * a:DV -&gt; DM<br />&#160;&#160;static member Op_DM_D : a:DM * ff:(float32 [,] -&gt; float32) * fd:(DM -&gt; D) * df:(D * DM * DM -&gt; D) * r:(DM -&gt; TraceOp) -&gt; D<br />&#160;&#160;static member Op_DM_DM : a:DM * ff:(float32 [,] -&gt; float32 [,]) * fd:(DM -&gt; DM) * df:(DM * DM * DM -&gt; DM) * r:(DM -&gt; TraceOp) -&gt; DM<br />&#160;&#160;static member Op_DM_DM_DM : a:DM * b:DM * ff:(float32 [,] * float32 [,] -&gt; float32 [,]) * fd:(DM * DM -&gt; DM) * df_da:(DM * DM * DM -&gt; DM) * df_db:(DM * DM * DM -&gt; DM) * df_dab:(DM * DM * DM * DM * DM -&gt; DM) * r_d_d:(DM * DM -&gt; TraceOp) * r_d_c:(DM * DM -&gt; TraceOp) * r_c_d:(DM * DM -&gt; TraceOp) -&gt; DM<br />&#160;&#160;static member Op_DM_DV : a:DM * ff:(float32 [,] -&gt; float32 []) * fd:(DM -&gt; DV) * df:(DV * DM * DM -&gt; DV) * r:(DM -&gt; TraceOp) -&gt; DV<br />&#160;&#160;static member Op_DM_DV_DM : a:DM * b:DV * ff:(float32 [,] * float32 [] -&gt; float32 [,]) * fd:(DM * DV -&gt; DM) * df_da:(DM * DM * DM -&gt; DM) * df_db:(DM * DV * DV -&gt; DM) * df_dab:(DM * DM * DM * DV * DV -&gt; DM) * r_d_d:(DM * DV -&gt; TraceOp) * r_d_c:(DM * DV -&gt; TraceOp) * r_c_d:(DM * DV -&gt; TraceOp) -&gt; DM<br />&#160;&#160;static member Op_DM_DV_DV : a:DM * b:DV * ff:(float32 [,] * float32 [] -&gt; float32 []) * fd:(DM * DV -&gt; DV) * df_da:(DV * DM * DM -&gt; DV) * df_db:(DV * DV * DV -&gt; DV) * df_dab:(DV * DM * DM * DV * DV -&gt; DV) * r_d_d:(DM * DV -&gt; TraceOp) * r_d_c:(DM * DV -&gt; TraceOp) * r_c_d:(DM * DV -&gt; TraceOp) -&gt; DV<br />&#160;&#160;static member Op_DM_D_DM : a:DM * b:D * ff:(float32 [,] * float32 -&gt; float32 [,]) * fd:(DM * D -&gt; DM) * df_da:(DM * DM * DM -&gt; DM) * df_db:(DM * D * D -&gt; DM) * df_dab:(DM * DM * DM * D * D -&gt; DM) * r_d_d:(DM * D -&gt; TraceOp) * r_d_c:(DM * D -&gt; TraceOp) * r_c_d:(DM * D -&gt; TraceOp) -&gt; DM<br />&#160;&#160;static member Op_DV_DM_DM : a:DV * b:DM * ff:(float32 [] * float32 [,] -&gt; float32 [,]) * fd:(DV * DM -&gt; DM) * df_da:(DM * DV * DV -&gt; DM) * df_db:(DM * DM * DM -&gt; DM) * df_dab:(DM * DV * DV * DM * DM -&gt; DM) * r_d_d:(DV * DM -&gt; TraceOp) * r_d_c:(DV * DM -&gt; TraceOp) * r_c_d:(DV * DM -&gt; TraceOp) -&gt; DM<br />&#160;&#160;static member Op_DV_DM_DV : a:DV * b:DM * ff:(float32 [] * float32 [,] -&gt; float32 []) * fd:(DV * DM -&gt; DV) * df_da:(DV * DV * DV -&gt; DV) * df_db:(DV * DM * DM -&gt; DV) * df_dab:(DV * DV * DV * DM * DM -&gt; DV) * r_d_d:(DV * DM -&gt; TraceOp) * r_d_c:(DV * DM -&gt; TraceOp) * r_c_d:(DV * DM -&gt; TraceOp) -&gt; DV<br />&#160;&#160;static member Op_D_DM_DM : a:D * b:DM * ff:(float32 * float32 [,] -&gt; float32 [,]) * fd:(D * DM -&gt; DM) * df_da:(DM * D * D -&gt; DM) * df_db:(DM * DM * DM -&gt; DM) * df_dab:(DM * D * D * DM * DM -&gt; DM) * r_d_d:(D * DM -&gt; TraceOp) * r_d_c:(D * DM -&gt; TraceOp) * r_c_d:(D * DM -&gt; TraceOp) -&gt; DM<br />&#160;&#160;static member Pow : a:int * b:DM -&gt; DM<br />&#160;&#160;static member Pow : a:DM * b:int -&gt; DM<br />&#160;&#160;static member Pow : a:float32 * b:DM -&gt; DM<br />&#160;&#160;static member Pow : a:DM * b:float32 -&gt; DM<br />&#160;&#160;static member Pow : a:D * b:DM -&gt; DM<br />&#160;&#160;static member Pow : a:DM * b:D -&gt; DM<br />&#160;&#160;static member Pow : a:DM * b:DM -&gt; DM<br />&#160;&#160;static member ReLU : a:DM -&gt; DM<br />&#160;&#160;static member ReshapeToDV : a:DM -&gt; DV<br />&#160;&#160;static member Round : a:DM -&gt; DM<br />&#160;&#160;static member Sigmoid : a:DM -&gt; DM<br />&#160;&#160;static member Sign : a:DM -&gt; DM<br />&#160;&#160;static member Sin : a:DM -&gt; DM<br />&#160;&#160;static member Sinh : a:DM -&gt; DM<br />&#160;&#160;static member SoftPlus : a:DM -&gt; DM<br />&#160;&#160;static member SoftSign : a:DM -&gt; DM<br />&#160;&#160;static member Solve : a:DM * b:DV -&gt; DV<br />&#160;&#160;static member SolveSymmetric : a:DM * b:DV -&gt; DV<br />&#160;&#160;static member Sqrt : a:DM -&gt; DM<br />&#160;&#160;static member StandardDev : a:DM -&gt; D<br />&#160;&#160;static member Standardize : a:DM -&gt; DM<br />&#160;&#160;static member Sum : a:DM -&gt; D<br />&#160;&#160;static member Tan : a:DM -&gt; DM<br />&#160;&#160;static member Tanh : a:DM -&gt; DM<br />&#160;&#160;static member Trace : a:DM -&gt; D<br />&#160;&#160;static member Transpose : a:DM -&gt; DM<br />&#160;&#160;static member Variance : a:DM -&gt; D<br />&#160;&#160;static member ZeroMN : m:int -&gt; n:int -&gt; DM<br />&#160;&#160;static member Zero : DM<br />&#160;&#160;static member ( + ) : a:int * b:DM -&gt; DM<br />&#160;&#160;static member ( + ) : a:DM * b:int -&gt; DM<br />&#160;&#160;static member ( + ) : a:float32 * b:DM -&gt; DM<br />&#160;&#160;static member ( + ) : a:DM * b:float32 -&gt; DM<br />&#160;&#160;static member ( + ) : a:DM * b:DV -&gt; DM<br />&#160;&#160;static member ( + ) : a:DV * b:DM -&gt; DM<br />&#160;&#160;static member ( + ) : a:D * b:DM -&gt; DM<br />&#160;&#160;static member ( + ) : a:DM * b:D -&gt; DM<br />&#160;&#160;static member ( + ) : a:DM * b:DM -&gt; DM<br />&#160;&#160;static member ( / ) : a:int * b:DM -&gt; DM<br />&#160;&#160;static member ( / ) : a:DM * b:int -&gt; DM<br />&#160;&#160;static member ( / ) : a:float32 * b:DM -&gt; DM<br />&#160;&#160;static member ( / ) : a:DM * b:float32 -&gt; DM<br />&#160;&#160;static member ( / ) : a:D * b:DM -&gt; DM<br />&#160;&#160;static member ( / ) : a:DM * b:D -&gt; DM<br />&#160;&#160;static member ( ./ ) : a:DM * b:DM -&gt; DM<br />&#160;&#160;static member ( .* ) : a:DM * b:DM -&gt; DM<br />&#160;&#160;static member op_Explicit : d:float32 [,] -&gt; DM<br />&#160;&#160;static member op_Explicit : d:DM -&gt; float32 [,]<br />&#160;&#160;static member ( * ) : a:int * b:DM -&gt; DM<br />&#160;&#160;static member ( * ) : a:DM * b:int -&gt; DM<br />&#160;&#160;static member ( * ) : a:float32 * b:DM -&gt; DM<br />&#160;&#160;static member ( * ) : a:DM * b:float32 -&gt; DM<br />&#160;&#160;static member ( * ) : a:D * b:DM -&gt; DM<br />&#160;&#160;static member ( * ) : a:DM * b:D -&gt; DM<br />&#160;&#160;static member ( * ) : a:DV * b:DM -&gt; DV<br />&#160;&#160;static member ( * ) : a:DM * b:DV -&gt; DV<br />&#160;&#160;static member ( * ) : a:DM * b:DM -&gt; DM<br />&#160;&#160;static member ( - ) : a:int * b:DM -&gt; DM<br />&#160;&#160;static member ( - ) : a:DM * b:int -&gt; DM<br />&#160;&#160;static member ( - ) : a:float32 * b:DM -&gt; DM<br />&#160;&#160;static member ( - ) : a:DM * b:float32 -&gt; DM<br />&#160;&#160;static member ( - ) : a:D * b:DM -&gt; DM<br />&#160;&#160;static member ( - ) : a:DM * b:D -&gt; DM<br />&#160;&#160;static member ( - ) : a:DM * b:DM -&gt; DM<br />&#160;&#160;static member ( ~- ) : a:DM -&gt; DM<br /><br />Full name: DiffSharp.AD.Float32.DM</div>
+<div class="tip" id="fs29">val mapCols : f:(DV -&gt; DV) -&gt; m:DM -&gt; DM<br /><br />Full name: DiffSharp.AD.Float32.DM.mapCols</div>
+<div class="tip" id="fs30">val softmax : x:&#39;a -&gt; &#39;a (requires member SoftMax)<br /><br />Full name: DiffSharp.Util.softmax</div>
+<div class="tip" id="fs31">override FeedForward.Reset : unit -&gt; unit</div>
+<div class="tip" id="fs32">val i : int</div>
+<div class="tip" id="fs33">member Language.Sample : probs:DV -&gt; string<br />member Language.Sample : probs:DM -&gt; string []<br />member Language.Sample : model:(DM -&gt; DM) * start:string * stop:string [] * maxlen:int -&gt; string</div>
+<div class="tip" id="fs34">override FeedForward.Run : x:DM -&gt; DM</div>
+<div class="tip" id="fs35">val par : Params</div>
+<div class="tip" id="fs36">Multiple items<br />module Params<br /><br />from Hype<br /><br />--------------------<br />type Params =<br />&#160;&#160;{Epochs: int;<br />&#160;&#160;&#160;Method: Method;<br />&#160;&#160;&#160;LearningRate: LearningRate;<br />&#160;&#160;&#160;Momentum: Momentum;<br />&#160;&#160;&#160;Loss: Loss;<br />&#160;&#160;&#160;Regularization: Regularization;<br />&#160;&#160;&#160;GradientClipping: GradientClipping;<br />&#160;&#160;&#160;Batch: Batch;<br />&#160;&#160;&#160;EarlyStopping: EarlyStopping;<br />&#160;&#160;&#160;ImprovementThreshold: D;<br />&#160;&#160;&#160;...}<br /><br />Full name: Hype.Params</div>
+<div class="tip" id="fs37">val Default : Params<br /><br />Full name: Hype.Params.Default</div>
+<div class="tip" id="fs38">type LearningRate =<br />&#160;&#160;| Constant of D<br />&#160;&#160;| Decay of D * D<br />&#160;&#160;| ExpDecay of D * D<br />&#160;&#160;| Schedule of DV<br />&#160;&#160;| Backtrack of D * D * D<br />&#160;&#160;| StrongWolfe of D * D * D<br />&#160;&#160;| AdaGrad of D<br />&#160;&#160;| RMSProp of D * D<br />&#160;&#160;override ToString : unit -&gt; string<br />&#160;&#160;member Func : (int -&gt; DV -&gt; (DV -&gt; D) -&gt; D -&gt; DV -&gt; DV ref -&gt; DV -&gt; obj)<br />&#160;&#160;static member DefaultAdaGrad : LearningRate<br />&#160;&#160;static member DefaultBacktrack : LearningRate<br />&#160;&#160;static member DefaultConstant : LearningRate<br />&#160;&#160;static member DefaultDecay : LearningRate<br />&#160;&#160;static member DefaultExpDecay : LearningRate<br />&#160;&#160;static member DefaultRMSProp : LearningRate<br />&#160;&#160;static member DefaultStrongWolfe : LearningRate<br /><br />Full name: Hype.LearningRate</div>
+<div class="tip" id="fs39">union case LearningRate.RMSProp: D * D -&gt; LearningRate</div>
+<div class="tip" id="fs40">union case D.D: float32 -&gt; D</div>
+<div class="tip" id="fs41">type Loss =<br />&#160;&#160;| L1Loss<br />&#160;&#160;| L2Loss<br />&#160;&#160;| Quadratic<br />&#160;&#160;| CrossEntropyOnLinear<br />&#160;&#160;| CrossEntropyOnSoftmax<br />&#160;&#160;override ToString : unit -&gt; string<br />&#160;&#160;member Func : (Dataset -&gt; (DM -&gt; DM) -&gt; D)<br /><br />Full name: Hype.Loss</div>
+<div class="tip" id="fs42">union case Loss.CrossEntropyOnSoftmax: Loss</div>
+<div class="tip" id="fs43">val loss : D</div>
+<div class="tip" id="fs44">Multiple items<br />type Layer =<br />&#160;&#160;new : unit -&gt; Layer<br />&#160;&#160;abstract member Decode : DV -&gt; unit<br />&#160;&#160;abstract member Encode : unit -&gt; DV<br />&#160;&#160;abstract member Init : unit -&gt; unit<br />&#160;&#160;abstract member Reset : unit -&gt; unit<br />&#160;&#160;abstract member Run : DM -&gt; DM<br />&#160;&#160;abstract member ToStringFull : unit -&gt; string<br />&#160;&#160;abstract member Visualize : unit -&gt; string<br />&#160;&#160;abstract member EncodeLength : int<br />&#160;&#160;member Train : d:Dataset -&gt; D * D []<br />&#160;&#160;...<br /><br />Full name: Hype.Neural.Layer<br /><br />--------------------<br />new : unit -&gt; Layer</div>
+<div class="tip" id="fs45">static member Layer.Train : l:Layer * d:Dataset -&gt; D * D []<br />static member Layer.Train : l:Layer * d:Dataset * v:Dataset -&gt; D * D []<br />static member Layer.Train : l:Layer * d:Dataset * par:Params -&gt; D * D []<br />static member Layer.Train : l:Layer * d:Dataset * v:Dataset * par:Params -&gt; D * D []</div>
+
+        </div>
+        <div class="col-sm-3">
+          <a href="index.html"><img src="img/hype.png" style="width:200px"/></a><br>
+          <ul class="nav nav-pills nav-stacked">
+            <li><a href="index.html">Home</a></li>
+          </ul>          
+          <div class="nav-label">Basics</div>
+          <ul class="nav nav-pills nav-stacked">
+            <li><a href="optimization.html">Optimization</a></li>
+            <li><a href="training.html">Training</a></li>
+          </ul>
+          <div class="nav-label">Examples</div>
+          <ul class="nav nav-pills nav-stacked">
+            <li><a href="regression.html">Regression</a></li>
+            <li><a href="feedforwardnets.html">Neural Networks</a></li>
+            <li><a href="recurrentnets.html">Recurrent Neural Nets</a></li>
+            <li><a href="hmc.html">Hamiltonian MCMC</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  <!-- Start of StatCounter Code for Default Guide -->
+  <script type="text/javascript">
+  var sc_project=10701961; 
+  var sc_invisible=1; 
+  var sc_security="a67091ad"; 
+  var scJsHost = (("https:" == document.location.protocol) ?
+  "https://secure." : "http://www.");
+  document.write("<sc"+"ript type='text/javascript' src='" +
+  scJsHost+
+  "statcounter.com/counter/counter.js'></"+"script>");
+  </script>
+  <noscript><div class="statcounter"><a title="shopify
+  analytics ecommerce" href="http://statcounter.com/shopify/"
+  target="_blank"><img class="statcounter"
+  src="http://c.statcounter.com/10701961/0/a67091ad/1/"
+  alt="shopify analytics ecommerce"></a></div></noscript>
+  <!-- End of StatCounter Code for Default Guide -->    
+  </body>
+</html>
