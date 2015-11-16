@@ -24,13 +24,14 @@
 //   www.bcl.hamilton.ie
 //
 
+/// Main namespace
 namespace Hype
 
 open System.IO
 open DiffSharp.AD.Float32
 open DiffSharp.Util
 
-
+/// Random number generator
 type Rnd() =
     static let mutable R = new System.Random()
     static member Seed(seed) = R <- new System.Random(seed)
@@ -89,6 +90,7 @@ type Rnd() =
                 i <- i + 1
         a.[i]
 
+/// Dataset for holding training data
 type Dataset private (x:DM, y:DM, xi:seq<int>, yi:seq<int>) =
     member val X = x with get
     member val Y = y with get
@@ -186,6 +188,7 @@ type Dataset private (x:DM, y:DM, xi:seq<int>, yi:seq<int>) =
         d.ToString() + "\n"
             + "Y's columns " + Util.VisualizeDMRowsAsImageGrid(d.Y |> DM.transpose, imagerows)
 
+/// Various utility functions
 and Util =
     static member printLog (s:string) = printfn "[%A] %s" System.DateTime.Now s
     static member printModel (f:DV->DV) (d:Dataset) =

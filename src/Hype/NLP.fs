@@ -24,13 +24,14 @@
 //   www.bcl.hamilton.ie
 //
 
+/// Natural language processing namespace
 namespace Hype.NLP
 
 open Hype
 open DiffSharp.AD.Float32
 open DiffSharp.Util
 
-
+/// Language model
 type Language(tokens:string[], punctuation:string[]) =
     member val Tokens = tokens
     

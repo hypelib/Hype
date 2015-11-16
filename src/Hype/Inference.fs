@@ -24,14 +24,15 @@
 //   www.bcl.hamilton.ie
 //
 
+/// Inference namespace
 namespace Hype.Inference
 
 open Hype
 open DiffSharp.AD.Float32
 open DiffSharp.Util
 
+/// Hamiltonian MCMC sampler
 type HMCSampler() =
-
     static member Sample(n, hdelta, hsteps, x0:DV, f:DV->D) =
         let leapFrog (u:DV->D) (k:DV->D) (d:D) steps (x0, p0) =
             let hd = d / 2.f

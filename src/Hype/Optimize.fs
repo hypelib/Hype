@@ -24,13 +24,14 @@
 //   www.bcl.hamilton.ie
 //
 
+/// Optimization namespace
 namespace Hype
 
 open Hype
 open DiffSharp.AD.Float32
 open DiffSharp.Util
 
-     
+/// Learning rate schemes
 type LearningRate =
     | Constant    of D         // Constant
     | Decay       of D * D     // 1 / t decay, a = a0 / (1 + kt). Initial value, decay rate
@@ -148,6 +149,7 @@ type LearningRate =
                 gcache := (k * !gcache) + (1.f - k) * (g .* g)
                 box (a0 / sqrt (!gcache + 1e-6f))
 
+/// Training batch configuration
 type Batch =
     | Full
     | Minibatch of int // Minibatch of given size
@@ -163,6 +165,7 @@ type Batch =
         | Minibatch n ->    fun d i -> d.[(n * i)..((n * i) + n - 1)]
         | Stochastic ->     fun d i -> d.[i..i]
 
+/// Gradient-based optimization methods
 type Method =
     | GD          // Gradient descent
     | CG          // Conjugate gradient
@@ -233,6 +236,7 @@ type Method =
                 let p' = -DM.solveSymmetric h' g'
                 v', g', p'
 
+/// Momentum configuration
 type Momentum =
     | Momentum of D // Default momentum
     | Nesterov of D // Nesterov momentum
@@ -250,6 +254,7 @@ type Momentum =
         | Nesterov m -> fun u u' -> (m * m * u) + (m + D 1.f) * u'
         | NoMomentum -> fun _ u' -> u'
 
+/// Loss function configuration
 type Loss =
     | L1Loss    // L1 norm, least absolute deviations
     | L2Loss    // L2 norm
@@ -271,6 +276,7 @@ type Loss =
         | CrossEntropyOnLinear -> fun d f -> ((f d.X) |> DM.mapiCols (fun i v -> toDV [(logsumexp v) - v.[d.Yi.[i]]]) |> DM.sum) / d.Length
         | CrossEntropyOnSoftmax -> fun d f -> -((f d.X) |> DM.mapiCols (fun i v -> toDV [(DV.standardBasis v.Length d.Yi.[i]) * log v]) |> DM.sum) / d.Length
 
+/// Regularization configuration
 type Regularization =
     | L1Reg of D // L1 regularization
     | L2Reg of D // L2 regularization
@@ -288,6 +294,7 @@ type Regularization =
         | L2Reg l -> fun w -> l * (DV.l2normSq w)
         | NoReg -> fun w -> D 0.f
 
+/// Gradient clipping configuration
 type GradientClipping =
     | NormClip of D // Norm clipping
     | NoClip
@@ -301,6 +308,7 @@ type GradientClipping =
         | NormClip threshold -> fun (g:DV) -> let ng = DV.norm g in if ng > threshold then (threshold / ng) * g else g
         | NoClip -> id
 
+/// Early stopping configuration
 type EarlyStopping =
     | Early of int * int // Stagnation patience, overfitting patience
     | NoEarly
@@ -310,6 +318,7 @@ type EarlyStopping =
         | Early(s, o) -> sprintf "Stagnation thresh. = %A, overfit. thresh. = %A" s o
         | NoEarly -> "None"
 
+/// Record type holding optimization or training parameters
 type Params =
     {Epochs : int
      Method: Method
@@ -342,7 +351,7 @@ module Params =
                     ValidationInterval = 10
                     LoggingFunction = fun _ _ _ -> ()}
 
-
+/// Main optimization module
 type Optimize =
     static member Minimize (f:DV->D, w0:DV) = Optimize.Minimize(f, w0, Params.Default)
     static member Minimize (f:DV->D, w0:DV, par:Params) =

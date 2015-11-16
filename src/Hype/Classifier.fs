@@ -32,6 +32,7 @@ open DiffSharp.AD.Float32
 open DiffSharp.Util
 
 
+/// Base type for classifiers
 [<AbstractClass>]
 type Classifier(f:DM->DM) =
     let f = f
@@ -46,6 +47,7 @@ type Classifier(f:DM->DM) =
     member c.ClassificationError(d:Dataset) =
         c.ClassificationError(d.X, d.Yi)
 
+/// Classifier for binary classification
 type LogisticClassifier(f) =
     inherit Classifier(f)
     new(l:Layer) = LogisticClassifier(l.Run)
@@ -56,6 +58,7 @@ type LogisticClassifier(f) =
     override c.Classify(x:DV) =
         if c.Run(x).[0] > D 0.5f then 1 else 0
 
+/// Classifier for softmax classification
 type SoftmaxClassifier(f) =
     inherit Classifier(f)
     new(l:Layer) = SoftmaxClassifier(l.Run)

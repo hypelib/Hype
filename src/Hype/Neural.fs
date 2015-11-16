@@ -1,12 +1,38 @@
-﻿
-namespace Hype.Neural
+﻿//
+// This file is part of
+// Hype: Compositional Machine Learning and Hyperparameter Optimization
+//
+// Copyright (c) 2015, National University of Ireland Maynooth (Atilim Gunes Baydin, Barak A. Pearlmutter)
+//
+// Hype is released under the MIT license.
+// (See accompanying LICENSE file.)
+//
+// Written by:
+//
+//   Atilim Gunes Baydin
+//   atilimgunes.baydin@nuim.ie
+//
+//   Barak A. Pearlmutter
+//   barak@cs.nuim.ie
+//
+//   Brain and Computation Lab
+//   Hamilton Institute & Department of Computer Science
+//   National University of Ireland Maynooth
+//   Maynooth, Co. Kildare
+//   Ireland
+//
+//   www.bcl.hamilton.ie
+//
 
+/// Neural networks namespace
+namespace Hype.Neural
 
 open Hype
 open DiffSharp.AD.Float32
 open DiffSharp.Util
 
 
+/// Base type for neural layers
 [<AbstractClass>]
 type Layer() =
     abstract member Init : unit -> unit
@@ -47,7 +73,7 @@ type Layer() =
         w |> l.Decode
         loss, lhist
 
-
+/// Initialization schemes for neural layer weights
 type Initializer =
     | InitUniform of D * D
     | InitNormal of D * D
@@ -81,7 +107,7 @@ type Initializer =
     member i.InitDM(m:DM) = i.InitDM(m.Rows, m.Cols)
 
 
-
+/// Linear layer
 type Linear(inputs:int, outputs:int, initializer:Initializer) =
     inherit Layer()
     new(inputs, outputs) = Linear(inputs, outputs, Initializer.InitStandard)
@@ -130,7 +156,7 @@ type Linear(inputs:int, outputs:int, initializer:Initializer) =
             + sprintf "   b:\n%s" (l.b.Visualize())
 
 
-
+/// Linear layer with no bias
 type LinearNoBias(inputs:int, outputs:int, initializer:Initializer) =
     inherit Layer()
     new(inputs, outputs) = LinearNoBias(inputs, outputs, Initializer.InitStandard)
@@ -169,7 +195,7 @@ type LinearNoBias(inputs:int, outputs:int, initializer:Initializer) =
             + sprintf "   W's rows %s" (Util.VisualizeDMRowsAsImageGrid(l.W, imagerows))
 
 
-
+/// Activation layer with custom functions
 type Activation(f:DM->DM) =
     inherit Layer()
     let f = f
@@ -186,24 +212,7 @@ type Activation(f:DM->DM) =
     override l.Visualize() = l.ToString()
 
 
-
-type OneHot(dim:int) =
-    inherit Layer()
-
-    override l.Init () = ()
-    override l.Reset () = ()
-    override l.Run (x:DM) = x |> DM.mapCols (fun v -> DV.standardBasis dim (int (float32 v.[0])))
-    override l.Encode () = DV.empty
-    override l.EncodeLength = 0
-    override l.Decode w = ()
-    override l.ToString() =
-        sprintf "Hype.Neural.OneHot\n"
-            + sprintf "   1 -> %i" dim
-    override l.ToStringFull() = l.ToString()
-    override l.Visualize() = l.ToString()
-
-
-
+/// Feedforward sequence of layers
 type FeedForward() =
     inherit Layer()
     let mutable (layers:Layer[]) = Array.empty
@@ -277,7 +286,7 @@ type FeedForward() =
             + s.ToString()
 
 
-
+/// Vanilla RNN layer
 type Recurrent(inputs:int, hiddenunits:int, outputs:int, activation:DV->DV, initializer:Initializer) =
     inherit Layer()
     new(inputs, hiddenunits, outputs) = Recurrent(inputs, hiddenunits, outputs, tanh, Initializer.InitTanh)
@@ -346,6 +355,8 @@ type Recurrent(inputs:int, hiddenunits:int, outputs:int, activation:DV->DV, init
             + sprintf "   bh:\n%s\n" (l.bh.Visualize())
             + sprintf "   by:\n%s" (l.by.Visualize())
 
+
+/// Long short-term memory layer
 type LSTM(inputs:int, memcells:int) =
     inherit Layer()
     let initializer = Initializer.InitTanh
@@ -465,6 +476,8 @@ type LSTM(inputs:int, memcells:int) =
             + sprintf "   bf:\n%s\n" (l.bf.Visualize())
             + sprintf "   bo:\n%s" (l.bo.Visualize())
 
+
+/// Gated recurrent unit layer
 type GRU(inputs:int, memcells:int) =
     inherit Layer()
     let initializer = Initializer.InitStandard
@@ -558,6 +571,7 @@ type GRU(inputs:int, memcells:int) =
             + sprintf "   br:\n%s\n" (l.br.Visualize())
             + sprintf "   bh:\n%s\n" (l.bh.Visualize())
 
+/// Long short-term memory layer (alternative implementation)
 type LSTMAlt(inputs:int, memcells:int) =
     inherit Layer()
     let initializer = Initializer.InitTanh
