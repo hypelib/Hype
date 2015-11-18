@@ -21,7 +21,7 @@ In addition to reverse AD, Hype makes use of forward AD and nested combinations 
 
 ### Hypergradients
 
-You can get exact gradients of the training or validation loss with respect to hyperparameters. These __hypergradients__ allow you to do gradient-based optimization of gradient-based optimization, meaning that you can do things like optimizing learning rate and momentum schedules, weight initialization parameters, or step sizes and mass matrices in Hamiltonian Monte Carlo models.
+You can get exact gradients of the training or validation loss with respect to hyperparameters. These __hypergradients__ allow you to do gradient-based optimization of gradient-based optimization, meaning that you can do things like optimizing learning rate and momentum schedules, weight initialization parameters, or step sizes and mass matrices in Hamiltonian Monte Carlo models. (A recent article doing this with Python: _Maclaurin, Dougal, David Duvenaud, and Ryan P. Adams. "Gradient-based Hyperparameter Optimization through Reversible Learning." arXiv preprint arXiv:1502.03492 (2015)._)
 
 *)
 
