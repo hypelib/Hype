@@ -122,6 +122,9 @@ open RProvider
 open RProvider.graphics
 open RProvider.grDevices
 
+// Create a new plot window 
+R.plot_new (namedParams [ ])
+
 let t = trajectory (whist.[4].[0])
 let tx, ty = t |> Seq.toArray |> Array.map (fun v -> v.[0] |> float32 |> float, v.[1] |> float32 |> float) |> Array.unzip
 
