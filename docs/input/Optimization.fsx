@@ -122,7 +122,6 @@ open RProvider
 open RProvider.graphics
 open RProvider.grDevices
 
-// Create a new plot window 
 R.plot_new (namedParams [ ])
 
 let t = trajectory (whist.[4].[0])
@@ -157,7 +156,7 @@ As another example, let's optimize the Beale function
 $$$
    f(\mathbf{x}) = (1.5 - x_1 + x_1 x_2)^2 + (2.25 - x_1 + x_1 x_2^2)^2 + (2.625 - x_1 + x_1 x_2^3)^2
 
-starting from $\mathbf{x} = (1, 1.5)$, using RMSProp.
+starting from $\mathbf{x} = (1, 1.5)$, using RMSProp. The optimum is at $(3, 0.5)$
 *)
 
 let beale (x:DV) = (1.5f - x.[0] + (x.[0] * x.[1])) ** 2.f
@@ -215,6 +214,8 @@ val wopt : DV = DV [|2.99909306f; 0.50039643f|]
 open RProvider
 open RProvider.graphics
 open RProvider.grDevices
+
+R.plot_new (namedParams [ ])
 
 let ll = lhist |> Array.map (float32>>float)
 
