@@ -2,7 +2,7 @@
 [![Issue Stats](http://issuestats.com/github/hypelib/Hype/badge/issue)](http://issuestats.com/github/hypelib/Hype)
 
 Hype: Compositional Machine Learning and Hyperparameter Optimization
-====================================================================
+--------------------------------------------------------------------
 
 Hype is a proof-of-concept deep learning library, where you can perform optimization on compositional machine learning systems of many components, even when such components themselves internally perform optimization.
 
