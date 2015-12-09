@@ -1,20 +1,17 @@
+[![Issue Stats](http://issuestats.com/github/hypelib/Hype/badge/pr)](http://issuestats.com/github/hypelib/Hype)
+[![Issue Stats](http://issuestats.com/github/hypelib/Hype/badge/issue)](http://issuestats.com/github/hypelib/Hype)
+
 Hype: Compositional Machine Learning and Hyperparameter Optimization
 ====================================================================
 
-Copyright (c) 2015, National University of Ireland Maynooth (Atilim Gunes Baydin, Barak A. Pearlmutter)
+Hype is a proof-of-concept deep learning library, where you can perform optimization on compositional machine learning systems of many components, even when such components themselves internally perform optimization.
 
-All rights reserved.
-
-Hype is released under the MIT license. (See accompanying LICENSE file.)
-
-Written by: Atilim Gunes Baydin & Barak A. Pearlmutter
-
-    Brain and Computation Lab
-    Hamilton Institute & Department of Computer Science
-    National University of Ireland Maynooth
-    Maynooth, Co. Kildare
-    Ireland
-
-    www.bcl.hamilton.ie
+It is developed by [Atılım Güneş Baydin](http://www.cs.nuim.ie/~gunes/) and [Barak A. Pearlmutter](http://bcl.hamilton.ie/~barak/), at the [Brain and Computation Lab](http://www.bcl.hamilton.ie/), National University of Ireland Maynooth.
 
 This work is supported by Science Foundation Ireland grant 09/IN.1/I2637.
+
+Please visit the [project website](http://hypelib.github.io/Hype/) for documentation and tutorials.
+
+### License
+
+Hype is released under the MIT license.
