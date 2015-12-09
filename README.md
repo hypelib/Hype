@@ -4,6 +4,8 @@
 Hype: Compositional Machine Learning and Hyperparameter Optimization
 --------------------------------------------------------------------
 
+[![Join the chat at https://gitter.im/hypelib/Hype](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/hypelib/Hype?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Hype is a proof-of-concept deep learning library, where you can perform optimization on compositional machine learning systems of many components, even when such components themselves internally perform optimization.
 
 It is developed by [Atılım Güneş Baydin](http://www.cs.nuim.ie/~gunes/) and [Barak A. Pearlmutter](http://bcl.hamilton.ie/~barak/), at the [Brain and Computation Lab](http://www.bcl.hamilton.ie/), National University of Ireland Maynooth.
