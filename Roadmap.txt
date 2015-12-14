@@ -1,0 +1,12 @@
+- CUDA backend (DiffSharp)
+- Example for Hamiltonian MCMC
+- Probabilistic inference
+- Convolutional neural networks (ideally with DiffSharp tensor)
+
+- Improve code comments
+- Add references to research papers where relevant
+
+- Add ability to read and write MATLAB files (scipy.io loadmat, savemat)
+- Add ability to read and write FSL nifti files for fMRI (PyMVPA2, SampleAttributes, fmri_dataset, poly_detrend, zscore)
+- Add ability to read and write standard image/video formats (OpenCV, MATLAB)
+- Better integration with graph libraries (box plots, bar graphs, confusion matrix plots, write to .png support)
