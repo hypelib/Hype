@@ -18,6 +18,10 @@ You can come and join the Gitter chat room, if you want to chat with us:
 [![Issue Stats](http://issuestats.com/github/hypelib/Hype/badge/pr?style=flat-square)](http://issuestats.com/github/hypelib/Hype)
 [![Issue Stats](http://issuestats.com/github/hypelib/Hype/badge/issue?style=flat-square)](http://issuestats.com/github/hypelib/Hype)
 
+### Current build status
+
+[![Build status](https://ci.appveyor.com/api/projects/status/w1xgcleb1x4f30c0?svg=true)](https://ci.appveyor.com/project/gbaydin/hype)
+
 ### License
 
 Hype is released under the MIT license.
