@@ -1,6 +1,3 @@
-[![Issue Stats](http://issuestats.com/github/hypelib/Hype/badge/pr)](http://issuestats.com/github/hypelib/Hype)
-[![Issue Stats](http://issuestats.com/github/hypelib/Hype/badge/issue)](http://issuestats.com/github/hypelib/Hype)
-
 Hype: Compositional Machine Learning and Hyperparameter Optimization
 --------------------------------------------------------------------
 
@@ -15,6 +12,11 @@ Please visit the [project website](http://hypelib.github.io/Hype/) for documenta
 You can come and join the Gitter chat room, if you want to chat with us:
 
 [![Join the chat at https://gitter.im/hypelib/Hype](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/hypelib/Hype?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
+### Project statistics
+
+[![Issue Stats](http://issuestats.com/github/hypelib/Hype/badge/pr?style=flat-square)](http://issuestats.com/github/hypelib/Hype)
+[![Issue Stats](http://issuestats.com/github/hypelib/Hype/badge/issue?style=flat-square)](http://issuestats.com/github/hypelib/Hype)
 
 ### License
 
