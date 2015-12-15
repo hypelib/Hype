@@ -67,10 +67,9 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="DiffSharp">
-      <HintPath>..\..\packages\DiffSharp.0.7.5\lib\net46\DiffSharp.dll</HintPath>
+      <HintPath>..\..\packages\DiffSharp.0.7.6\lib\net46\DiffSharp.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="DiffSharp" />
     <Reference Include="mscorlib" />
     <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>True</Private>
@@ -80,12 +79,12 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Numerics" />
   </ItemGroup>
-  <Import Project="..\..\packages\DiffSharp.0.7.5\build\DiffSharp.targets" Condition="Exists('..\..\packages\DiffSharp.0.7.5\build\DiffSharp.targets')" />
+  <Import Project="..\..\packages\DiffSharp.0.7.6\build\DiffSharp.targets" Condition="Exists('..\..\packages\DiffSharp.0.7.6\build\DiffSharp.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\..\packages\DiffSharp.0.7.5\build\DiffSharp.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\DiffSharp.0.7.5\build\DiffSharp.targets'))" />
+    <Error Condition="!Exists('..\..\packages\DiffSharp.0.7.6\build\DiffSharp.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\DiffSharp.0.7.6\build\DiffSharp.targets'))" />
   </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
