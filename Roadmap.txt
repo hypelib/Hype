@@ -2,6 +2,7 @@
 - Example for Hamiltonian MCMC
 - Probabilistic inference
 - Convolutional neural networks (ideally with DiffSharp tensor)
+- Saving and loading models using a standard format
 
 - Improve code comments
 - Add references to research papers where relevant
