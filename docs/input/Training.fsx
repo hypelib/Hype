@@ -49,11 +49,11 @@ Hype provides several utility functions for loading data into matrices from imag
 
 *)
 
-let MNISTtrain = Dataset(Util.LoadMNIST("train-images.idx3-ubyte", 60000),
-                         Util.LoadMNIST("train-labels.idx1-ubyte", 60000))
+let MNIST = Dataset(Util.LoadMNISTPixels("train-images.idx3-ubyte", 60000),
+                    Util.LoadMNISTLabels("train-labels.idx1-ubyte", 60000) |> toDV |> DM.ofDV 1).NormalizeX()
 
-let MNISTtest = Dataset(Util.LoadMNIST("t10k-images.idx3-ubyte", 10000),
-                        Util.LoadMNIST("t10k-labels.idx1-ubyte", 10000))
+let MNISTtest = Dataset(Util.LoadMNISTPixels("t10k-images.idx3-ubyte", 10000),
+                        Util.LoadMNISTLabels("t10k-labels.idx1-ubyte", 10000) |> toDV |> DM.ofDV 1).NormalizeX()
 
 (**
 
