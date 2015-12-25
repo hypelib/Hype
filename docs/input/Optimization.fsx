@@ -78,42 +78,52 @@ let error (w:DV) =
 let w, l, whist, lhist = Optimize.Minimize(error, toDV [0.], 
                                             {Params.Default with 
                                                 Method = Newton; 
+                                                LearningRate = Constant (D 1.f)
+                                                ValidationInterval = 1;
                                                 Epochs = 10})
 
 (**
 <pre>
-[12/11/2015 12:46:16] --- Minimization started
-[12/11/2015 12:46:16] Parameters     : 1
-[12/11/2015 12:46:16] Iterations     : 10
-[12/11/2015 12:46:16] Valid. interval: 10
-[12/11/2015 12:46:16] Method         : Exact Newton
-[12/11/2015 12:46:16] Learning rate  : RMSProp a0 = D 0.00100000005f, k = D 0.899999976f
-[12/11/2015 12:46:16] Momentum       : None
-[12/11/2015 12:46:16] Gradient clip. : None
-[12/11/2015 12:46:16] Early stopping : None
-[12/11/2015 12:46:16] Improv. thresh.: D 0.995000005f
-[12/11/2015 12:46:16] Return best    : true
-[12/11/2015 12:46:16]  1/10 | D  2.535113e+000 [- ]
-[12/11/2015 12:46:17] Duration       : 00:00:01.2024025
-[12/11/2015 12:46:17] Value initial  : D  2.535113e+000
-[12/11/2015 12:46:17] Value final    : D  1.151079e-012 (Best)
-[12/11/2015 12:46:17] Value change   : D -2.535113e+000 (-100.00 %)
-[12/11/2015 12:46:17] Value chg. / s : D -2.108373e+000
-[12/11/2015 12:46:17] Iter. / s      : 8.316682642
-[12/11/2015 12:46:17] Iter. / min    : 499.0009585
-[12/11/2015 12:46:17] --- Minimization finished
+[25/12/2015 23:53:10] --- Minimization started
+[25/12/2015 23:53:10] Parameters     : 1
+[25/12/2015 23:53:10] Iterations     : 10
+[25/12/2015 23:53:10] Valid. interval: 1
+[25/12/2015 23:53:10] Method         : Exact Newton
+[25/12/2015 23:53:10] Learning rate  : Constant a = D 1.0f
+[25/12/2015 23:53:10] Momentum       : None
+[25/12/2015 23:53:10] Gradient clip. : None
+[25/12/2015 23:53:10] Early stopping : None
+[25/12/2015 23:53:10] Improv. thresh.: D 0.995000005f
+[25/12/2015 23:53:10] Return best    : true
+[25/12/2015 23:53:10]  1/10 | D  2.535113e+000 [- ]
+[25/12/2015 23:53:10]  2/10 | D  7.528733e-002 [↓▼]
+[25/12/2015 23:53:10]  3/10 | D  1.592970e-002 [↓▼]
+[25/12/2015 23:53:10]  4/10 | D  4.178338e-003 [↓▼]
+[25/12/2015 23:53:10]  5/10 | D  1.382800e-008 [↓▼]
+[25/12/2015 23:53:11]  6/10 | D  3.274181e-011 [↓▼]
+[25/12/2015 23:53:11]  7/10 | D  1.151079e-012 [↓▼]
+[25/12/2015 23:53:11]  8/10 | D  1.151079e-012 [- ]
+[25/12/2015 23:53:11]  9/10 | D  1.151079e-012 [- ]
+[25/12/2015 23:53:11] 10/10 | D  3.274181e-011 [↑ ]
+[25/12/2015 23:53:11] Duration       : 00:00:00.9201285
+[25/12/2015 23:53:11] Value initial  : D  2.535113e+000
+[25/12/2015 23:53:11] Value final    : D  1.151079e-012 (Best)
+[25/12/2015 23:53:11] Value change   : D -2.535113e+000 (-100.00 %)
+[25/12/2015 23:53:11] Value chg. / s : D -2.755173e+000
+[25/12/2015 23:53:11] Iter. / s      : 10.86804723
+[25/12/2015 23:53:11] Iter. / min    : 652.0828341
+[25/12/2015 23:53:11] --- Minimization finished
 
-val whist : DiffSharp.AD.Float32.DV [] =
-  [|DV [|0.0f|]; DV [|0.383181423f|]; DV [|-0.0158617795f|];
-    DV [|0.170346871f|]; DV [|0.190061614f|]; DV [|0.181639418f|];
-    DV [|0.182229996f|]; DV [|0.182155699f|]; DV [|0.182169855f|];
-    DV [|0.1821661f|]|]
-val w : DiffSharp.AD.Float32.DV = DV [|0.182167068f|]
-val lhist : DiffSharp.AD.Float32.D [] =
-  [|D 2.5351131f; D 2.5351131f; D 8.86556721f; D 2.74124479f; D 0.0258339234f;
-    D 0.00420197984f; D 1.86420257e-05f; D 2.65500347e-07f; D 8.66806715e-09f;
-    D 5.49062185e-10f|]
-val l : DiffSharp.AD.Float32.D = D 1.15107923e-12f
+val whist : DV [] =
+  [|DV [|0.0f|]; DV [|0.20767726f|]; DV [|0.17457059f|]; DV [|0.190040559f|];
+    DV [|0.182180524f|]; DV [|0.182166189f|]; DV [|0.182166889f|];
+    DV [|0.182166755f|]; DV [|0.182166621f|]; DV [|0.182166487f|]|]
+val w : DV = DV [|0.182166889f|]
+val lhist : D [] =
+  [|D 2.5351131f; D 2.5351131f; D 0.0752873272f; D 0.0159297027f;
+    D 0.00417833822f; D 1.38279992e-08f; D 3.27418093e-11f; D 1.15107923e-12f;
+    D 1.15107923e-12f; D 1.15107923e-12f|]
+val l : D = D 1.15107923e-12f
 </pre>
 *)
 
@@ -124,7 +134,7 @@ open RProvider.grDevices
 
 R.plot_new (namedParams [ ])
 
-let t = trajectory (whist.[4].[0])
+let t = trajectory (whist.[1].[0])
 let tx, ty = t |> Seq.toArray |> Array.map (fun v -> v.[0] |> float32 |> float, v.[1] |> float32 |> float) |> Array.unzip
 
 namedParams[
