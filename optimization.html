@@ -119,6 +119,8 @@
 <span class="l">25: </span>
 <span class="l">26: </span>
 <span class="l">27: </span>
+<span class="l">28: </span>
+<span class="l">29: </span>
 </pre></td>
 <td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">open</span> <span onmouseout="hideTip(event, 'fs1', 1)" onmouseover="showTip(event, 'fs1', 1)" class="i">Hype</span>
 <span class="k">open</span> <span onmouseout="hideTip(event, 'fs2', 2)" onmouseover="showTip(event, 'fs2', 2)" class="i">DiffSharp</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs3', 3)" onmouseover="showTip(event, 'fs3', 3)" class="i">AD</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs4', 4)" onmouseover="showTip(event, 'fs4', 4)" class="i">Float32</span>
@@ -146,44 +148,54 @@
 <span class="k">let</span> <span onmouseout="hideTip(event, 'fs28', 69)" onmouseover="showTip(event, 'fs28', 69)" class="i">w</span>, <span onmouseout="hideTip(event, 'fs29', 70)" onmouseover="showTip(event, 'fs29', 70)" class="i">l</span>, <span onmouseout="hideTip(event, 'fs30', 71)" onmouseover="showTip(event, 'fs30', 71)" class="i">whist</span>, <span onmouseout="hideTip(event, 'fs31', 72)" onmouseover="showTip(event, 'fs31', 72)" class="i">lhist</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs32', 73)" onmouseover="showTip(event, 'fs32', 73)" class="t">Optimize</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs33', 74)" onmouseover="showTip(event, 'fs33', 74)" class="f">Minimize</span>(<span onmouseout="hideTip(event, 'fs24', 75)" onmouseover="showTip(event, 'fs24', 75)" class="f">error</span>, <span onmouseout="hideTip(event, 'fs8', 76)" onmouseover="showTip(event, 'fs8', 76)" class="f">toDV</span> [<span class="n">0.</span>], 
                                             {<span onmouseout="hideTip(event, 'fs34', 77)" onmouseover="showTip(event, 'fs34', 77)" class="t">Params</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs35', 78)" onmouseover="showTip(event, 'fs35', 78)" class="i">Default</span> <span class="k">with</span> 
                                                 <span onmouseout="hideTip(event, 'fs36', 79)" onmouseover="showTip(event, 'fs36', 79)" class="i">Method</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs37', 80)" onmouseover="showTip(event, 'fs37', 80)" class="p">Newton</span>; 
+                                                <span onmouseout="hideTip(event, 'fs38', 81)" onmouseover="showTip(event, 'fs38', 81)" class="i">LearningRate</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs39', 82)" onmouseover="showTip(event, 'fs39', 82)" class="p">Constant</span> (<span onmouseout="hideTip(event, 'fs6', 83)" onmouseover="showTip(event, 'fs6', 83)" class="p">D</span> <span class="n">1.f</span>)
+                                                <span class="i">ValidationInterval</span> <span class="o">=</span> <span class="n">1</span>;
                                                 <span class="i">Epochs</span> <span class="o">=</span> <span class="n">10</span>})
 </code></pre></td>
 </tr>
 </table>
 
 <pre>
-[12/11/2015 12:46:16] --- Minimization started
-[12/11/2015 12:46:16] Parameters     : 1
-[12/11/2015 12:46:16] Iterations     : 10
-[12/11/2015 12:46:16] Valid. interval: 10
-[12/11/2015 12:46:16] Method         : Exact Newton
-[12/11/2015 12:46:16] Learning rate  : RMSProp a0 = D 0.00100000005f, k = D 0.899999976f
-[12/11/2015 12:46:16] Momentum       : None
-[12/11/2015 12:46:16] Gradient clip. : None
-[12/11/2015 12:46:16] Early stopping : None
-[12/11/2015 12:46:16] Improv. thresh.: D 0.995000005f
-[12/11/2015 12:46:16] Return best    : true
-[12/11/2015 12:46:16]  1/10 | D  2.535113e+000 [- ]
-[12/11/2015 12:46:17] Duration       : 00:00:01.2024025
-[12/11/2015 12:46:17] Value initial  : D  2.535113e+000
-[12/11/2015 12:46:17] Value final    : D  1.151079e-012 (Best)
-[12/11/2015 12:46:17] Value change   : D -2.535113e+000 (-100.00 %)
-[12/11/2015 12:46:17] Value chg. / s : D -2.108373e+000
-[12/11/2015 12:46:17] Iter. / s      : 8.316682642
-[12/11/2015 12:46:17] Iter. / min    : 499.0009585
-[12/11/2015 12:46:17] --- Minimization finished
+[25/12/2015 23:53:10] --- Minimization started
+[25/12/2015 23:53:10] Parameters     : 1
+[25/12/2015 23:53:10] Iterations     : 10
+[25/12/2015 23:53:10] Valid. interval: 1
+[25/12/2015 23:53:10] Method         : Exact Newton
+[25/12/2015 23:53:10] Learning rate  : Constant a = D 1.0f
+[25/12/2015 23:53:10] Momentum       : None
+[25/12/2015 23:53:10] Gradient clip. : None
+[25/12/2015 23:53:10] Early stopping : None
+[25/12/2015 23:53:10] Improv. thresh.: D 0.995000005f
+[25/12/2015 23:53:10] Return best    : true
+[25/12/2015 23:53:10]  1/10 | D  2.535113e+000 [- ]
+[25/12/2015 23:53:10]  2/10 | D  7.528733e-002 [↓▼]
+[25/12/2015 23:53:10]  3/10 | D  1.592970e-002 [↓▼]
+[25/12/2015 23:53:10]  4/10 | D  4.178338e-003 [↓▼]
+[25/12/2015 23:53:10]  5/10 | D  1.382800e-008 [↓▼]
+[25/12/2015 23:53:11]  6/10 | D  3.274181e-011 [↓▼]
+[25/12/2015 23:53:11]  7/10 | D  1.151079e-012 [↓▼]
+[25/12/2015 23:53:11]  8/10 | D  1.151079e-012 [- ]
+[25/12/2015 23:53:11]  9/10 | D  1.151079e-012 [- ]
+[25/12/2015 23:53:11] 10/10 | D  3.274181e-011 [↑ ]
+[25/12/2015 23:53:11] Duration       : 00:00:00.9201285
+[25/12/2015 23:53:11] Value initial  : D  2.535113e+000
+[25/12/2015 23:53:11] Value final    : D  1.151079e-012 (Best)
+[25/12/2015 23:53:11] Value change   : D -2.535113e+000 (-100.00 %)
+[25/12/2015 23:53:11] Value chg. / s : D -2.755173e+000
+[25/12/2015 23:53:11] Iter. / s      : 10.86804723
+[25/12/2015 23:53:11] Iter. / min    : 652.0828341
+[25/12/2015 23:53:11] --- Minimization finished
 
-<p>val whist : DiffSharp.AD.Float32.DV [] =
-  [|DV [|0.0f|]; DV [|0.383181423f|]; DV [|-0.0158617795f|];
-    DV [|0.170346871f|]; DV [|0.190061614f|]; DV [|0.181639418f|];
-    DV [|0.182229996f|]; DV [|0.182155699f|]; DV [|0.182169855f|];
-    DV [|0.1821661f|]|]
-val w : DiffSharp.AD.Float32.DV = DV [|0.182167068f|]
-val lhist : DiffSharp.AD.Float32.D [] =
-  [|D 2.5351131f; D 2.5351131f; D 8.86556721f; D 2.74124479f; D 0.0258339234f;
-    D 0.00420197984f; D 1.86420257e-05f; D 2.65500347e-07f; D 8.66806715e-09f;
-    D 5.49062185e-10f|]
-val l : DiffSharp.AD.Float32.D = D 1.15107923e-12f
+<p>val whist : DV [] =
+  [|DV [|0.0f|]; DV [|0.20767726f|]; DV [|0.17457059f|]; DV [|0.190040559f|];
+    DV [|0.182180524f|]; DV [|0.182166189f|]; DV [|0.182166889f|];
+    DV [|0.182166755f|]; DV [|0.182166621f|]; DV [|0.182166487f|]|]
+val w : DV = DV [|0.182166889f|]
+val lhist : D [] =
+  [|D 2.5351131f; D 2.5351131f; D 0.0752873272f; D 0.0159297027f;
+    D 0.00417833822f; D 1.38279992e-08f; D 3.27418093e-11f; D 1.15107923e-12f;
+    D 1.15107923e-12f; D 1.15107923e-12f|]
+val l : D = D 1.15107923e-12f
 </pre></p>
 
 <div class="row">
@@ -198,7 +210,7 @@ val l : DiffSharp.AD.Float32.D = D 1.15107923e-12f
 
 <p><span class="math">\[   f(\mathbf{x}) = (1.5 - x_1 + x_1 x_2)^2 + (2.25 - x_1 + x_1 x_2^2)^2 + (2.625 - x_1 + x_1 x_2^3)^2\]</span></p>
 
-<p>starting from <span class="math">\(\mathbf{x} = (1, 1.5)\)</span>, using RMSProp.</p>
+<p>starting from <span class="math">\(\mathbf{x} = (1, 1.5)\)</span>, using RMSProp. The optimum is at <span class="math">\((3, 0.5)\)</span></p>
 
 <table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l">1: </span>
 <span class="l">2: </span>
@@ -209,14 +221,14 @@ val l : DiffSharp.AD.Float32.D = D 1.15107923e-12f
 <span class="l">7: </span>
 <span class="l">8: </span>
 </pre></td>
-<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span onmouseout="hideTip(event, 'fs55', 121)" onmouseover="showTip(event, 'fs55', 121)" class="f">beale</span> (<span onmouseout="hideTip(event, 'fs12', 122)" onmouseover="showTip(event, 'fs12', 122)" class="i">x</span><span class="o">:</span><span onmouseout="hideTip(event, 'fs13', 123)" onmouseover="showTip(event, 'fs13', 123)" class="t">DV</span>) <span class="o">=</span> (<span class="n">1.5f</span> <span class="o">-</span> <span onmouseout="hideTip(event, 'fs12', 124)" onmouseover="showTip(event, 'fs12', 124)" class="i">x</span><span class="o">.</span>[<span class="n">0</span>] <span class="o">+</span> (<span onmouseout="hideTip(event, 'fs12', 125)" onmouseover="showTip(event, 'fs12', 125)" class="i">x</span><span class="o">.</span>[<span class="n">0</span>] <span class="o">*</span> <span onmouseout="hideTip(event, 'fs12', 126)" onmouseover="showTip(event, 'fs12', 126)" class="i">x</span><span class="o">.</span>[<span class="n">1</span>])) <span class="o">**</span> <span class="n">2.f</span>
-                    <span class="o">+</span> (<span class="n">2.25f</span> <span class="o">-</span> <span onmouseout="hideTip(event, 'fs12', 127)" onmouseover="showTip(event, 'fs12', 127)" class="i">x</span><span class="o">.</span>[<span class="n">0</span>] <span class="o">+</span> <span onmouseout="hideTip(event, 'fs12', 128)" onmouseover="showTip(event, 'fs12', 128)" class="i">x</span><span class="o">.</span>[<span class="n">0</span>] <span class="o">*</span> <span onmouseout="hideTip(event, 'fs12', 129)" onmouseover="showTip(event, 'fs12', 129)" class="i">x</span><span class="o">.</span>[<span class="n">1</span>] <span class="o">**</span> <span class="n">2.f</span>) <span class="o">**</span> <span class="n">2.f</span>
-                    <span class="o">+</span> (<span class="n">2.625f</span> <span class="o">-</span> <span onmouseout="hideTip(event, 'fs12', 130)" onmouseover="showTip(event, 'fs12', 130)" class="i">x</span><span class="o">.</span>[<span class="n">0</span>] <span class="o">+</span> <span onmouseout="hideTip(event, 'fs12', 131)" onmouseover="showTip(event, 'fs12', 131)" class="i">x</span><span class="o">.</span>[<span class="n">0</span>] <span class="o">*</span> <span onmouseout="hideTip(event, 'fs12', 132)" onmouseover="showTip(event, 'fs12', 132)" class="i">x</span><span class="o">.</span>[<span class="n">1</span>] <span class="o">**</span> <span class="n">3.f</span>) <span class="o">**</span> <span class="n">2.f</span>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span onmouseout="hideTip(event, 'fs58', 127)" onmouseover="showTip(event, 'fs58', 127)" class="f">beale</span> (<span onmouseout="hideTip(event, 'fs12', 128)" onmouseover="showTip(event, 'fs12', 128)" class="i">x</span><span class="o">:</span><span onmouseout="hideTip(event, 'fs13', 129)" onmouseover="showTip(event, 'fs13', 129)" class="t">DV</span>) <span class="o">=</span> (<span class="n">1.5f</span> <span class="o">-</span> <span onmouseout="hideTip(event, 'fs12', 130)" onmouseover="showTip(event, 'fs12', 130)" class="i">x</span><span class="o">.</span>[<span class="n">0</span>] <span class="o">+</span> (<span onmouseout="hideTip(event, 'fs12', 131)" onmouseover="showTip(event, 'fs12', 131)" class="i">x</span><span class="o">.</span>[<span class="n">0</span>] <span class="o">*</span> <span onmouseout="hideTip(event, 'fs12', 132)" onmouseover="showTip(event, 'fs12', 132)" class="i">x</span><span class="o">.</span>[<span class="n">1</span>])) <span class="o">**</span> <span class="n">2.f</span>
+                    <span class="o">+</span> (<span class="n">2.25f</span> <span class="o">-</span> <span onmouseout="hideTip(event, 'fs12', 133)" onmouseover="showTip(event, 'fs12', 133)" class="i">x</span><span class="o">.</span>[<span class="n">0</span>] <span class="o">+</span> <span onmouseout="hideTip(event, 'fs12', 134)" onmouseover="showTip(event, 'fs12', 134)" class="i">x</span><span class="o">.</span>[<span class="n">0</span>] <span class="o">*</span> <span onmouseout="hideTip(event, 'fs12', 135)" onmouseover="showTip(event, 'fs12', 135)" class="i">x</span><span class="o">.</span>[<span class="n">1</span>] <span class="o">**</span> <span class="n">2.f</span>) <span class="o">**</span> <span class="n">2.f</span>
+                    <span class="o">+</span> (<span class="n">2.625f</span> <span class="o">-</span> <span onmouseout="hideTip(event, 'fs12', 136)" onmouseover="showTip(event, 'fs12', 136)" class="i">x</span><span class="o">.</span>[<span class="n">0</span>] <span class="o">+</span> <span onmouseout="hideTip(event, 'fs12', 137)" onmouseover="showTip(event, 'fs12', 137)" class="i">x</span><span class="o">.</span>[<span class="n">0</span>] <span class="o">*</span> <span onmouseout="hideTip(event, 'fs12', 138)" onmouseover="showTip(event, 'fs12', 138)" class="i">x</span><span class="o">.</span>[<span class="n">1</span>] <span class="o">**</span> <span class="n">3.f</span>) <span class="o">**</span> <span class="n">2.f</span>
 
-<span class="k">let</span> <span onmouseout="hideTip(event, 'fs56', 133)" onmouseover="showTip(event, 'fs56', 133)" class="i">wopt</span>, <span onmouseout="hideTip(event, 'fs57', 134)" onmouseover="showTip(event, 'fs57', 134)" class="i">lopt</span>, <span onmouseout="hideTip(event, 'fs30', 135)" onmouseover="showTip(event, 'fs30', 135)" class="i">whist</span>, <span onmouseout="hideTip(event, 'fs31', 136)" onmouseover="showTip(event, 'fs31', 136)" class="i">lhist</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs32', 137)" onmouseover="showTip(event, 'fs32', 137)" class="t">Optimize</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs33', 138)" onmouseover="showTip(event, 'fs33', 138)" class="f">Minimize</span>(<span onmouseout="hideTip(event, 'fs55', 139)" onmouseover="showTip(event, 'fs55', 139)" class="f">beale</span>, <span onmouseout="hideTip(event, 'fs8', 140)" onmouseover="showTip(event, 'fs8', 140)" class="f">toDV</span> [<span class="n">1.</span>; <span class="n">1.5</span>], 
-                                                    {<span onmouseout="hideTip(event, 'fs34', 141)" onmouseover="showTip(event, 'fs34', 141)" class="t">Params</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs35', 142)" onmouseover="showTip(event, 'fs35', 142)" class="i">Default</span> <span class="k">with</span> 
+<span class="k">let</span> <span onmouseout="hideTip(event, 'fs59', 139)" onmouseover="showTip(event, 'fs59', 139)" class="i">wopt</span>, <span onmouseout="hideTip(event, 'fs60', 140)" onmouseover="showTip(event, 'fs60', 140)" class="i">lopt</span>, <span onmouseout="hideTip(event, 'fs30', 141)" onmouseover="showTip(event, 'fs30', 141)" class="i">whist</span>, <span onmouseout="hideTip(event, 'fs31', 142)" onmouseover="showTip(event, 'fs31', 142)" class="i">lhist</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs32', 143)" onmouseover="showTip(event, 'fs32', 143)" class="t">Optimize</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs33', 144)" onmouseover="showTip(event, 'fs33', 144)" class="f">Minimize</span>(<span onmouseout="hideTip(event, 'fs58', 145)" onmouseover="showTip(event, 'fs58', 145)" class="f">beale</span>, <span onmouseout="hideTip(event, 'fs8', 146)" onmouseover="showTip(event, 'fs8', 146)" class="f">toDV</span> [<span class="n">1.</span>; <span class="n">1.5</span>], 
+                                                    {<span onmouseout="hideTip(event, 'fs34', 147)" onmouseover="showTip(event, 'fs34', 147)" class="t">Params</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs35', 148)" onmouseover="showTip(event, 'fs35', 148)" class="i">Default</span> <span class="k">with</span> 
                                                         <span class="i">Epochs</span> <span class="o">=</span> <span class="n">3000</span>; 
-                                                        <span onmouseout="hideTip(event, 'fs58', 143)" onmouseover="showTip(event, 'fs58', 143)" class="i">LearningRate</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs59', 144)" onmouseover="showTip(event, 'fs59', 144)" class="p">RMSProp</span> (<span onmouseout="hideTip(event, 'fs6', 145)" onmouseover="showTip(event, 'fs6', 145)" class="p">D</span> <span class="n">0.01f</span>, <span onmouseout="hideTip(event, 'fs6', 146)" onmouseover="showTip(event, 'fs6', 146)" class="p">D</span> <span class="n">0.9f</span>)})
+                                                        <span onmouseout="hideTip(event, 'fs38', 149)" onmouseover="showTip(event, 'fs38', 149)" class="i">LearningRate</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs61', 150)" onmouseover="showTip(event, 'fs61', 150)" class="p">RMSProp</span> (<span onmouseout="hideTip(event, 'fs6', 151)" onmouseover="showTip(event, 'fs6', 151)" class="p">D</span> <span class="n">0.01f</span>, <span onmouseout="hideTip(event, 'fs6', 152)" onmouseover="showTip(event, 'fs6', 152)" class="p">D</span> <span class="n">0.9f</span>)})
 </code></pre></td>
 </tr>
 </table>
@@ -293,17 +305,17 @@ val l : DiffSharp.AD.Float32.D = D 1.15107923e-12f
 <span class="l">14: </span>
 <span class="l">15: </span>
 </pre></td>
-<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">module</span> <span onmouseout="hideTip(event, 'fs34', 265)" onmouseover="showTip(event, 'fs34', 265)" class="t">Params</span> <span class="o">=</span>
-     <span class="k">let</span> <span onmouseout="hideTip(event, 'fs85', 266)" onmouseover="showTip(event, 'fs85', 266)" class="i">Default</span> <span class="o">=</span> {<span class="i">Epochs</span> <span class="o">=</span> <span class="n">100</span>
-                    <span onmouseout="hideTip(event, 'fs58', 267)" onmouseover="showTip(event, 'fs58', 267)" class="i">LearningRate</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs58', 268)" onmouseover="showTip(event, 'fs58', 268)" class="t">LearningRate</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs86', 269)" onmouseover="showTip(event, 'fs86', 269)" class="i">DefaultRMSProp</span>
-                    <span onmouseout="hideTip(event, 'fs87', 270)" onmouseover="showTip(event, 'fs87', 270)" class="i">Momentum</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs88', 271)" onmouseover="showTip(event, 'fs88', 271)" class="p">NoMomentum</span>
-                    <span onmouseout="hideTip(event, 'fs89', 272)" onmouseover="showTip(event, 'fs89', 272)" class="i">Loss</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs90', 273)" onmouseover="showTip(event, 'fs90', 273)" class="p">L2Loss</span>
-                    <span onmouseout="hideTip(event, 'fs91', 274)" onmouseover="showTip(event, 'fs91', 274)" class="i">Regularization</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs91', 275)" onmouseover="showTip(event, 'fs91', 275)" class="t">Regularization</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs92', 276)" onmouseover="showTip(event, 'fs92', 276)" class="i">DefaultL2Reg</span>
-                    <span onmouseout="hideTip(event, 'fs93', 277)" onmouseover="showTip(event, 'fs93', 277)" class="i">GradientClipping</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs94', 278)" onmouseover="showTip(event, 'fs94', 278)" class="p">NoClip</span>
-                    <span onmouseout="hideTip(event, 'fs36', 279)" onmouseover="showTip(event, 'fs36', 279)" class="i">Method</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs95', 280)" onmouseover="showTip(event, 'fs95', 280)" class="p">GD</span>
-                    <span onmouseout="hideTip(event, 'fs96', 281)" onmouseover="showTip(event, 'fs96', 281)" class="i">Batch</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs97', 282)" onmouseover="showTip(event, 'fs97', 282)" class="p">Full</span>
-                    <span onmouseout="hideTip(event, 'fs98', 283)" onmouseover="showTip(event, 'fs98', 283)" class="i">EarlyStopping</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs99', 284)" onmouseover="showTip(event, 'fs99', 284)" class="p">NoEarly</span>
-                    <span class="i">ImprovementThreshold</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs6', 285)" onmouseover="showTip(event, 'fs6', 285)" class="p">D</span> <span class="n">0.995f</span>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">module</span> <span onmouseout="hideTip(event, 'fs34', 274)" onmouseover="showTip(event, 'fs34', 274)" class="t">Params</span> <span class="o">=</span>
+     <span class="k">let</span> <span onmouseout="hideTip(event, 'fs87', 275)" onmouseover="showTip(event, 'fs87', 275)" class="i">Default</span> <span class="o">=</span> {<span class="i">Epochs</span> <span class="o">=</span> <span class="n">100</span>
+                    <span onmouseout="hideTip(event, 'fs38', 276)" onmouseover="showTip(event, 'fs38', 276)" class="i">LearningRate</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs38', 277)" onmouseover="showTip(event, 'fs38', 277)" class="t">LearningRate</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs88', 278)" onmouseover="showTip(event, 'fs88', 278)" class="i">DefaultRMSProp</span>
+                    <span onmouseout="hideTip(event, 'fs89', 279)" onmouseover="showTip(event, 'fs89', 279)" class="i">Momentum</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs90', 280)" onmouseover="showTip(event, 'fs90', 280)" class="p">NoMomentum</span>
+                    <span onmouseout="hideTip(event, 'fs91', 281)" onmouseover="showTip(event, 'fs91', 281)" class="i">Loss</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs92', 282)" onmouseover="showTip(event, 'fs92', 282)" class="p">L2Loss</span>
+                    <span onmouseout="hideTip(event, 'fs93', 283)" onmouseover="showTip(event, 'fs93', 283)" class="i">Regularization</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs93', 284)" onmouseover="showTip(event, 'fs93', 284)" class="t">Regularization</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs94', 285)" onmouseover="showTip(event, 'fs94', 285)" class="i">DefaultL2Reg</span>
+                    <span onmouseout="hideTip(event, 'fs95', 286)" onmouseover="showTip(event, 'fs95', 286)" class="i">GradientClipping</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs96', 287)" onmouseover="showTip(event, 'fs96', 287)" class="p">NoClip</span>
+                    <span onmouseout="hideTip(event, 'fs36', 288)" onmouseover="showTip(event, 'fs36', 288)" class="i">Method</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs97', 289)" onmouseover="showTip(event, 'fs97', 289)" class="p">GD</span>
+                    <span onmouseout="hideTip(event, 'fs98', 290)" onmouseover="showTip(event, 'fs98', 290)" class="i">Batch</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs99', 291)" onmouseover="showTip(event, 'fs99', 291)" class="p">Full</span>
+                    <span onmouseout="hideTip(event, 'fs100', 292)" onmouseover="showTip(event, 'fs100', 292)" class="i">EarlyStopping</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs101', 293)" onmouseover="showTip(event, 'fs101', 293)" class="p">NoEarly</span>
+                    <span class="i">ImprovementThreshold</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs6', 294)" onmouseover="showTip(event, 'fs6', 294)" class="p">D</span> <span class="n">0.995f</span>
                     <span class="i">Silent</span> <span class="o">=</span> <span class="k">false</span>
                     <span class="i">ReturnBest</span> <span class="o">=</span> <span class="k">true</span>
                     <span class="i">ValidationInterval</span> <span class="o">=</span> <span class="n">10</span>
@@ -319,10 +331,10 @@ val l : DiffSharp.AD.Float32.D = D 1.15107923e-12f
 <span class="l">3: </span>
 <span class="l">4: </span>
 </pre></td>
-<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span onmouseout="hideTip(event, 'fs100', 286)" onmouseover="showTip(event, 'fs100', 286)" class="i">p</span> <span class="o">=</span> {<span onmouseout="hideTip(event, 'fs101', 287)" onmouseover="showTip(event, 'fs101', 287)" class="t">Params</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs102', 288)" onmouseover="showTip(event, 'fs102', 288)" class="i">Default</span> <span class="k">with</span>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span onmouseout="hideTip(event, 'fs102', 295)" onmouseover="showTip(event, 'fs102', 295)" class="i">p</span> <span class="o">=</span> {<span onmouseout="hideTip(event, 'fs103', 296)" onmouseover="showTip(event, 'fs103', 296)" class="t">Params</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs104', 297)" onmouseover="showTip(event, 'fs104', 297)" class="i">Default</span> <span class="k">with</span>
             <span class="i">Epochs</span> <span class="o">=</span> <span class="n">5000</span>
-            <span onmouseout="hideTip(event, 'fs58', 289)" onmouseover="showTip(event, 'fs58', 289)" class="i">LearningRate</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs58', 290)" onmouseover="showTip(event, 'fs58', 290)" class="t">LearningRate</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs103', 291)" onmouseover="showTip(event, 'fs103', 291)" class="p">AdaGrad</span> (<span onmouseout="hideTip(event, 'fs6', 292)" onmouseover="showTip(event, 'fs6', 292)" class="p">D</span> <span class="n">0.001f</span>)
-            <span onmouseout="hideTip(event, 'fs87', 293)" onmouseover="showTip(event, 'fs87', 293)" class="i">Momentum</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs104', 294)" onmouseover="showTip(event, 'fs104', 294)" class="p">Nesterov</span> (<span onmouseout="hideTip(event, 'fs6', 295)" onmouseover="showTip(event, 'fs6', 295)" class="p">D</span> <span class="n">0.9f</span>)}
+            <span onmouseout="hideTip(event, 'fs38', 298)" onmouseover="showTip(event, 'fs38', 298)" class="i">LearningRate</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs38', 299)" onmouseover="showTip(event, 'fs38', 299)" class="t">LearningRate</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs105', 300)" onmouseover="showTip(event, 'fs105', 300)" class="p">AdaGrad</span> (<span onmouseout="hideTip(event, 'fs6', 301)" onmouseover="showTip(event, 'fs6', 301)" class="p">D</span> <span class="n">0.001f</span>)
+            <span onmouseout="hideTip(event, 'fs89', 302)" onmouseover="showTip(event, 'fs89', 302)" class="i">Momentum</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs106', 303)" onmouseover="showTip(event, 'fs106', 303)" class="p">Nesterov</span> (<span onmouseout="hideTip(event, 'fs6', 304)" onmouseover="showTip(event, 'fs6', 304)" class="p">D</span> <span class="n">0.9f</span>)}
 </code></pre></td>
 </tr>
 </table>
@@ -338,14 +350,14 @@ val l : DiffSharp.AD.Float32.D = D 1.15107923e-12f
 <span class="l">7: </span>
 <span class="l">8: </span>
 </pre></td>
-<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span onmouseout="hideTip(event, 'fs105', 296)" onmouseover="showTip(event, 'fs105', 296)" class="t">Method</span> <span class="o">=</span>
-    | <span onmouseout="hideTip(event, 'fs95', 297)" onmouseover="showTip(event, 'fs95', 297)" class="p">GD</span>          <span class="c">// Gradient descent</span>
-    | <span onmouseout="hideTip(event, 'fs106', 298)" onmouseover="showTip(event, 'fs106', 298)" class="p">CG</span>          <span class="c">// Conjugate gradient</span>
-    | <span onmouseout="hideTip(event, 'fs107', 299)" onmouseover="showTip(event, 'fs107', 299)" class="p">CD</span>          <span class="c">// Conjugate descent</span>
-    | <span onmouseout="hideTip(event, 'fs108', 300)" onmouseover="showTip(event, 'fs108', 300)" class="p">NonlinearCG</span> <span class="c">// Nonlinear conjugate gradient</span>
-    | <span onmouseout="hideTip(event, 'fs109', 301)" onmouseover="showTip(event, 'fs109', 301)" class="p">DaiYuanCG</span>   <span class="c">// Dai &amp; Yuan conjugate gradient</span>
-    | <span onmouseout="hideTip(event, 'fs110', 302)" onmouseover="showTip(event, 'fs110', 302)" class="p">NewtonCG</span>    <span class="c">// Newton conjugate gradient</span>
-    | <span onmouseout="hideTip(event, 'fs37', 303)" onmouseover="showTip(event, 'fs37', 303)" class="p">Newton</span>      <span class="c">// Exact Newton</span>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span onmouseout="hideTip(event, 'fs107', 305)" onmouseover="showTip(event, 'fs107', 305)" class="t">Method</span> <span class="o">=</span>
+    | <span onmouseout="hideTip(event, 'fs97', 306)" onmouseover="showTip(event, 'fs97', 306)" class="p">GD</span>          <span class="c">// Gradient descent</span>
+    | <span onmouseout="hideTip(event, 'fs108', 307)" onmouseover="showTip(event, 'fs108', 307)" class="p">CG</span>          <span class="c">// Conjugate gradient</span>
+    | <span onmouseout="hideTip(event, 'fs109', 308)" onmouseover="showTip(event, 'fs109', 308)" class="p">CD</span>          <span class="c">// Conjugate descent</span>
+    | <span onmouseout="hideTip(event, 'fs110', 309)" onmouseover="showTip(event, 'fs110', 309)" class="p">NonlinearCG</span> <span class="c">// Nonlinear conjugate gradient</span>
+    | <span onmouseout="hideTip(event, 'fs111', 310)" onmouseover="showTip(event, 'fs111', 310)" class="p">DaiYuanCG</span>   <span class="c">// Dai &amp; Yuan conjugate gradient</span>
+    | <span onmouseout="hideTip(event, 'fs112', 311)" onmouseover="showTip(event, 'fs112', 311)" class="p">NewtonCG</span>    <span class="c">// Newton conjugate gradient</span>
+    | <span onmouseout="hideTip(event, 'fs37', 312)" onmouseover="showTip(event, 'fs37', 312)" class="p">Newton</span>      <span class="c">// Exact Newton</span>
 </code></pre></td>
 </tr>
 </table>
@@ -369,22 +381,22 @@ val l : DiffSharp.AD.Float32.D = D 1.15107923e-12f
 <span class="l">15: </span>
 <span class="l">16: </span>
 </pre></td>
-<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span onmouseout="hideTip(event, 'fs111', 304)" onmouseover="showTip(event, 'fs111', 304)" class="t">LearningRate</span> <span class="o">=</span>
-    | <span onmouseout="hideTip(event, 'fs112', 305)" onmouseover="showTip(event, 'fs112', 305)" class="p">Constant</span>    <span class="k">of</span> <span onmouseout="hideTip(event, 'fs16', 306)" onmouseover="showTip(event, 'fs16', 306)" class="t">D</span>         <span class="c">// Constant</span>
-    | <span onmouseout="hideTip(event, 'fs113', 307)" onmouseover="showTip(event, 'fs113', 307)" class="p">Decay</span>       <span class="k">of</span> <span onmouseout="hideTip(event, 'fs16', 308)" onmouseover="showTip(event, 'fs16', 308)" class="t">D</span> <span class="o">*</span> <span onmouseout="hideTip(event, 'fs16', 309)" onmouseover="showTip(event, 'fs16', 309)" class="t">D</span>     <span class="c">// 1 / t decay, a = a0 / (1 + kt). Initial value, decay rate</span>
-    | <span onmouseout="hideTip(event, 'fs114', 310)" onmouseover="showTip(event, 'fs114', 310)" class="p">ExpDecay</span>    <span class="k">of</span> <span onmouseout="hideTip(event, 'fs16', 311)" onmouseover="showTip(event, 'fs16', 311)" class="t">D</span> <span class="o">*</span> <span onmouseout="hideTip(event, 'fs16', 312)" onmouseover="showTip(event, 'fs16', 312)" class="t">D</span>     <span class="c">// Exponential decay, a = a0 * Exp(-kt). Initial value, decay rate</span>
-    | <span onmouseout="hideTip(event, 'fs115', 313)" onmouseover="showTip(event, 'fs115', 313)" class="p">Schedule</span>    <span class="k">of</span> <span onmouseout="hideTip(event, 'fs13', 314)" onmouseover="showTip(event, 'fs13', 314)" class="t">DV</span>        <span class="c">// Scheduled learning rate vector, its length overrides Params.Epochs</span>
-    | <span onmouseout="hideTip(event, 'fs116', 315)" onmouseover="showTip(event, 'fs116', 315)" class="p">Backtrack</span>   <span class="k">of</span> <span onmouseout="hideTip(event, 'fs16', 316)" onmouseover="showTip(event, 'fs16', 316)" class="t">D</span> <span class="o">*</span> <span onmouseout="hideTip(event, 'fs16', 317)" onmouseover="showTip(event, 'fs16', 317)" class="t">D</span> <span class="o">*</span> <span onmouseout="hideTip(event, 'fs16', 318)" onmouseover="showTip(event, 'fs16', 318)" class="t">D</span> <span class="c">// Backtracking line search. Initial value, c, rho</span>
-    | <span onmouseout="hideTip(event, 'fs117', 319)" onmouseover="showTip(event, 'fs117', 319)" class="p">StrongWolfe</span> <span class="k">of</span> <span onmouseout="hideTip(event, 'fs16', 320)" onmouseover="showTip(event, 'fs16', 320)" class="t">D</span> <span class="o">*</span> <span onmouseout="hideTip(event, 'fs16', 321)" onmouseover="showTip(event, 'fs16', 321)" class="t">D</span> <span class="o">*</span> <span onmouseout="hideTip(event, 'fs16', 322)" onmouseover="showTip(event, 'fs16', 322)" class="t">D</span> <span class="c">// Strong Wolfe line search. lmax, c1, c2</span>
-    | <span onmouseout="hideTip(event, 'fs103', 323)" onmouseover="showTip(event, 'fs103', 323)" class="p">AdaGrad</span>     <span class="k">of</span> <span onmouseout="hideTip(event, 'fs16', 324)" onmouseover="showTip(event, 'fs16', 324)" class="t">D</span>         <span class="c">// Adagrad. Initial value</span>
-    | <span onmouseout="hideTip(event, 'fs59', 325)" onmouseover="showTip(event, 'fs59', 325)" class="p">RMSProp</span>     <span class="k">of</span> <span onmouseout="hideTip(event, 'fs16', 326)" onmouseover="showTip(event, 'fs16', 326)" class="t">D</span> <span class="o">*</span> <span onmouseout="hideTip(event, 'fs16', 327)" onmouseover="showTip(event, 'fs16', 327)" class="t">D</span>     <span class="c">// RMSProp. Initial value, decay rate</span>
-    <span class="k">static</span> <span class="k">member</span> <span onmouseout="hideTip(event, 'fs118', 328)" onmouseover="showTip(event, 'fs118', 328)" class="i">DefaultConstant</span>    <span class="o">=</span> <span onmouseout="hideTip(event, 'fs112', 329)" onmouseover="showTip(event, 'fs112', 329)" class="p">Constant</span> (<span onmouseout="hideTip(event, 'fs6', 330)" onmouseover="showTip(event, 'fs6', 330)" class="p">D</span> <span class="n">0.001f</span>)
-    <span class="k">static</span> <span class="k">member</span> <span onmouseout="hideTip(event, 'fs119', 331)" onmouseover="showTip(event, 'fs119', 331)" class="i">DefaultDecay</span>       <span class="o">=</span> <span onmouseout="hideTip(event, 'fs113', 332)" onmouseover="showTip(event, 'fs113', 332)" class="p">Decay</span> (<span onmouseout="hideTip(event, 'fs6', 333)" onmouseover="showTip(event, 'fs6', 333)" class="p">D</span> <span class="n">1.f</span>, <span onmouseout="hideTip(event, 'fs6', 334)" onmouseover="showTip(event, 'fs6', 334)" class="p">D</span> <span class="n">0.1f</span>)
-    <span class="k">static</span> <span class="k">member</span> <span onmouseout="hideTip(event, 'fs120', 335)" onmouseover="showTip(event, 'fs120', 335)" class="i">DefaultExpDecay</span>    <span class="o">=</span> <span onmouseout="hideTip(event, 'fs114', 336)" onmouseover="showTip(event, 'fs114', 336)" class="p">ExpDecay</span> (<span onmouseout="hideTip(event, 'fs6', 337)" onmouseover="showTip(event, 'fs6', 337)" class="p">D</span> <span class="n">1.f</span>, <span onmouseout="hideTip(event, 'fs6', 338)" onmouseover="showTip(event, 'fs6', 338)" class="p">D</span> <span class="n">0.1f</span>)
-    <span class="k">static</span> <span class="k">member</span> <span onmouseout="hideTip(event, 'fs121', 339)" onmouseover="showTip(event, 'fs121', 339)" class="i">DefaultBacktrack</span>   <span class="o">=</span> <span onmouseout="hideTip(event, 'fs116', 340)" onmouseover="showTip(event, 'fs116', 340)" class="p">Backtrack</span> (<span onmouseout="hideTip(event, 'fs6', 341)" onmouseover="showTip(event, 'fs6', 341)" class="p">D</span> <span class="n">1.f</span>, <span onmouseout="hideTip(event, 'fs6', 342)" onmouseover="showTip(event, 'fs6', 342)" class="p">D</span> <span class="n">0.0001f</span>, <span onmouseout="hideTip(event, 'fs6', 343)" onmouseover="showTip(event, 'fs6', 343)" class="p">D</span> <span class="n">0.5f</span>)
-    <span class="k">static</span> <span class="k">member</span> <span onmouseout="hideTip(event, 'fs122', 344)" onmouseover="showTip(event, 'fs122', 344)" class="i">DefaultStrongWolfe</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs117', 345)" onmouseover="showTip(event, 'fs117', 345)" class="p">StrongWolfe</span> (<span onmouseout="hideTip(event, 'fs6', 346)" onmouseover="showTip(event, 'fs6', 346)" class="p">D</span> <span class="n">1.f</span>, <span onmouseout="hideTip(event, 'fs6', 347)" onmouseover="showTip(event, 'fs6', 347)" class="p">D</span> <span class="n">0.0001f</span>, <span onmouseout="hideTip(event, 'fs6', 348)" onmouseover="showTip(event, 'fs6', 348)" class="p">D</span> <span class="n">0.5f</span>)
-    <span class="k">static</span> <span class="k">member</span> <span onmouseout="hideTip(event, 'fs123', 349)" onmouseover="showTip(event, 'fs123', 349)" class="i">DefaultAdaGrad</span>     <span class="o">=</span> <span onmouseout="hideTip(event, 'fs103', 350)" onmouseover="showTip(event, 'fs103', 350)" class="p">AdaGrad</span> (<span onmouseout="hideTip(event, 'fs6', 351)" onmouseover="showTip(event, 'fs6', 351)" class="p">D</span> <span class="n">0.001f</span>)
-    <span class="k">static</span> <span class="k">member</span> <span onmouseout="hideTip(event, 'fs124', 352)" onmouseover="showTip(event, 'fs124', 352)" class="i">DefaultRMSProp</span>     <span class="o">=</span> <span onmouseout="hideTip(event, 'fs59', 353)" onmouseover="showTip(event, 'fs59', 353)" class="p">RMSProp</span> (<span onmouseout="hideTip(event, 'fs6', 354)" onmouseover="showTip(event, 'fs6', 354)" class="p">D</span> <span class="n">0.001f</span>, <span onmouseout="hideTip(event, 'fs6', 355)" onmouseover="showTip(event, 'fs6', 355)" class="p">D</span> <span class="n">0.9f</span>)
+<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span onmouseout="hideTip(event, 'fs113', 313)" onmouseover="showTip(event, 'fs113', 313)" class="t">LearningRate</span> <span class="o">=</span>
+    | <span onmouseout="hideTip(event, 'fs39', 314)" onmouseover="showTip(event, 'fs39', 314)" class="p">Constant</span>    <span class="k">of</span> <span onmouseout="hideTip(event, 'fs16', 315)" onmouseover="showTip(event, 'fs16', 315)" class="t">D</span>         <span class="c">// Constant</span>
+    | <span onmouseout="hideTip(event, 'fs114', 316)" onmouseover="showTip(event, 'fs114', 316)" class="p">Decay</span>       <span class="k">of</span> <span onmouseout="hideTip(event, 'fs16', 317)" onmouseover="showTip(event, 'fs16', 317)" class="t">D</span> <span class="o">*</span> <span onmouseout="hideTip(event, 'fs16', 318)" onmouseover="showTip(event, 'fs16', 318)" class="t">D</span>     <span class="c">// 1 / t decay, a = a0 / (1 + kt). Initial value, decay rate</span>
+    | <span onmouseout="hideTip(event, 'fs115', 319)" onmouseover="showTip(event, 'fs115', 319)" class="p">ExpDecay</span>    <span class="k">of</span> <span onmouseout="hideTip(event, 'fs16', 320)" onmouseover="showTip(event, 'fs16', 320)" class="t">D</span> <span class="o">*</span> <span onmouseout="hideTip(event, 'fs16', 321)" onmouseover="showTip(event, 'fs16', 321)" class="t">D</span>     <span class="c">// Exponential decay, a = a0 * Exp(-kt). Initial value, decay rate</span>
+    | <span onmouseout="hideTip(event, 'fs116', 322)" onmouseover="showTip(event, 'fs116', 322)" class="p">Schedule</span>    <span class="k">of</span> <span onmouseout="hideTip(event, 'fs13', 323)" onmouseover="showTip(event, 'fs13', 323)" class="t">DV</span>        <span class="c">// Scheduled learning rate vector, its length overrides Params.Epochs</span>
+    | <span onmouseout="hideTip(event, 'fs117', 324)" onmouseover="showTip(event, 'fs117', 324)" class="p">Backtrack</span>   <span class="k">of</span> <span onmouseout="hideTip(event, 'fs16', 325)" onmouseover="showTip(event, 'fs16', 325)" class="t">D</span> <span class="o">*</span> <span onmouseout="hideTip(event, 'fs16', 326)" onmouseover="showTip(event, 'fs16', 326)" class="t">D</span> <span class="o">*</span> <span onmouseout="hideTip(event, 'fs16', 327)" onmouseover="showTip(event, 'fs16', 327)" class="t">D</span> <span class="c">// Backtracking line search. Initial value, c, rho</span>
+    | <span onmouseout="hideTip(event, 'fs118', 328)" onmouseover="showTip(event, 'fs118', 328)" class="p">StrongWolfe</span> <span class="k">of</span> <span onmouseout="hideTip(event, 'fs16', 329)" onmouseover="showTip(event, 'fs16', 329)" class="t">D</span> <span class="o">*</span> <span onmouseout="hideTip(event, 'fs16', 330)" onmouseover="showTip(event, 'fs16', 330)" class="t">D</span> <span class="o">*</span> <span onmouseout="hideTip(event, 'fs16', 331)" onmouseover="showTip(event, 'fs16', 331)" class="t">D</span> <span class="c">// Strong Wolfe line search. lmax, c1, c2</span>
+    | <span onmouseout="hideTip(event, 'fs105', 332)" onmouseover="showTip(event, 'fs105', 332)" class="p">AdaGrad</span>     <span class="k">of</span> <span onmouseout="hideTip(event, 'fs16', 333)" onmouseover="showTip(event, 'fs16', 333)" class="t">D</span>         <span class="c">// Adagrad. Initial value</span>
+    | <span onmouseout="hideTip(event, 'fs61', 334)" onmouseover="showTip(event, 'fs61', 334)" class="p">RMSProp</span>     <span class="k">of</span> <span onmouseout="hideTip(event, 'fs16', 335)" onmouseover="showTip(event, 'fs16', 335)" class="t">D</span> <span class="o">*</span> <span onmouseout="hideTip(event, 'fs16', 336)" onmouseover="showTip(event, 'fs16', 336)" class="t">D</span>     <span class="c">// RMSProp. Initial value, decay rate</span>
+    <span class="k">static</span> <span class="k">member</span> <span onmouseout="hideTip(event, 'fs119', 337)" onmouseover="showTip(event, 'fs119', 337)" class="i">DefaultConstant</span>    <span class="o">=</span> <span onmouseout="hideTip(event, 'fs39', 338)" onmouseover="showTip(event, 'fs39', 338)" class="p">Constant</span> (<span onmouseout="hideTip(event, 'fs6', 339)" onmouseover="showTip(event, 'fs6', 339)" class="p">D</span> <span class="n">0.001f</span>)
+    <span class="k">static</span> <span class="k">member</span> <span onmouseout="hideTip(event, 'fs120', 340)" onmouseover="showTip(event, 'fs120', 340)" class="i">DefaultDecay</span>       <span class="o">=</span> <span onmouseout="hideTip(event, 'fs114', 341)" onmouseover="showTip(event, 'fs114', 341)" class="p">Decay</span> (<span onmouseout="hideTip(event, 'fs6', 342)" onmouseover="showTip(event, 'fs6', 342)" class="p">D</span> <span class="n">1.f</span>, <span onmouseout="hideTip(event, 'fs6', 343)" onmouseover="showTip(event, 'fs6', 343)" class="p">D</span> <span class="n">0.1f</span>)
+    <span class="k">static</span> <span class="k">member</span> <span onmouseout="hideTip(event, 'fs121', 344)" onmouseover="showTip(event, 'fs121', 344)" class="i">DefaultExpDecay</span>    <span class="o">=</span> <span onmouseout="hideTip(event, 'fs115', 345)" onmouseover="showTip(event, 'fs115', 345)" class="p">ExpDecay</span> (<span onmouseout="hideTip(event, 'fs6', 346)" onmouseover="showTip(event, 'fs6', 346)" class="p">D</span> <span class="n">1.f</span>, <span onmouseout="hideTip(event, 'fs6', 347)" onmouseover="showTip(event, 'fs6', 347)" class="p">D</span> <span class="n">0.1f</span>)
+    <span class="k">static</span> <span class="k">member</span> <span onmouseout="hideTip(event, 'fs122', 348)" onmouseover="showTip(event, 'fs122', 348)" class="i">DefaultBacktrack</span>   <span class="o">=</span> <span onmouseout="hideTip(event, 'fs117', 349)" onmouseover="showTip(event, 'fs117', 349)" class="p">Backtrack</span> (<span onmouseout="hideTip(event, 'fs6', 350)" onmouseover="showTip(event, 'fs6', 350)" class="p">D</span> <span class="n">1.f</span>, <span onmouseout="hideTip(event, 'fs6', 351)" onmouseover="showTip(event, 'fs6', 351)" class="p">D</span> <span class="n">0.0001f</span>, <span onmouseout="hideTip(event, 'fs6', 352)" onmouseover="showTip(event, 'fs6', 352)" class="p">D</span> <span class="n">0.5f</span>)
+    <span class="k">static</span> <span class="k">member</span> <span onmouseout="hideTip(event, 'fs123', 353)" onmouseover="showTip(event, 'fs123', 353)" class="i">DefaultStrongWolfe</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs118', 354)" onmouseover="showTip(event, 'fs118', 354)" class="p">StrongWolfe</span> (<span onmouseout="hideTip(event, 'fs6', 355)" onmouseover="showTip(event, 'fs6', 355)" class="p">D</span> <span class="n">1.f</span>, <span onmouseout="hideTip(event, 'fs6', 356)" onmouseover="showTip(event, 'fs6', 356)" class="p">D</span> <span class="n">0.0001f</span>, <span onmouseout="hideTip(event, 'fs6', 357)" onmouseover="showTip(event, 'fs6', 357)" class="p">D</span> <span class="n">0.5f</span>)
+    <span class="k">static</span> <span class="k">member</span> <span onmouseout="hideTip(event, 'fs124', 358)" onmouseover="showTip(event, 'fs124', 358)" class="i">DefaultAdaGrad</span>     <span class="o">=</span> <span onmouseout="hideTip(event, 'fs105', 359)" onmouseover="showTip(event, 'fs105', 359)" class="p">AdaGrad</span> (<span onmouseout="hideTip(event, 'fs6', 360)" onmouseover="showTip(event, 'fs6', 360)" class="p">D</span> <span class="n">0.001f</span>)
+    <span class="k">static</span> <span class="k">member</span> <span onmouseout="hideTip(event, 'fs125', 361)" onmouseover="showTip(event, 'fs125', 361)" class="i">DefaultRMSProp</span>     <span class="o">=</span> <span onmouseout="hideTip(event, 'fs61', 362)" onmouseover="showTip(event, 'fs61', 362)" class="p">RMSProp</span> (<span onmouseout="hideTip(event, 'fs6', 363)" onmouseover="showTip(event, 'fs6', 363)" class="p">D</span> <span class="n">0.001f</span>, <span onmouseout="hideTip(event, 'fs6', 364)" onmouseover="showTip(event, 'fs6', 364)" class="p">D</span> <span class="n">0.9f</span>)
 </code></pre></td>
 </tr>
 </table>
@@ -398,12 +410,12 @@ val l : DiffSharp.AD.Float32.D = D 1.15107923e-12f
 <span class="l">5: </span>
 <span class="l">6: </span>
 </pre></td>
-<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span onmouseout="hideTip(event, 'fs125', 356)" onmouseover="showTip(event, 'fs125', 356)" class="t">Momentum</span> <span class="o">=</span>
-    | <span onmouseout="hideTip(event, 'fs125', 357)" onmouseover="showTip(event, 'fs125', 357)" class="p">Momentum</span> <span class="k">of</span> <span onmouseout="hideTip(event, 'fs16', 358)" onmouseover="showTip(event, 'fs16', 358)" class="t">D</span> <span class="c">// Default momentum</span>
-    | <span onmouseout="hideTip(event, 'fs104', 359)" onmouseover="showTip(event, 'fs104', 359)" class="p">Nesterov</span> <span class="k">of</span> <span onmouseout="hideTip(event, 'fs16', 360)" onmouseover="showTip(event, 'fs16', 360)" class="t">D</span> <span class="c">// Nesterov momentum</span>
-    | <span onmouseout="hideTip(event, 'fs88', 361)" onmouseover="showTip(event, 'fs88', 361)" class="p">NoMomentum</span>
-    <span class="k">static</span> <span class="k">member</span> <span onmouseout="hideTip(event, 'fs126', 362)" onmouseover="showTip(event, 'fs126', 362)" class="i">DefaultMomentum</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs125', 363)" onmouseover="showTip(event, 'fs125', 363)" class="p">Momentum</span> (<span onmouseout="hideTip(event, 'fs6', 364)" onmouseover="showTip(event, 'fs6', 364)" class="p">D</span> <span class="n">0.9f</span>)
-    <span class="k">static</span> <span class="k">member</span> <span onmouseout="hideTip(event, 'fs127', 365)" onmouseover="showTip(event, 'fs127', 365)" class="i">DefaultNesterov</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs104', 366)" onmouseover="showTip(event, 'fs104', 366)" class="p">Nesterov</span> (<span onmouseout="hideTip(event, 'fs6', 367)" onmouseover="showTip(event, 'fs6', 367)" class="p">D</span> <span class="n">0.9f</span>)
+<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span onmouseout="hideTip(event, 'fs126', 365)" onmouseover="showTip(event, 'fs126', 365)" class="t">Momentum</span> <span class="o">=</span>
+    | <span onmouseout="hideTip(event, 'fs126', 366)" onmouseover="showTip(event, 'fs126', 366)" class="p">Momentum</span> <span class="k">of</span> <span onmouseout="hideTip(event, 'fs16', 367)" onmouseover="showTip(event, 'fs16', 367)" class="t">D</span> <span class="c">// Default momentum</span>
+    | <span onmouseout="hideTip(event, 'fs106', 368)" onmouseover="showTip(event, 'fs106', 368)" class="p">Nesterov</span> <span class="k">of</span> <span onmouseout="hideTip(event, 'fs16', 369)" onmouseover="showTip(event, 'fs16', 369)" class="t">D</span> <span class="c">// Nesterov momentum</span>
+    | <span onmouseout="hideTip(event, 'fs90', 370)" onmouseover="showTip(event, 'fs90', 370)" class="p">NoMomentum</span>
+    <span class="k">static</span> <span class="k">member</span> <span onmouseout="hideTip(event, 'fs127', 371)" onmouseover="showTip(event, 'fs127', 371)" class="i">DefaultMomentum</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs126', 372)" onmouseover="showTip(event, 'fs126', 372)" class="p">Momentum</span> (<span onmouseout="hideTip(event, 'fs6', 373)" onmouseover="showTip(event, 'fs6', 373)" class="p">D</span> <span class="n">0.9f</span>)
+    <span class="k">static</span> <span class="k">member</span> <span onmouseout="hideTip(event, 'fs128', 374)" onmouseover="showTip(event, 'fs128', 374)" class="i">DefaultNesterov</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs106', 375)" onmouseover="showTip(event, 'fs106', 375)" class="p">Nesterov</span> (<span onmouseout="hideTip(event, 'fs6', 376)" onmouseover="showTip(event, 'fs6', 376)" class="p">D</span> <span class="n">0.9f</span>)
 </code></pre></td>
 </tr>
 </table>
@@ -415,10 +427,10 @@ val l : DiffSharp.AD.Float32.D = D 1.15107923e-12f
 <span class="l">3: </span>
 <span class="l">4: </span>
 </pre></td>
-<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span onmouseout="hideTip(event, 'fs128', 368)" onmouseover="showTip(event, 'fs128', 368)" class="t">GradientClipping</span> <span class="o">=</span>
-    | <span onmouseout="hideTip(event, 'fs129', 369)" onmouseover="showTip(event, 'fs129', 369)" class="p">NormClip</span> <span class="k">of</span> <span onmouseout="hideTip(event, 'fs16', 370)" onmouseover="showTip(event, 'fs16', 370)" class="t">D</span> <span class="c">// Norm clipping</span>
-    | <span onmouseout="hideTip(event, 'fs94', 371)" onmouseover="showTip(event, 'fs94', 371)" class="p">NoClip</span>
-    <span class="k">static</span> <span class="k">member</span> <span onmouseout="hideTip(event, 'fs130', 372)" onmouseover="showTip(event, 'fs130', 372)" class="i">DefaultNormClip</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs129', 373)" onmouseover="showTip(event, 'fs129', 373)" class="p">NormClip</span> (<span onmouseout="hideTip(event, 'fs6', 374)" onmouseover="showTip(event, 'fs6', 374)" class="p">D</span> <span class="n">1.f</span>)
+<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span onmouseout="hideTip(event, 'fs129', 377)" onmouseover="showTip(event, 'fs129', 377)" class="t">GradientClipping</span> <span class="o">=</span>
+    | <span onmouseout="hideTip(event, 'fs130', 378)" onmouseover="showTip(event, 'fs130', 378)" class="p">NormClip</span> <span class="k">of</span> <span onmouseout="hideTip(event, 'fs16', 379)" onmouseover="showTip(event, 'fs16', 379)" class="t">D</span> <span class="c">// Norm clipping</span>
+    | <span onmouseout="hideTip(event, 'fs96', 380)" onmouseover="showTip(event, 'fs96', 380)" class="p">NoClip</span>
+    <span class="k">static</span> <span class="k">member</span> <span onmouseout="hideTip(event, 'fs131', 381)" onmouseover="showTip(event, 'fs131', 381)" class="i">DefaultNormClip</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs130', 382)" onmouseover="showTip(event, 'fs130', 382)" class="p">NormClip</span> (<span onmouseout="hideTip(event, 'fs6', 383)" onmouseover="showTip(event, 'fs6', 383)" class="p">D</span> <span class="n">1.f</span>)
 </code></pre></td>
 </tr>
 </table>
@@ -445,7 +457,7 @@ val l : DiffSharp.AD.Float32.D = D 1.15107923e-12f
 <div class="tip" id="fs18">val unfold : generator:(&#39;State -&gt; (&#39;T * &#39;State) option) -&gt; state:&#39;State -&gt; seq&lt;&#39;T&gt;<br /><br />Full name: Microsoft.FSharp.Collections.Seq.unfold</div>
 <div class="tip" id="fs19">val v : DV</div>
 <div class="tip" id="fs20">val a : DV</div>
-<div class="tip" id="fs21">val grad : f:(&#39;a -&gt; D) -&gt; x:&#39;a -&gt; &#39;a (requires member GetReverse and member get_A)<br /><br />Full name: DiffSharp.AD.Float32.DiffOps.grad</div>
+<div class="tip" id="fs21">val grad : f:(&#39;c -&gt; D) -&gt; x:&#39;c -&gt; &#39;c (requires member GetReverse and member get_A)<br /><br />Full name: DiffSharp.AD.Float32.DiffOps.grad</div>
 <div class="tip" id="fs22">union case Option.Some: Value: &#39;T -&gt; Option&lt;&#39;T&gt;</div>
 <div class="tip" id="fs23">val takeWhile : predicate:(&#39;T -&gt; bool) -&gt; source:seq&lt;&#39;T&gt; -&gt; seq&lt;&#39;T&gt;<br /><br />Full name: Microsoft.FSharp.Collections.Seq.takeWhile</div>
 <div class="tip" id="fs24">val error : w:DV -&gt; D<br /><br />Full name: Optimization.error</div>
@@ -462,99 +474,100 @@ val l : DiffSharp.AD.Float32.D = D 1.15107923e-12f
 <div class="tip" id="fs35">val Default : Params<br /><br />Full name: Hype.Params.Default</div>
 <div class="tip" id="fs36">type Method =<br />&#160;&#160;| GD<br />&#160;&#160;| CG<br />&#160;&#160;| CD<br />&#160;&#160;| NonlinearCG<br />&#160;&#160;| DaiYuanCG<br />&#160;&#160;| NewtonCG<br />&#160;&#160;| Newton<br />&#160;&#160;override ToString : unit -&gt; string<br />&#160;&#160;member Func : (DV -&gt; (DV -&gt; D) -&gt; DV -&gt; DV -&gt; (DV -&gt; DV) -&gt; D * DV * DV)<br /><br />Full name: Hype.Method</div>
 <div class="tip" id="fs37">union case Method.Newton: Method</div>
-<div class="tip" id="fs38">namespace RProvider</div>
-<div class="tip" id="fs39">namespace RProvider.graphics</div>
-<div class="tip" id="fs40">namespace RProvider.grDevices</div>
-<div class="tip" id="fs41">val t : seq&lt;DV&gt;<br /><br />Full name: Optimization.t</div>
-<div class="tip" id="fs42">val tx : float []<br /><br />Full name: Optimization.tx</div>
-<div class="tip" id="fs43">val ty : float []<br /><br />Full name: Optimization.ty</div>
-<div class="tip" id="fs44">val toArray : source:seq&lt;&#39;T&gt; -&gt; &#39;T []<br /><br />Full name: Microsoft.FSharp.Collections.Seq.toArray</div>
-<div class="tip" id="fs45">module Array<br /><br />from Microsoft.FSharp.Collections</div>
-<div class="tip" id="fs46">val map : mapping:(&#39;T -&gt; &#39;U) -&gt; array:&#39;T [] -&gt; &#39;U []<br /><br />Full name: Microsoft.FSharp.Collections.Array.map</div>
-<div class="tip" id="fs47">Multiple items<br />val float32 : value:&#39;T -&gt; float32 (requires member op_Explicit)<br /><br />Full name: Microsoft.FSharp.Core.Operators.float32<br /><br />--------------------<br />type float32 = System.Single<br /><br />Full name: Microsoft.FSharp.Core.float32<br /><br />--------------------<br />type float32&lt;&#39;Measure&gt; = float32<br /><br />Full name: Microsoft.FSharp.Core.float32&lt;_&gt;</div>
-<div class="tip" id="fs48">Multiple items<br />val float : value:&#39;T -&gt; float (requires member op_Explicit)<br /><br />Full name: Microsoft.FSharp.Core.Operators.float<br /><br />--------------------<br />type float = System.Double<br /><br />Full name: Microsoft.FSharp.Core.float<br /><br />--------------------<br />type float&lt;&#39;Measure&gt; = float<br /><br />Full name: Microsoft.FSharp.Core.float&lt;_&gt;</div>
-<div class="tip" id="fs49">val unzip : array:(&#39;T1 * &#39;T2) [] -&gt; &#39;T1 [] * &#39;T2 []<br /><br />Full name: Microsoft.FSharp.Collections.Array.unzip</div>
-<div class="tip" id="fs50">val namedParams : s:seq&lt;string * &#39;a&gt; -&gt; System.Collections.Generic.IDictionary&lt;string,obj&gt;<br /><br />Full name: RProvider.Helpers.namedParams</div>
-<div class="tip" id="fs51">val box : value:&#39;T -&gt; obj<br /><br />Full name: Microsoft.FSharp.Core.Operators.box</div>
-<div class="tip" id="fs52">type R =<br />&#160;&#160;static member Axis : ?x: obj * ?at: obj * ?___: obj * ?side: obj * ?labels: obj * ?paramArray: obj [] -&gt; SymbolicExpression + 1 overload<br />&#160;&#160;static member abline : ?a: obj * ?b: obj * ?h: obj * ?v: obj * ?reg: obj * ?coef: obj * ?untf: obj * ?___: obj * ?paramArray: obj [] -&gt; SymbolicExpression + 1 overload<br />&#160;&#160;static member arrows : ?x0: obj * ?y0: obj * ?x1: obj * ?y1: obj * ?length: obj * ?angle: obj * ?code: obj * ?col: obj * ?lty: obj * ?lwd: obj * ?___: obj * ?paramArray: obj [] -&gt; SymbolicExpression + 1 overload<br />&#160;&#160;static member assocplot : ?x: obj * ?col: obj * ?space: obj * ?main: obj * ?xlab: obj * ?ylab: obj -&gt; SymbolicExpression + 1 overload<br />&#160;&#160;static member axTicks : ?side: obj * ?axp: obj * ?usr: obj * ?log: obj * ?nintLog: obj -&gt; SymbolicExpression + 1 overload<br />&#160;&#160;static member axis : ?side: obj * ?at: obj * ?labels: obj * ?tick: obj * ?line: obj * ?pos: obj * ?outer: obj * ?font: obj * ?lty: obj * ?lwd: obj * ?lwd_ticks: obj * ?col: obj * ?col_ticks: obj * ?hadj: obj * ?padj: obj * ?___: obj * ?paramArray: obj [] -&gt; SymbolicExpression + 1 overload<br />&#160;&#160;static member axis_Date : ?side: obj * ?x: obj * ?at: obj * ?format: obj * ?labels: obj * ?___: obj * ?paramArray: obj [] -&gt; SymbolicExpression + 1 overload<br />&#160;&#160;static member axis_POSIXct : ?side: obj * ?x: obj * ?at: obj * ?format: obj * ?labels: obj * ?___: obj * ?paramArray: obj [] -&gt; SymbolicExpression + 1 overload<br />&#160;&#160;static member barplot : ?height: obj * ?___: obj * ?paramArray: obj [] -&gt; SymbolicExpression + 1 overload<br />&#160;&#160;static member barplot_default : ?height: obj * ?width: obj * ?space: obj * ?names_arg: obj * ?legend_text: obj * ?beside: obj * ?horiz: obj * ?density: obj * ?angle: obj * ?col: obj * ?border: obj * ?main: obj * ?sub: obj * ?xlab: obj * ?ylab: obj * ?xlim: obj * ?ylim: obj * ?xpd: obj * ?log: obj * ?axes: obj * ?axisnames: obj * ?cex_axis: obj * ?cex_names: obj * ?inside: obj * ?plot: obj * ?axis_lty: obj * ?offset: obj * ?add: obj * ?args_legend: obj * ?___: obj * ?paramArray: obj [] -&gt; SymbolicExpression + 1 overload<br />&#160;&#160;...<br /><br />Full name: RProvider.graphics.R<br /><em><br /><br />R functions for base graphics</em></div>
-<div class="tip" id="fs53">R.lines(paramsByName: System.Collections.Generic.IDictionary&lt;string,obj&gt;) : RDotNet.SymbolicExpression<br />R.lines(?x: obj, ?___: obj, ?paramArray: obj []) : RDotNet.SymbolicExpression<br /><em><br /><br />Add Connected Line Segments to a Plot</em></div>
-<div class="tip" id="fs54">val ignore : value:&#39;T -&gt; unit<br /><br />Full name: Microsoft.FSharp.Core.Operators.ignore</div>
-<div class="tip" id="fs55">val beale : x:DV -&gt; D<br /><br />Full name: Optimization.beale</div>
-<div class="tip" id="fs56">val wopt : DV<br /><br />Full name: Optimization.wopt</div>
-<div class="tip" id="fs57">val lopt : D<br /><br />Full name: Optimization.lopt</div>
-<div class="tip" id="fs58">type LearningRate =<br />&#160;&#160;| Constant of D<br />&#160;&#160;| Decay of D * D<br />&#160;&#160;| ExpDecay of D * D<br />&#160;&#160;| Schedule of DV<br />&#160;&#160;| Backtrack of D * D * D<br />&#160;&#160;| StrongWolfe of D * D * D<br />&#160;&#160;| AdaGrad of D<br />&#160;&#160;| RMSProp of D * D<br />&#160;&#160;override ToString : unit -&gt; string<br />&#160;&#160;member Func : (int -&gt; DV -&gt; (DV -&gt; D) -&gt; D -&gt; DV -&gt; DV ref -&gt; DV -&gt; obj)<br />&#160;&#160;static member DefaultAdaGrad : LearningRate<br />&#160;&#160;static member DefaultBacktrack : LearningRate<br />&#160;&#160;static member DefaultConstant : LearningRate<br />&#160;&#160;static member DefaultDecay : LearningRate<br />&#160;&#160;static member DefaultExpDecay : LearningRate<br />&#160;&#160;static member DefaultRMSProp : LearningRate<br />&#160;&#160;static member DefaultStrongWolfe : LearningRate<br /><br />Full name: Hype.LearningRate</div>
-<div class="tip" id="fs59">union case LearningRate.RMSProp: D * D -&gt; LearningRate</div>
-<div class="tip" id="fs60">val ll : float []<br /><br />Full name: Optimization.ll</div>
-<div class="tip" id="fs61">R.plot(paramsByName: System.Collections.Generic.IDictionary&lt;string,obj&gt;) : RDotNet.SymbolicExpression<br />R.plot(?x: obj, ?y: obj, ?___: obj, ?paramArray: obj []) : RDotNet.SymbolicExpression<br /><em><br /><br />Generic X-Y Plotting</em></div>
-<div class="tip" id="fs62">val contourplot3d : f:(DV -&gt; D) -&gt; xmin:float * xmax:float -&gt; ymin:float * ymax:float -&gt; RDotNet.SymbolicExpression<br /><br />Full name: Optimization.contourplot3d</div>
-<div class="tip" id="fs63">val f : (DV -&gt; D)</div>
-<div class="tip" id="fs64">val xmin : float</div>
-<div class="tip" id="fs65">val xmax : float</div>
-<div class="tip" id="fs66">val ymin : float</div>
-<div class="tip" id="fs67">val ymax : float</div>
-<div class="tip" id="fs68">val res : int</div>
-<div class="tip" id="fs69">val xstep : float</div>
-<div class="tip" id="fs70">val ystep : float</div>
-<div class="tip" id="fs71">val x : float []</div>
-<div class="tip" id="fs72">val y : float []</div>
-<div class="tip" id="fs73">val z : float [,]</div>
-<div class="tip" id="fs74">module Array2D<br /><br />from Microsoft.FSharp.Collections</div>
-<div class="tip" id="fs75">val init : length1:int -&gt; length2:int -&gt; initializer:(int -&gt; int -&gt; &#39;T) -&gt; &#39;T [,]<br /><br />Full name: Microsoft.FSharp.Collections.Array2D.init</div>
-<div class="tip" id="fs76">property System.Array.Length: int</div>
-<div class="tip" id="fs77">val i : int</div>
-<div class="tip" id="fs78">val j : int</div>
-<div class="tip" id="fs79">val map : mapping:(&#39;T -&gt; &#39;U) -&gt; array:&#39;T [,] -&gt; &#39;U [,]<br /><br />Full name: Microsoft.FSharp.Collections.Array2D.map</div>
-<div class="tip" id="fs80">R.contour(paramsByName: System.Collections.Generic.IDictionary&lt;string,obj&gt;) : RDotNet.SymbolicExpression<br />R.contour(?x: obj, ?___: obj, ?paramArray: obj []) : RDotNet.SymbolicExpression<br /><em><br /><br />Display Contours</em></div>
-<div class="tip" id="fs81">val xx : float []<br /><br />Full name: Optimization.xx</div>
-<div class="tip" id="fs82">val yy : float []<br /><br />Full name: Optimization.yy</div>
-<div class="tip" id="fs83">val last : array:&#39;T [] -&gt; &#39;T<br /><br />Full name: Microsoft.FSharp.Collections.Array.last</div>
-<div class="tip" id="fs84">R.points(paramsByName: System.Collections.Generic.IDictionary&lt;string,obj&gt;) : RDotNet.SymbolicExpression<br />R.points(?x: obj, ?___: obj, ?paramArray: obj []) : RDotNet.SymbolicExpression<br /><em><br /><br />Add Points to a Plot</em></div>
-<div class="tip" id="fs85">val Default : Params<br /><br />Full name: Optimization.Params.Default</div>
-<div class="tip" id="fs86">property LearningRate.DefaultRMSProp: LearningRate</div>
-<div class="tip" id="fs87">Multiple items<br />union case Momentum.Momentum: D -&gt; Momentum<br /><br />--------------------<br />type Momentum =<br />&#160;&#160;| Momentum of D<br />&#160;&#160;| Nesterov of D<br />&#160;&#160;| NoMomentum<br />&#160;&#160;override ToString : unit -&gt; string<br />&#160;&#160;member Func : (DV -&gt; DV -&gt; DV)<br />&#160;&#160;static member DefaultMomentum : Momentum<br />&#160;&#160;static member DefaultNesterov : Momentum<br /><br />Full name: Hype.Momentum</div>
-<div class="tip" id="fs88">union case Momentum.NoMomentum: Momentum</div>
-<div class="tip" id="fs89">type Loss =<br />&#160;&#160;| L1Loss<br />&#160;&#160;| L2Loss<br />&#160;&#160;| Quadratic<br />&#160;&#160;| CrossEntropyOnLinear<br />&#160;&#160;| CrossEntropyOnSoftmax<br />&#160;&#160;override ToString : unit -&gt; string<br />&#160;&#160;member Func : (Dataset -&gt; (DM -&gt; DM) -&gt; D)<br /><br />Full name: Hype.Loss</div>
-<div class="tip" id="fs90">union case Loss.L2Loss: Loss</div>
-<div class="tip" id="fs91">type Regularization =<br />&#160;&#160;| L1Reg of D<br />&#160;&#160;| L2Reg of D<br />&#160;&#160;| NoReg<br />&#160;&#160;override ToString : unit -&gt; string<br />&#160;&#160;member Func : (DV -&gt; D)<br />&#160;&#160;static member DefaultL1Reg : Regularization<br />&#160;&#160;static member DefaultL2Reg : Regularization<br /><br />Full name: Hype.Regularization</div>
-<div class="tip" id="fs92">property Regularization.DefaultL2Reg: Regularization</div>
-<div class="tip" id="fs93">type GradientClipping =<br />&#160;&#160;| NormClip of D<br />&#160;&#160;| NoClip<br />&#160;&#160;override ToString : unit -&gt; string<br />&#160;&#160;member Func : (DV -&gt; DV)<br />&#160;&#160;static member DefaultNormClip : GradientClipping<br /><br />Full name: Hype.GradientClipping</div>
-<div class="tip" id="fs94">union case GradientClipping.NoClip: GradientClipping</div>
-<div class="tip" id="fs95">union case Method.GD: Method</div>
-<div class="tip" id="fs96">type Batch =<br />&#160;&#160;| Full<br />&#160;&#160;| Minibatch of int<br />&#160;&#160;| Stochastic<br />&#160;&#160;override ToString : unit -&gt; string<br />&#160;&#160;member Func : (Dataset -&gt; int -&gt; Dataset)<br /><br />Full name: Hype.Batch</div>
-<div class="tip" id="fs97">union case Batch.Full: Batch</div>
-<div class="tip" id="fs98">type EarlyStopping =<br />&#160;&#160;| Early of int * int<br />&#160;&#160;| NoEarly<br />&#160;&#160;override ToString : unit -&gt; string<br />&#160;&#160;static member DefaultEarly : EarlyStopping<br /><br />Full name: Hype.EarlyStopping</div>
-<div class="tip" id="fs99">union case EarlyStopping.NoEarly: EarlyStopping</div>
-<div class="tip" id="fs100">val p : Params<br /><br />Full name: Optimization.p</div>
-<div class="tip" id="fs101">Multiple items<br />module Params<br /><br />from Optimization<br /><br />--------------------<br />module Params<br /><br />from Hype<br /><br />--------------------<br />type Params =<br />&#160;&#160;{Epochs: int;<br />&#160;&#160;&#160;Method: Method;<br />&#160;&#160;&#160;LearningRate: LearningRate;<br />&#160;&#160;&#160;Momentum: Momentum;<br />&#160;&#160;&#160;Loss: Loss;<br />&#160;&#160;&#160;Regularization: Regularization;<br />&#160;&#160;&#160;GradientClipping: GradientClipping;<br />&#160;&#160;&#160;Batch: Batch;<br />&#160;&#160;&#160;EarlyStopping: EarlyStopping;<br />&#160;&#160;&#160;ImprovementThreshold: D;<br />&#160;&#160;&#160;...}<br /><br />Full name: Hype.Params</div>
-<div class="tip" id="fs102">Multiple items<br />val Default : Params<br /><br />Full name: Optimization.Params.Default<br /><br />--------------------<br />val Default : Params<br /><br />Full name: Hype.Params.Default</div>
-<div class="tip" id="fs103">union case LearningRate.AdaGrad: D -&gt; LearningRate</div>
-<div class="tip" id="fs104">union case Momentum.Nesterov: D -&gt; Momentum</div>
-<div class="tip" id="fs105">type Method =<br />&#160;&#160;| GD<br />&#160;&#160;| CG<br />&#160;&#160;| CD<br />&#160;&#160;| NonlinearCG<br />&#160;&#160;| DaiYuanCG<br />&#160;&#160;| NewtonCG<br />&#160;&#160;| Newton<br /><br />Full name: Optimization.Method</div>
-<div class="tip" id="fs106">union case Method.CG: Method</div>
-<div class="tip" id="fs107">union case Method.CD: Method</div>
-<div class="tip" id="fs108">union case Method.NonlinearCG: Method</div>
-<div class="tip" id="fs109">union case Method.DaiYuanCG: Method</div>
-<div class="tip" id="fs110">union case Method.NewtonCG: Method</div>
-<div class="tip" id="fs111">type LearningRate =<br />&#160;&#160;| Constant of D<br />&#160;&#160;| Decay of D * D<br />&#160;&#160;| ExpDecay of D * D<br />&#160;&#160;| Schedule of DV<br />&#160;&#160;| Backtrack of D * D * D<br />&#160;&#160;| StrongWolfe of D * D * D<br />&#160;&#160;| AdaGrad of D<br />&#160;&#160;| RMSProp of D * D<br />&#160;&#160;static member DefaultAdaGrad : LearningRate<br />&#160;&#160;static member DefaultBacktrack : LearningRate<br />&#160;&#160;static member DefaultConstant : LearningRate<br />&#160;&#160;static member DefaultDecay : LearningRate<br />&#160;&#160;static member DefaultExpDecay : LearningRate<br />&#160;&#160;static member DefaultRMSProp : LearningRate<br />&#160;&#160;static member DefaultStrongWolfe : LearningRate<br /><br />Full name: Optimization.LearningRate</div>
-<div class="tip" id="fs112">union case LearningRate.Constant: D -&gt; LearningRate</div>
-<div class="tip" id="fs113">union case LearningRate.Decay: D * D -&gt; LearningRate</div>
-<div class="tip" id="fs114">union case LearningRate.ExpDecay: D * D -&gt; LearningRate</div>
-<div class="tip" id="fs115">union case LearningRate.Schedule: DV -&gt; LearningRate</div>
-<div class="tip" id="fs116">union case LearningRate.Backtrack: D * D * D -&gt; LearningRate</div>
-<div class="tip" id="fs117">union case LearningRate.StrongWolfe: D * D * D -&gt; LearningRate</div>
-<div class="tip" id="fs118">static member LearningRate.DefaultConstant : LearningRate<br /><br />Full name: Optimization.LearningRate.DefaultConstant</div>
-<div class="tip" id="fs119">static member LearningRate.DefaultDecay : LearningRate<br /><br />Full name: Optimization.LearningRate.DefaultDecay</div>
-<div class="tip" id="fs120">static member LearningRate.DefaultExpDecay : LearningRate<br /><br />Full name: Optimization.LearningRate.DefaultExpDecay</div>
-<div class="tip" id="fs121">static member LearningRate.DefaultBacktrack : LearningRate<br /><br />Full name: Optimization.LearningRate.DefaultBacktrack</div>
-<div class="tip" id="fs122">static member LearningRate.DefaultStrongWolfe : LearningRate<br /><br />Full name: Optimization.LearningRate.DefaultStrongWolfe</div>
-<div class="tip" id="fs123">static member LearningRate.DefaultAdaGrad : LearningRate<br /><br />Full name: Optimization.LearningRate.DefaultAdaGrad</div>
-<div class="tip" id="fs124">static member LearningRate.DefaultRMSProp : LearningRate<br /><br />Full name: Optimization.LearningRate.DefaultRMSProp</div>
-<div class="tip" id="fs125">Multiple items<br />union case Momentum.Momentum: D -&gt; Momentum<br /><br />--------------------<br />type Momentum =<br />&#160;&#160;| Momentum of D<br />&#160;&#160;| Nesterov of D<br />&#160;&#160;| NoMomentum<br />&#160;&#160;static member DefaultMomentum : Momentum<br />&#160;&#160;static member DefaultNesterov : Momentum<br /><br />Full name: Optimization.Momentum</div>
-<div class="tip" id="fs126">static member Momentum.DefaultMomentum : Momentum<br /><br />Full name: Optimization.Momentum.DefaultMomentum</div>
-<div class="tip" id="fs127">static member Momentum.DefaultNesterov : Momentum<br /><br />Full name: Optimization.Momentum.DefaultNesterov</div>
-<div class="tip" id="fs128">type GradientClipping =<br />&#160;&#160;| NormClip of D<br />&#160;&#160;| NoClip<br />&#160;&#160;static member DefaultNormClip : GradientClipping<br /><br />Full name: Optimization.GradientClipping</div>
-<div class="tip" id="fs129">union case GradientClipping.NormClip: D -&gt; GradientClipping</div>
-<div class="tip" id="fs130">static member GradientClipping.DefaultNormClip : GradientClipping<br /><br />Full name: Optimization.GradientClipping.DefaultNormClip</div>
+<div class="tip" id="fs38">type LearningRate =<br />&#160;&#160;| Constant of D<br />&#160;&#160;| Decay of D * D<br />&#160;&#160;| ExpDecay of D * D<br />&#160;&#160;| Schedule of DV<br />&#160;&#160;| Backtrack of D * D * D<br />&#160;&#160;| StrongWolfe of D * D * D<br />&#160;&#160;| AdaGrad of D<br />&#160;&#160;| RMSProp of D * D<br />&#160;&#160;override ToString : unit -&gt; string<br />&#160;&#160;member Func : (int -&gt; DV -&gt; (DV -&gt; D) -&gt; D -&gt; DV -&gt; DV ref -&gt; DV -&gt; obj)<br />&#160;&#160;static member DefaultAdaGrad : LearningRate<br />&#160;&#160;static member DefaultBacktrack : LearningRate<br />&#160;&#160;static member DefaultConstant : LearningRate<br />&#160;&#160;static member DefaultDecay : LearningRate<br />&#160;&#160;static member DefaultExpDecay : LearningRate<br />&#160;&#160;static member DefaultRMSProp : LearningRate<br />&#160;&#160;static member DefaultStrongWolfe : LearningRate<br /><br />Full name: Hype.LearningRate</div>
+<div class="tip" id="fs39">union case LearningRate.Constant: D -&gt; LearningRate</div>
+<div class="tip" id="fs40">namespace RProvider</div>
+<div class="tip" id="fs41">namespace RProvider.graphics</div>
+<div class="tip" id="fs42">namespace RProvider.grDevices</div>
+<div class="tip" id="fs43">type R =<br />&#160;&#160;static member Axis : ?x: obj * ?at: obj * ?___: obj * ?side: obj * ?labels: obj * ?paramArray: obj [] -&gt; SymbolicExpression + 1 overload<br />&#160;&#160;static member abline : ?a: obj * ?b: obj * ?h: obj * ?v: obj * ?reg: obj * ?coef: obj * ?untf: obj * ?___: obj * ?paramArray: obj [] -&gt; SymbolicExpression + 1 overload<br />&#160;&#160;static member arrows : ?x0: obj * ?y0: obj * ?x1: obj * ?y1: obj * ?length: obj * ?angle: obj * ?code: obj * ?col: obj * ?lty: obj * ?lwd: obj * ?___: obj * ?paramArray: obj [] -&gt; SymbolicExpression + 1 overload<br />&#160;&#160;static member assocplot : ?x: obj * ?col: obj * ?space: obj * ?main: obj * ?xlab: obj * ?ylab: obj -&gt; SymbolicExpression + 1 overload<br />&#160;&#160;static member axTicks : ?side: obj * ?axp: obj * ?usr: obj * ?log: obj * ?nintLog: obj -&gt; SymbolicExpression + 1 overload<br />&#160;&#160;static member axis : ?side: obj * ?at: obj * ?labels: obj * ?tick: obj * ?line: obj * ?pos: obj * ?outer: obj * ?font: obj * ?lty: obj * ?lwd: obj * ?lwd_ticks: obj * ?col: obj * ?col_ticks: obj * ?hadj: obj * ?padj: obj * ?___: obj * ?paramArray: obj [] -&gt; SymbolicExpression + 1 overload<br />&#160;&#160;static member axis_Date : ?side: obj * ?x: obj * ?at: obj * ?format: obj * ?labels: obj * ?___: obj * ?paramArray: obj [] -&gt; SymbolicExpression + 1 overload<br />&#160;&#160;static member axis_POSIXct : ?side: obj * ?x: obj * ?at: obj * ?format: obj * ?labels: obj * ?___: obj * ?paramArray: obj [] -&gt; SymbolicExpression + 1 overload<br />&#160;&#160;static member barplot : ?height: obj * ?___: obj * ?paramArray: obj [] -&gt; SymbolicExpression + 1 overload<br />&#160;&#160;static member barplot_default : ?height: obj * ?width: obj * ?space: obj * ?names_arg: obj * ?legend_text: obj * ?beside: obj * ?horiz: obj * ?density: obj * ?angle: obj * ?col: obj * ?border: obj * ?main: obj * ?sub: obj * ?xlab: obj * ?ylab: obj * ?xlim: obj * ?ylim: obj * ?xpd: obj * ?log: obj * ?axes: obj * ?axisnames: obj * ?cex_axis: obj * ?cex_names: obj * ?inside: obj * ?plot: obj * ?axis_lty: obj * ?offset: obj * ?add: obj * ?args_legend: obj * ?___: obj * ?paramArray: obj [] -&gt; SymbolicExpression + 1 overload<br />&#160;&#160;...<br /><br />Full name: RProvider.graphics.R<br /><em><br /><br />R functions for base graphics</em></div>
+<div class="tip" id="fs44">R.plot_new(paramsByName: System.Collections.Generic.IDictionary&lt;string,obj&gt;) : RDotNet.SymbolicExpression<br />R.plot_new(?NULL: obj) : RDotNet.SymbolicExpression<br /><em><br /><br />No documentation available</em></div>
+<div class="tip" id="fs45">val namedParams : s:seq&lt;string * &#39;a&gt; -&gt; System.Collections.Generic.IDictionary&lt;string,obj&gt;<br /><br />Full name: RProvider.Helpers.namedParams</div>
+<div class="tip" id="fs46">val t : seq&lt;DV&gt;<br /><br />Full name: Optimization.t</div>
+<div class="tip" id="fs47">val tx : float []<br /><br />Full name: Optimization.tx</div>
+<div class="tip" id="fs48">val ty : float []<br /><br />Full name: Optimization.ty</div>
+<div class="tip" id="fs49">val toArray : source:seq&lt;&#39;T&gt; -&gt; &#39;T []<br /><br />Full name: Microsoft.FSharp.Collections.Seq.toArray</div>
+<div class="tip" id="fs50">module Array<br /><br />from Microsoft.FSharp.Collections</div>
+<div class="tip" id="fs51">val map : mapping:(&#39;T -&gt; &#39;U) -&gt; array:&#39;T [] -&gt; &#39;U []<br /><br />Full name: Microsoft.FSharp.Collections.Array.map</div>
+<div class="tip" id="fs52">Multiple items<br />val float32 : value:&#39;T -&gt; float32 (requires member op_Explicit)<br /><br />Full name: Microsoft.FSharp.Core.Operators.float32<br /><br />--------------------<br />type float32 = System.Single<br /><br />Full name: Microsoft.FSharp.Core.float32<br /><br />--------------------<br />type float32&lt;&#39;Measure&gt; = float32<br /><br />Full name: Microsoft.FSharp.Core.float32&lt;_&gt;</div>
+<div class="tip" id="fs53">Multiple items<br />val float : value:&#39;T -&gt; float (requires member op_Explicit)<br /><br />Full name: Microsoft.FSharp.Core.Operators.float<br /><br />--------------------<br />type float = System.Double<br /><br />Full name: Microsoft.FSharp.Core.float<br /><br />--------------------<br />type float&lt;&#39;Measure&gt; = float<br /><br />Full name: Microsoft.FSharp.Core.float&lt;_&gt;</div>
+<div class="tip" id="fs54">val unzip : array:(&#39;T1 * &#39;T2) [] -&gt; &#39;T1 [] * &#39;T2 []<br /><br />Full name: Microsoft.FSharp.Collections.Array.unzip</div>
+<div class="tip" id="fs55">val box : value:&#39;T -&gt; obj<br /><br />Full name: Microsoft.FSharp.Core.Operators.box</div>
+<div class="tip" id="fs56">R.lines(paramsByName: System.Collections.Generic.IDictionary&lt;string,obj&gt;) : RDotNet.SymbolicExpression<br />R.lines(?x: obj, ?___: obj, ?paramArray: obj []) : RDotNet.SymbolicExpression<br /><em><br /><br />Add Connected Line Segments to a Plot</em></div>
+<div class="tip" id="fs57">val ignore : value:&#39;T -&gt; unit<br /><br />Full name: Microsoft.FSharp.Core.Operators.ignore</div>
+<div class="tip" id="fs58">val beale : x:DV -&gt; D<br /><br />Full name: Optimization.beale</div>
+<div class="tip" id="fs59">val wopt : DV<br /><br />Full name: Optimization.wopt</div>
+<div class="tip" id="fs60">val lopt : D<br /><br />Full name: Optimization.lopt</div>
+<div class="tip" id="fs61">union case LearningRate.RMSProp: D * D -&gt; LearningRate</div>
+<div class="tip" id="fs62">val ll : float []<br /><br />Full name: Optimization.ll</div>
+<div class="tip" id="fs63">R.plot(paramsByName: System.Collections.Generic.IDictionary&lt;string,obj&gt;) : RDotNet.SymbolicExpression<br />R.plot(?x: obj, ?y: obj, ?___: obj, ?paramArray: obj []) : RDotNet.SymbolicExpression<br /><em><br /><br />Generic X-Y Plotting</em></div>
+<div class="tip" id="fs64">val contourplot3d : f:(DV -&gt; D) -&gt; xmin:float * xmax:float -&gt; ymin:float * ymax:float -&gt; RDotNet.SymbolicExpression<br /><br />Full name: Optimization.contourplot3d</div>
+<div class="tip" id="fs65">val f : (DV -&gt; D)</div>
+<div class="tip" id="fs66">val xmin : float</div>
+<div class="tip" id="fs67">val xmax : float</div>
+<div class="tip" id="fs68">val ymin : float</div>
+<div class="tip" id="fs69">val ymax : float</div>
+<div class="tip" id="fs70">val res : int</div>
+<div class="tip" id="fs71">val xstep : float</div>
+<div class="tip" id="fs72">val ystep : float</div>
+<div class="tip" id="fs73">val x : float []</div>
+<div class="tip" id="fs74">val y : float []</div>
+<div class="tip" id="fs75">val z : float [,]</div>
+<div class="tip" id="fs76">module Array2D<br /><br />from Microsoft.FSharp.Collections</div>
+<div class="tip" id="fs77">val init : length1:int -&gt; length2:int -&gt; initializer:(int -&gt; int -&gt; &#39;T) -&gt; &#39;T [,]<br /><br />Full name: Microsoft.FSharp.Collections.Array2D.init</div>
+<div class="tip" id="fs78">property System.Array.Length: int</div>
+<div class="tip" id="fs79">val i : int</div>
+<div class="tip" id="fs80">val j : int</div>
+<div class="tip" id="fs81">val map : mapping:(&#39;T -&gt; &#39;U) -&gt; array:&#39;T [,] -&gt; &#39;U [,]<br /><br />Full name: Microsoft.FSharp.Collections.Array2D.map</div>
+<div class="tip" id="fs82">R.contour(paramsByName: System.Collections.Generic.IDictionary&lt;string,obj&gt;) : RDotNet.SymbolicExpression<br />R.contour(?x: obj, ?___: obj, ?paramArray: obj []) : RDotNet.SymbolicExpression<br /><em><br /><br />Display Contours</em></div>
+<div class="tip" id="fs83">val xx : float []<br /><br />Full name: Optimization.xx</div>
+<div class="tip" id="fs84">val yy : float []<br /><br />Full name: Optimization.yy</div>
+<div class="tip" id="fs85">val last : array:&#39;T [] -&gt; &#39;T<br /><br />Full name: Microsoft.FSharp.Collections.Array.last</div>
+<div class="tip" id="fs86">R.points(paramsByName: System.Collections.Generic.IDictionary&lt;string,obj&gt;) : RDotNet.SymbolicExpression<br />R.points(?x: obj, ?___: obj, ?paramArray: obj []) : RDotNet.SymbolicExpression<br /><em><br /><br />Add Points to a Plot</em></div>
+<div class="tip" id="fs87">val Default : Params<br /><br />Full name: Optimization.Params.Default</div>
+<div class="tip" id="fs88">property LearningRate.DefaultRMSProp: LearningRate</div>
+<div class="tip" id="fs89">Multiple items<br />union case Momentum.Momentum: D -&gt; Momentum<br /><br />--------------------<br />type Momentum =<br />&#160;&#160;| Momentum of D<br />&#160;&#160;| Nesterov of D<br />&#160;&#160;| NoMomentum<br />&#160;&#160;override ToString : unit -&gt; string<br />&#160;&#160;member Func : (DV -&gt; DV -&gt; DV)<br />&#160;&#160;static member DefaultMomentum : Momentum<br />&#160;&#160;static member DefaultNesterov : Momentum<br /><br />Full name: Hype.Momentum</div>
+<div class="tip" id="fs90">union case Momentum.NoMomentum: Momentum</div>
+<div class="tip" id="fs91">type Loss =<br />&#160;&#160;| L1Loss<br />&#160;&#160;| L2Loss<br />&#160;&#160;| Quadratic<br />&#160;&#160;| CrossEntropyOnLinear<br />&#160;&#160;| CrossEntropyOnSoftmax<br />&#160;&#160;override ToString : unit -&gt; string<br />&#160;&#160;member Func : (Dataset -&gt; (DM -&gt; DM) -&gt; D)<br /><br />Full name: Hype.Loss</div>
+<div class="tip" id="fs92">union case Loss.L2Loss: Loss</div>
+<div class="tip" id="fs93">type Regularization =<br />&#160;&#160;| L1Reg of D<br />&#160;&#160;| L2Reg of D<br />&#160;&#160;| NoReg<br />&#160;&#160;override ToString : unit -&gt; string<br />&#160;&#160;member Func : (DV -&gt; D)<br />&#160;&#160;static member DefaultL1Reg : Regularization<br />&#160;&#160;static member DefaultL2Reg : Regularization<br /><br />Full name: Hype.Regularization</div>
+<div class="tip" id="fs94">property Regularization.DefaultL2Reg: Regularization</div>
+<div class="tip" id="fs95">type GradientClipping =<br />&#160;&#160;| NormClip of D<br />&#160;&#160;| NoClip<br />&#160;&#160;override ToString : unit -&gt; string<br />&#160;&#160;member Func : (DV -&gt; DV)<br />&#160;&#160;static member DefaultNormClip : GradientClipping<br /><br />Full name: Hype.GradientClipping</div>
+<div class="tip" id="fs96">union case GradientClipping.NoClip: GradientClipping</div>
+<div class="tip" id="fs97">union case Method.GD: Method</div>
+<div class="tip" id="fs98">type Batch =<br />&#160;&#160;| Full<br />&#160;&#160;| Minibatch of int<br />&#160;&#160;| Stochastic<br />&#160;&#160;override ToString : unit -&gt; string<br />&#160;&#160;member Func : (Dataset -&gt; int -&gt; Dataset)<br /><br />Full name: Hype.Batch</div>
+<div class="tip" id="fs99">union case Batch.Full: Batch</div>
+<div class="tip" id="fs100">type EarlyStopping =<br />&#160;&#160;| Early of int * int<br />&#160;&#160;| NoEarly<br />&#160;&#160;override ToString : unit -&gt; string<br />&#160;&#160;static member DefaultEarly : EarlyStopping<br /><br />Full name: Hype.EarlyStopping</div>
+<div class="tip" id="fs101">union case EarlyStopping.NoEarly: EarlyStopping</div>
+<div class="tip" id="fs102">val p : Params<br /><br />Full name: Optimization.p</div>
+<div class="tip" id="fs103">Multiple items<br />module Params<br /><br />from Optimization<br /><br />--------------------<br />module Params<br /><br />from Hype<br /><br />--------------------<br />type Params =<br />&#160;&#160;{Epochs: int;<br />&#160;&#160;&#160;Method: Method;<br />&#160;&#160;&#160;LearningRate: LearningRate;<br />&#160;&#160;&#160;Momentum: Momentum;<br />&#160;&#160;&#160;Loss: Loss;<br />&#160;&#160;&#160;Regularization: Regularization;<br />&#160;&#160;&#160;GradientClipping: GradientClipping;<br />&#160;&#160;&#160;Batch: Batch;<br />&#160;&#160;&#160;EarlyStopping: EarlyStopping;<br />&#160;&#160;&#160;ImprovementThreshold: D;<br />&#160;&#160;&#160;...}<br /><br />Full name: Hype.Params</div>
+<div class="tip" id="fs104">Multiple items<br />val Default : Params<br /><br />Full name: Optimization.Params.Default<br /><br />--------------------<br />val Default : Params<br /><br />Full name: Hype.Params.Default</div>
+<div class="tip" id="fs105">union case LearningRate.AdaGrad: D -&gt; LearningRate</div>
+<div class="tip" id="fs106">union case Momentum.Nesterov: D -&gt; Momentum</div>
+<div class="tip" id="fs107">type Method =<br />&#160;&#160;| GD<br />&#160;&#160;| CG<br />&#160;&#160;| CD<br />&#160;&#160;| NonlinearCG<br />&#160;&#160;| DaiYuanCG<br />&#160;&#160;| NewtonCG<br />&#160;&#160;| Newton<br /><br />Full name: Optimization.Method</div>
+<div class="tip" id="fs108">union case Method.CG: Method</div>
+<div class="tip" id="fs109">union case Method.CD: Method</div>
+<div class="tip" id="fs110">union case Method.NonlinearCG: Method</div>
+<div class="tip" id="fs111">union case Method.DaiYuanCG: Method</div>
+<div class="tip" id="fs112">union case Method.NewtonCG: Method</div>
+<div class="tip" id="fs113">type LearningRate =<br />&#160;&#160;| Constant of D<br />&#160;&#160;| Decay of D * D<br />&#160;&#160;| ExpDecay of D * D<br />&#160;&#160;| Schedule of DV<br />&#160;&#160;| Backtrack of D * D * D<br />&#160;&#160;| StrongWolfe of D * D * D<br />&#160;&#160;| AdaGrad of D<br />&#160;&#160;| RMSProp of D * D<br />&#160;&#160;static member DefaultAdaGrad : LearningRate<br />&#160;&#160;static member DefaultBacktrack : LearningRate<br />&#160;&#160;static member DefaultConstant : LearningRate<br />&#160;&#160;static member DefaultDecay : LearningRate<br />&#160;&#160;static member DefaultExpDecay : LearningRate<br />&#160;&#160;static member DefaultRMSProp : LearningRate<br />&#160;&#160;static member DefaultStrongWolfe : LearningRate<br /><br />Full name: Optimization.LearningRate</div>
+<div class="tip" id="fs114">union case LearningRate.Decay: D * D -&gt; LearningRate</div>
+<div class="tip" id="fs115">union case LearningRate.ExpDecay: D * D -&gt; LearningRate</div>
+<div class="tip" id="fs116">union case LearningRate.Schedule: DV -&gt; LearningRate</div>
+<div class="tip" id="fs117">union case LearningRate.Backtrack: D * D * D -&gt; LearningRate</div>
+<div class="tip" id="fs118">union case LearningRate.StrongWolfe: D * D * D -&gt; LearningRate</div>
+<div class="tip" id="fs119">static member LearningRate.DefaultConstant : LearningRate<br /><br />Full name: Optimization.LearningRate.DefaultConstant</div>
+<div class="tip" id="fs120">static member LearningRate.DefaultDecay : LearningRate<br /><br />Full name: Optimization.LearningRate.DefaultDecay</div>
+<div class="tip" id="fs121">static member LearningRate.DefaultExpDecay : LearningRate<br /><br />Full name: Optimization.LearningRate.DefaultExpDecay</div>
+<div class="tip" id="fs122">static member LearningRate.DefaultBacktrack : LearningRate<br /><br />Full name: Optimization.LearningRate.DefaultBacktrack</div>
+<div class="tip" id="fs123">static member LearningRate.DefaultStrongWolfe : LearningRate<br /><br />Full name: Optimization.LearningRate.DefaultStrongWolfe</div>
+<div class="tip" id="fs124">static member LearningRate.DefaultAdaGrad : LearningRate<br /><br />Full name: Optimization.LearningRate.DefaultAdaGrad</div>
+<div class="tip" id="fs125">static member LearningRate.DefaultRMSProp : LearningRate<br /><br />Full name: Optimization.LearningRate.DefaultRMSProp</div>
+<div class="tip" id="fs126">Multiple items<br />union case Momentum.Momentum: D -&gt; Momentum<br /><br />--------------------<br />type Momentum =<br />&#160;&#160;| Momentum of D<br />&#160;&#160;| Nesterov of D<br />&#160;&#160;| NoMomentum<br />&#160;&#160;static member DefaultMomentum : Momentum<br />&#160;&#160;static member DefaultNesterov : Momentum<br /><br />Full name: Optimization.Momentum</div>
+<div class="tip" id="fs127">static member Momentum.DefaultMomentum : Momentum<br /><br />Full name: Optimization.Momentum.DefaultMomentum</div>
+<div class="tip" id="fs128">static member Momentum.DefaultNesterov : Momentum<br /><br />Full name: Optimization.Momentum.DefaultNesterov</div>
+<div class="tip" id="fs129">type GradientClipping =<br />&#160;&#160;| NormClip of D<br />&#160;&#160;| NoClip<br />&#160;&#160;static member DefaultNormClip : GradientClipping<br /><br />Full name: Optimization.GradientClipping</div>
+<div class="tip" id="fs130">union case GradientClipping.NormClip: D -&gt; GradientClipping</div>
+<div class="tip" id="fs131">static member GradientClipping.DefaultNormClip : GradientClipping<br /><br />Full name: Optimization.GradientClipping.DefaultNormClip</div>
 
         </div>
         <div class="col-sm-3">
