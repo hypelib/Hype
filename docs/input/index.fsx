@@ -64,7 +64,7 @@ Or you can perform optimization of procedures that are internally using differen
 
 ### Complex objective functions
 
-You can use derivatives in the definition of objective functions for training your models. For example, your objective function can take input sensitivities into account, for training models that are invariant under a set input transformations.
+You can use derivatives in the definition of objective functions for training your models. For example, your objective function can take input sensitivities into account, for training models that are invariant under a set of input transformations.
 
 Roadmap
 -------
