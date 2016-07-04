@@ -1,5 +1,6 @@
 source https://www.nuget.org/api/v2/
 framework >= net46
+redirects: on
 
 nuget DiffSharp
 nuget FSharp.Formatting

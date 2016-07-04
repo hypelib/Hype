@@ -1,3 +1,4 @@
+REDIRECTS: ON
 FRAMEWORK: >= NET46
 NUGET
   remote: https://www.nuget.org/api/v2
