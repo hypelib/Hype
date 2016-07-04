@@ -6,6 +6,7 @@ NUGET
       FSharp.Quotations.Evaluator (>= 1.0.6)
     DynamicInterop (0.7.4)
     FSharp.Compiler.Service (2.0.0.6)
+    FSharp.Core (4.0.0.1)
     FSharp.Formatting (2.14.4)
       FSharp.Compiler.Service (2.0.0.6)
       FSharpVSPowerTools.Core (>= 2.3 < 2.4)

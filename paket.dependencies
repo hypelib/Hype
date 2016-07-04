@@ -3,6 +3,7 @@ framework >= net46
 redirects: on
 
 nuget DiffSharp
+nuget FSharp.Core
 nuget FSharp.Formatting
 nuget RProvider
 nuget XPlot.GoogleCharts.WPF
