@@ -1,0 +1,7 @@
+source https://www.nuget.org/api/v2/
+framework >= net46
+
+nuget DiffSharp
+nuget FSharp.Formatting
+nuget RProvider
+nuget XPlot.GoogleCharts.WPF
