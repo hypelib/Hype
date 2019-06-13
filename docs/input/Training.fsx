@@ -287,7 +287,7 @@ val housingvalid : Dataset = Hype.Dataset
 let wopt, lopt, whist, lhist = Optimize.Train(model, Rnd.UniformDV(14), housingtrain, housingvalid,
                                  {Params.Default with 
                                     Epochs = 1000;
-                                    EarlyStopping = Early(750, 10)})
+                                    EarlyStopping = Hype.EarlyStopping.Early(750, 10)})
 
 (**
 <pre>
