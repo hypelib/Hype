@@ -57,6 +57,9 @@ type LogisticClassifier(f) =
         cc
     override c.Classify(x:DV) =
         if c.Run(x).[0] > D 0.5f then 1 else 0
+    member c.ClassificationError(d:Dataset) =
+        let yi = d.Y |> DM.toDV |> DV.toArray |> Array.map (float32>>int)
+        c.ClassificationError(d.X, yi)
 
 /// Classifier for softmax classification
 type SoftmaxClassifier(f) =
