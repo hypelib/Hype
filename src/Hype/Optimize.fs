@@ -33,14 +33,22 @@ open DiffSharp.Util
 
 /// Learning rate schemes
 type LearningRate =
-    | Constant    of D         // Constant
-    | Decay       of D * D     // 1 / t decay, a = a0 / (1 + kt). Initial value, decay rate
-    | ExpDecay    of D * D     // Exponential decay, a = a0 * Exp(-kt). Initial value, decay rate
-    | Schedule    of DV        // Scheduled learning rate vector, its length overrides Params.Epochs
-    | Backtrack   of D * D * D // Backtracking line search. Initial value, c, rho
-    | StrongWolfe of D * D * D // Strong Wolfe line search. lmax, c1, c2
-    | AdaGrad     of D         // Adagrad. Initial value
-    | RMSProp     of D * D     // RMSProp. Initial value, decay rate
+    /// Constant
+    | Constant    of D
+    /// 1 / t decay, a = a0 / (1 + kt). Initial value, decay rate
+    | Decay       of D * D
+    /// Exponential decay, a = a0 * Exp(-kt). Initial value, decay rate
+    | ExpDecay    of D * D
+    /// Scheduled learning rate vector, its length overrides Params.Epochs
+    | Schedule    of DV
+    /// Backtracking line search. Initial value, c, rho
+    | Backtrack   of D * D * D
+    /// Strong Wolfe line search. lmax, c1, c2
+    | StrongWolfe of D * D * D
+    /// Adagrad. Initial value
+    | AdaGrad     of D
+    /// RMSProp. Initial value, decay rate
+    | RMSProp     of D * D
     static member DefaultConstant    = Constant (D 0.001f)
     static member DefaultDecay       = Decay (D 1.f, D 0.1f)
     static member DefaultExpDecay    = ExpDecay (D 1.f, D 0.1f)
@@ -152,8 +160,10 @@ type LearningRate =
 /// Training batch configuration
 type Batch =
     | Full
-    | Minibatch of int // Minibatch of given size
-    | Stochastic       // Minibatch with size 1, SGD
+    /// Minibatch of given size
+    | Minibatch of int
+    /// Minibatch with size 1, SGD
+    | Stochastic
     override b.ToString() =
         match b with
         | Full        -> "Full"
@@ -167,13 +177,20 @@ type Batch =
 
 /// Gradient-based optimization methods
 type Method =
-    | GD          // Gradient descent
-    | CG          // Conjugate gradient
-    | CD          // Conjugate descent
-    | NonlinearCG // Nonlinear conjugate gradient
-    | DaiYuanCG   // Dai & Yuan conjugate gradient
-    | NewtonCG    // Newton conjugate gradient
-    | Newton      // Exact Newton
+    /// Gradient descent
+    | GD
+    /// Conjugate gradient
+    | CG
+    /// Conjugate descent
+    | CD
+    /// Nonlinear conjugate gradient
+    | NonlinearCG
+    /// Dai & Yuan conjugate gradient
+    | DaiYuanCG
+    /// Newton conjugate gradient
+    | NewtonCG
+    /// Exact Newton
+    | Newton
     override o.ToString() =
         match o with
         | GD          -> "Gradient descent"
@@ -191,7 +208,8 @@ type Method =
                 let g' = gradclip g'
                 let p' = -g'
                 v', g', p'
-        | CG -> // Hestenes and Stiefel 1952
+        /// Hestenes and Stiefel 1952
+        | CG ->
             fun w f g p gradclip ->
                 let v', g' = grad' f w
                 let g' = gradclip g'
@@ -199,14 +217,16 @@ type Method =
                 let b = (g' * y) / (p * y)
                 let p' = -g' + b * p
                 v', g', p'
-        | CD -> // Fletcher 1987
+        /// Fletcher 1987
+        | CD ->
             fun w f g p gradclip ->
                 let v', g' = grad' f w
                 let g' = gradclip g'
                 let b = (DV.normSq g') / (-p * g)
                 let p' = -g' + b * p
                 v', g', p'
-        | DaiYuanCG -> // Dai and Yuan 1999
+        /// Dai and Yuan 1999
+        | DaiYuanCG ->
             fun w f g p gradclip ->
                 let v', g' = grad' f w
                 let g' = gradclip g'
@@ -214,7 +234,8 @@ type Method =
                 let b = (DV.normSq g') / (p * y)
                 let p' = -g' + b * p
                 v', g', p'
-        | NonlinearCG -> // Fletcher and Reeves 1964
+        /// Fletcher and Reeves 1964
+        | NonlinearCG ->
             fun w f g p gradclip ->
                 let v', g' = grad' f w
                 let g' = gradclip g'
@@ -238,8 +259,10 @@ type Method =
 
 /// Momentum configuration
 type Momentum =
-    | Momentum of D // Default momentum
-    | Nesterov of D // Nesterov momentum
+    /// Default momentum
+    | Momentum of D 
+    /// Nesterov momentum
+    | Nesterov of D 
     | NoMomentum
     static member DefaultMomentum = Momentum (D 0.9f)
     static member DefaultNesterov = Nesterov (D 0.9f)
@@ -256,11 +279,16 @@ type Momentum =
 
 /// Loss function configuration
 type Loss =
-    | L1Loss    // L1 norm, least absolute deviations
-    | L2Loss    // L2 norm
-    | Quadratic // L2 norm squared, least squares
-    | CrossEntropyOnLinear  // Cross entropy after linear layer
-    | CrossEntropyOnSoftmax // Cross entropy after softmax layer
+    /// L1 norm, least absolute deviations
+    | L1Loss
+    /// L2 norm
+    | L2Loss
+    /// L2 norm squared, least squares
+    | Quadratic 
+    /// Cross entropy after linear layer
+    | CrossEntropyOnLinear
+    /// Cross entropy after softmax layer
+    | CrossEntropyOnSoftmax
     override l.ToString() =
         match l with
         | L1Loss -> "L1 norm, least absolute deviations"
@@ -278,8 +306,10 @@ type Loss =
 
 /// Regularization configuration
 type Regularization =
-    | L1Reg of D // L1 regularization
-    | L2Reg of D // L2 regularization
+    /// L1 regularization
+    | L1Reg of D
+    /// L2 regularization
+    | L2Reg of D 
     | NoReg
     static member DefaultL1Reg = L1Reg (D 0.0001f)
     static member DefaultL2Reg = L2Reg (D 0.0001f)
@@ -296,7 +326,8 @@ type Regularization =
 
 /// Gradient clipping configuration
 type GradientClipping =
-    | NormClip of D // Norm clipping
+    /// Norm clipping
+    | NormClip of D 
     | NoClip
     static member DefaultNormClip = NormClip (D 1.f)
     override g.ToString() =
@@ -310,7 +341,8 @@ type GradientClipping =
 
 /// Early stopping configuration
 type EarlyStopping =
-    | Early of int * int // Stagnation patience, overfitting patience
+    /// Stagnation patience, overfitting patience
+    | Early of int * int
     | NoEarly
     static member DefaultEarly = Early (750, 10)
     override e.ToString() =
