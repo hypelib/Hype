@@ -1,0 +1,9 @@
+source https://api.nuget.org/v3/index.json
+framework >= net46
+redirects: on
+
+nuget DiffSharp
+nuget FSharp.Core
+nuget FSharp.Formatting
+nuget RProvider
+nuget XPlot.GoogleCharts.WPF
