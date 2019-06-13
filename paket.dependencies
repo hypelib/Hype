@@ -1,9 +1,14 @@
 source https://api.nuget.org/v3/index.json
-framework >= net46
+framework: netstandard2.0
 redirects: on
+storage: none
 
-nuget DiffSharp
+nuget System.Drawing.Common >= 4.5.1
+nuget DiffSharp >= 0.8.0-beta
 nuget FSharp.Core
-nuget FSharp.Formatting
-nuget RProvider
-nuget XPlot.GoogleCharts.WPF
+
+#These packages are used in .fsx examples which are currently difficult to make cross-platform unless they're local
+nuget FSharp.Formatting storage: packages
+//nuget R.NET storage: packages
+nuget RProvider storage: packages
+nuget XPlot.GoogleCharts.WPF storage: packages
