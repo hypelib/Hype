@@ -1,7 +1,7 @@
 ﻿(*** hide ***)
 
-#r "../../src/Hype/bin/Release/DiffSharp.dll"
-#r "../../src/Hype/bin/Release/Hype.dll"
+#r "../../src/Hype/bin/Release/netstandard2.0/DiffSharp.dll"
+#r "../../src/Hype/bin/Release/netstandard2.0/Hype.dll"
 #I "../../packages/R.NET.Community/lib/net40/"
 #I "../../packages/R.NET.Community.FSharp/lib/net40/"
 #I "../../packages/RProvider"
