@@ -3,7 +3,7 @@ STORAGE: NONE
 RESTRICTION: == netstandard2.0
 NUGET
   remote: https://api.nuget.org/v3/index.json
-    DiffSharp (0.8.0-beta)
+    DiffSharp (0.8.1-beta)
       FSharp.Core (>= 4.3.4)
       FSharp.Quotations.Evaluator (>= 1.1.2)
     DynamicInterop (0.8.1) - storage: packages
