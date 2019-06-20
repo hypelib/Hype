@@ -677,8 +677,8 @@ type Optimize =
                     earlystop <- true
                     diverged <- true
 
-                whist <- [w] @ whist
-                lhist <- [l] @ lhist
+                whist <- w :: whist
+                lhist <- l :: lhist
 
                 if (l' < par.ImprovementThreshold * lbest) && (not diverged) then
                     wbest <- w
