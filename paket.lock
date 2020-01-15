@@ -3,7 +3,7 @@ STORAGE: NONE
 RESTRICTION: == netstandard2.0
 NUGET
   remote: https://api.nuget.org/v3/index.json
-    DiffSharp (0.8.2-beta)
+    DiffSharp (0.8.4-beta)
       FSharp.Core (>= 4.3.4)
       FSharp.Quotations.Evaluator (>= 1.1.2)
     DynamicInterop (0.8.1) - storage: packages
@@ -17,7 +17,7 @@ NUGET
       System.Reflection.TypeExtensions (>= 4.3)
       System.Runtime.Loader (>= 4.0)
       System.Security.Cryptography.Algorithms (>= 4.3)
-    FSharp.Core (4.6.2)
+    FSharp.Core (4.7)
     FSharp.Formatting (3.1) - storage: packages
       FSharp.Compiler.Service (>= 27.0.1 < 28.0)
       Microsoft.AspNet.Razor (>= 3.2.7 < 4.0)

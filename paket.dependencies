@@ -4,7 +4,7 @@ redirects: on
 storage: none
 
 nuget System.Drawing.Common >= 4.5.1
-nuget DiffSharp >= 0.8.2-beta
+nuget DiffSharp >= 0.8.4-beta
 nuget FSharp.Core
 
 #These packages are used in .fsx examples which are currently difficult to make cross-platform unless they're local
